@@ -33,7 +33,8 @@ public class ProjectReaderImpl implements ProjectReader {
 					throw new RuntimeException("Unsupported dependency value: "
 							+ keyValue);
 				}
-				Dependency dep = new Dependency(split[0], split[1], split[2]);
+				Dependency dep = new Dependency(split[0].trim(),
+						split[1].trim(), split[2].trim());
 				dep.setScope(keyValue.getKey());
 
 				if (depWithOptions.length > 1) {

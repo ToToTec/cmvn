@@ -22,6 +22,7 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 		}
 		LineNumberReader lineReader = new LineNumberReader(fileReader);
 
+		String continuedLine = null;
 		String line = null;
 		do {
 			try {
@@ -32,11 +33,35 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 			}
 
 			if (line != null) {
-				String trimmedLine = line.trim();
-				if (trimmedLine.length() == 0 || trimmedLine.startsWith("#")) {
-					// empty line or comment
+				if (line.startsWith("#")) {
+					// empty line
 					continue;
 				}
+				if (line.endsWith("\\")) {
+					// an unfinished line
+					line = line.substring(0, line.length() - 1);
+					System.out.println("reduced line: \"" + line + "\"");
+					// continuedLine will now contain the complete content
+					continuedLine = (continuedLine == null ? "" : continuedLine)
+							+ line;
+					System.out.println("countinuedLine: \"" + continuedLine
+							+ "\"");
+					// will be processed with next line
+					continue;
+				}
+
+				String trimmedLine = (continuedLine == null ? line
+						: continuedLine + line).trim();
+				if (continuedLine != null) {
+					System.out.println("procesing continued line: \""
+							+ trimmedLine + "\"");
+				}
+				continuedLine = null;
+				if (trimmedLine.length() == 0) {
+					// empty line
+					continue;
+				}
+
 				String[] keyVal = trimmedLine.split(":", 2);
 				if (keyVal.length != 2) {
 					throw new RuntimeException("Invalid line nr "

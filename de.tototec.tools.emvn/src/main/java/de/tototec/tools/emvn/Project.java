@@ -32,22 +32,29 @@ public class Project {
 
 	public void generateMavenProject() {
 		ProjectDocument pom;
+		final XmlOptions xmlOptions = createXmlOptions();
 		try {
 			pom = ProjectDocument.Factory.parse(
 					new File(projectFile.getParent(), "pom.xml.emvn"),
-					createXmlOptions());
+					xmlOptions);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			// throw new RuntimeException(e);
+			// create new pom.xml
+			pom = ProjectDocument.Factory.newInstance(xmlOptions);
 		}
 
 		Model mvn = pom.getProject();
+		if (mvn == null) {
+			mvn = pom.addNewProject();
+		}
 
 		generateProjectInfo(mvn);
 		generateProperties(mvn);
 		generateDependencies(mvn);
 
 		try {
-			pom.save(new File(projectFile.getParent(), "test-pom.xml"));
+			pom.save(new File(projectFile.getParent(), "test-pom.xml"),
+					xmlOptions);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

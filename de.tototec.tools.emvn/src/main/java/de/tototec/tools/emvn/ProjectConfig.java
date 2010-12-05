@@ -13,4 +13,6 @@ public class ProjectConfig {
 	private final List<Dependency> dependencies = new LinkedList<Dependency>();
 	private final Map<String, String> properties = new LinkedHashMap<String, String>();
 	private final List<Repository> repositories = new LinkedList<Repository>();
+	private String pomTemplateFileName = "pom.xml.emvn";
+	private String pomFileName = "pom.xml";
 }

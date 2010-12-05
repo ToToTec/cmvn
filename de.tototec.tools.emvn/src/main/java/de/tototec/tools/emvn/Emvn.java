@@ -5,14 +5,29 @@ import java.io.File;
 public class Emvn {
 
 	public static void main(String[] args) {
-		System.out.println("emvn (sandbox version)");
 
-		Project project = new Project(new File(System.getProperty("user.dir")));
-		System.out.println(project);
-		
-		// FIXME: this currently creates a test-pom.xml
-		project.generateMavenProject();
-		
-		// TODO: run maven
+		boolean runGenerate = true;
+		boolean runMaven = true;
+
+		for (String arg : args) {
+			if (arg.equals("-version")) {
+				System.out.println("emvn (sandbox version)");
+				runGenerate = false;
+				runMaven = false;
+			}
+		}
+
+		if (runGenerate) {
+			Project project = new Project(new File(
+					System.getProperty("user.dir")));
+			// System.out.println(project);
+
+			project.updateMavenProject();
+		}
+
+		if (runMaven) {
+			// TODO: run maven
+
+		}
 	}
 }

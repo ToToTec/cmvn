@@ -43,12 +43,12 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 				if (line.endsWith("\\")) {
 					// an unfinished line
 					line = line.substring(0, line.length() - 1);
-					System.out.println("reduced line: \"" + line + "\"");
+					// System.out.println("reduced line: \"" + line + "\"");
 					// continuedLine will now contain the complete content
 					continuedLine = (continuedLine == null ? "" : continuedLine)
 							+ line;
-					System.out.println("countinuedLine: \"" + continuedLine
-							+ "\"");
+					// System.out.println("countinuedLine: \"" + continuedLine
+					// + "\"");
 					// will be processed with next line
 					continue;
 				}
@@ -56,8 +56,8 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 				String trimmedLine = (continuedLine == null ? line
 						: continuedLine + line).trim();
 				if (continuedLine != null) {
-					System.out.println("procesing continued line: \""
-							+ trimmedLine + "\"");
+					// System.out.println("procesing continued line: \""
+					// + trimmedLine + "\"");
 				}
 				continuedLine = null;
 				if (trimmedLine.length() == 0) {

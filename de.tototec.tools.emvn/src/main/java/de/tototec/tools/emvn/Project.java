@@ -34,13 +34,35 @@ public class Project {
 		projectConfig = reader.readConfigFile(projectFile);
 	}
 
+	public void updateMavenProject() {
+		if (needsGenerate()) {
+			generateMavenProject();
+		}
+	}
+
+	public boolean needsGenerate() {
+		long lastModified = projectFile.lastModified();
+		File templateFile = new File(projectFile.getParent(),
+				projectConfig.getPomTemplateFileName());
+		if (templateFile.exists()) {
+			lastModified = Math.max(lastModified, templateFile.lastModified());
+		}
+
+		File pomFile = new File(projectFile.getParent(),
+				projectConfig.getPomFileName());
+		return !pomFile.exists() || lastModified > pomFile.lastModified();
+	}
+
 	public void generateMavenProject() {
+		System.out.println("Generating " + projectConfig.getPomFileName()
+				+ "...");
+
 		ProjectDocument pom;
 		final XmlOptions xmlOptions = createXmlOptions();
 		try {
 			pom = ProjectDocument.Factory.parse(
-					new File(projectFile.getParent(), "pom.xml.emvn"),
-					xmlOptions);
+					new File(projectFile.getParent(), projectConfig
+							.getPomTemplateFileName()), xmlOptions);
 		} catch (Exception e) {
 			// throw new RuntimeException(e);
 			// create new pom.xml
@@ -59,8 +81,9 @@ public class Project {
 		generateRepositories(mvn);
 
 		try {
-			pom.save(new File(projectFile.getParent(), "test-pom.xml"),
-					xmlOptions);
+			pom.save(
+					new File(projectFile.getParent(), projectConfig
+							.getPomFileName()), xmlOptions);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

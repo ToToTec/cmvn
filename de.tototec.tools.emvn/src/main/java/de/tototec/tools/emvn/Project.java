@@ -2,6 +2,8 @@ package de.tototec.tools.emvn;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -12,7 +14,9 @@ import org.apache.maven.pom.x400.Dependency.Exclusions;
 import org.apache.maven.pom.x400.Exclusion;
 import org.apache.maven.pom.x400.Model;
 import org.apache.maven.pom.x400.Model.Dependencies;
+import org.apache.maven.pom.x400.Model.PluginRepositories;
 import org.apache.maven.pom.x400.Model.Properties;
+import org.apache.maven.pom.x400.Model.Repositories;
 import org.apache.maven.pom.x400.ProjectDocument;
 import org.apache.xmlbeans.XmlCursor;
 import org.apache.xmlbeans.XmlOptions;
@@ -51,12 +55,43 @@ public class Project {
 		generateProjectInfo(mvn);
 		generateProperties(mvn);
 		generateDependencies(mvn);
+		generateRepositories(mvn);
 
 		try {
 			pom.save(new File(projectFile.getParent(), "test-pom.xml"),
 					xmlOptions);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	protected void generateRepositories(Model mvn) {
+
+		for (Repository repo : projectConfig.getRepositories()) {
+
+			List<org.apache.maven.pom.x400.Repository> mvnRepos = new LinkedList<org.apache.maven.pom.x400.Repository>();
+
+			if (repo.isForArtefacts()) {
+				Repositories repos = mvn.getRepositories();
+				if (repos == null) {
+					repos = mvn.addNewRepositories();
+				}
+				mvnRepos.add(repos.addNewRepository());
+			}
+			if (repo.isForPlugins()) {
+				PluginRepositories repos = mvn.getPluginRepositories();
+				if (repos == null) {
+					repos = mvn.addNewPluginRepositories();
+				}
+				mvnRepos.add(repos.addNewPluginRepository());
+			}
+
+			for (org.apache.maven.pom.x400.Repository mvnRepo : mvnRepos) {
+				mvnRepo.setId(Integer.toHexString(mvnRepo.hashCode()));
+				mvnRepo.addNewReleases().setEnabled(repo.isForReleases());
+				mvnRepo.addNewSnapshots().setEnabled(repo.isForSnapshots());
+				mvnRepo.setUrl(repo.getUrl());
+			}
 		}
 	}
 
@@ -79,7 +114,6 @@ public class Project {
 		}
 
 		cursor.insertChars("\n\t");
-
 	}
 
 	protected void generateProjectInfo(Model mvn) {

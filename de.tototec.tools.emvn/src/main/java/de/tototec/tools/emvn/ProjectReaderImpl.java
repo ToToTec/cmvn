@@ -83,6 +83,21 @@ public class ProjectReaderImpl implements ProjectReader {
 					projectConfig.getProperties().remove(split[0].trim());
 				}
 			}
+		},
+
+		REPOSITORY("repository", "repo", "pluginrepo", "artifactrepo") {
+			@Override
+			public void read(ProjectConfig projectConfig, KeyValue keyValue) {
+				String url = keyValue.getValue();
+				Repository repo = new Repository(url);
+				final String key = keyValue.getKey();
+				if (key.equals("pluginrepo")) {
+					repo.setForArtefacts(false);
+				} else if (key.equals("artifactrepo")) {
+					repo.setForPlugins(false);
+				}
+				projectConfig.getRepositories().add(repo);
+			}
 		}
 
 		;

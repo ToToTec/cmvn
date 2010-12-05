@@ -10,6 +10,9 @@ public class Emvn {
 		Project project = new Project(new File(System.getProperty("user.dir")));
 		System.out.println(project);
 		
+		// FIXME: this currently creates a test-pom.xml
 		project.generateMavenProject();
+		
+		// TODO: run maven
 	}
 }

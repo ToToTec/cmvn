@@ -12,4 +12,5 @@ public class ProjectConfig {
 	private Dependency project;
 	private final List<Dependency> dependencies = new LinkedList<Dependency>();
 	private final Map<String, String> properties = new LinkedHashMap<String, String>();
+	private final List<Repository> repositories = new LinkedList<Repository>();
 }

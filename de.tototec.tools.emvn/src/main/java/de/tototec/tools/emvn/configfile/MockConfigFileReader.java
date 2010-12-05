@@ -1,8 +1,9 @@
-package de.tototec.tools.emvn;
+package de.tototec.tools.emvn.configfile;
 
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+
 
 public class MockConfigFileReader implements ConfigFileReader {
 

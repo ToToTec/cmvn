@@ -6,10 +6,28 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.Getter;
+import lombok.Setter;
+import de.tototec.tools.emvn.configfile.ConfigFileReader;
+import de.tototec.tools.emvn.configfile.KeyValue;
+import de.tototec.tools.emvn.configfile.bndlike.ConfigFileReaderImpl;
 
 public class ProjectReaderImpl implements ProjectReader {
 
-	public enum Key implements KeyValueReader {
+	@Getter
+	@Setter
+	private Map<String, ProjectConfigKeyValueReader> projectConfigKeyValueReader;
+
+	public ProjectReaderImpl() {
+		Map<String, ProjectConfigKeyValueReader> supportedKeys = new LinkedHashMap<String, ProjectConfigKeyValueReader>();
+		for (Key key : Key.values()) {
+			for (String keyName : key.getKey()) {
+				supportedKeys.put(keyName, key);
+			}
+		}
+		setProjectConfigKeyValueReader(supportedKeys);
+	}
+
+	public enum Key implements ProjectConfigKeyValueReader {
 
 		PROJECT("project") {
 			@Override
@@ -116,11 +134,10 @@ public class ProjectReaderImpl implements ProjectReader {
 		ConfigFileReader reader = new ConfigFileReaderImpl();
 		List<KeyValue> readKeyValues = reader.readKeyValues(file);
 
-		Map<String, KeyValueReader> supportedKeys = new LinkedHashMap<String, KeyValueReader>();
-		for (Key key : Key.values()) {
-			for (String keyName : key.getKey()) {
-				supportedKeys.put(keyName, key);
-			}
+		Map<String, ProjectConfigKeyValueReader> supportedKeys = getProjectConfigKeyValueReader();
+		if (supportedKeys == null) {
+			throw new RuntimeException(
+					"No ProjectConfigKeyValueReader registered.");
 		}
 
 		ProjectConfig projectConfig = new ProjectConfig();

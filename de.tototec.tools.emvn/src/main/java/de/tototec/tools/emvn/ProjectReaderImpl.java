@@ -35,7 +35,8 @@ public class ProjectReaderImpl implements ProjectReader {
 				}
 				Dependency dep = new Dependency(split[0].trim(),
 						split[1].trim(), split[2].trim());
-				dep.setScope(keyValue.getKey());
+				final String scope = keyValue.getKey();
+				dep.setScope(scope.equals("dependency") ? "compile" : scope);
 
 				if (depWithOptions.length > 1) {
 					for (int i = 1; i < depWithOptions.length; ++i) {

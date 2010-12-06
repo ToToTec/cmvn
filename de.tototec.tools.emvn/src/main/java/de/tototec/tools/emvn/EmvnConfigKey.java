@@ -67,6 +67,8 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 							exclude[1].trim(), "0"));
 				} else if (oKey.equals("systemPath")) {
 					dep.setJarPath(oValue);
+				} else if (oKey.equals("forceversion")) {
+					dep.setForceVerison(oValue.equalsIgnoreCase("true"));
 				} else {
 					throw new RuntimeException("Unsupported option: " + option);
 				}

@@ -18,8 +18,9 @@ public class Dependency {
 	@Setter(AccessLevel.NONE)
 	private List<Dependency> excludes;
 	private String jarPath;
+	private boolean forceVerison = false;
 
-	public void addToExcludes(Dependency dependency) {
+	public void addToExcludes(final Dependency dependency) {
 		if (excludes == null) {
 			synchronized (this) {
 				if (excludes == null) {

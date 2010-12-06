@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 import org.apache.maven.pom.x400.Dependency.Exclusions;
+import org.apache.maven.pom.x400.DependencyManagement;
 import org.apache.maven.pom.x400.Exclusion;
 import org.apache.maven.pom.x400.Model;
 import org.apache.maven.pom.x400.Model.Dependencies;
@@ -233,6 +234,43 @@ public class Project {
 					jarPath = "${basedir}/" + jarPath;
 				}
 				mvnDep.setSystemPath(jarPath);
+			}
+
+			// dependency management
+			if (dep.isForceVerison()) {
+
+				DependencyManagement mvnMgmt = mvn.getDependencyManagement();
+				if (mvnMgmt == null) {
+					mvnMgmt = mvn.addNewDependencyManagement();
+				}
+
+				org.apache.maven.pom.x400.DependencyManagement.Dependencies mvnMgmtDeps = mvnMgmt
+						.getDependencies();
+				if (mvnMgmtDeps == null) {
+					mvnMgmtDeps = mvnMgmt.addNewDependencies();
+				}
+
+				org.apache.maven.pom.x400.Dependency mvnMgmtDep = null;
+
+				for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnMgmtDeps
+						.getDependencyArray()) {
+					final boolean exists = dep.getGroupId().equals(
+							mvnDepExist.getGroupId())
+							&& dep.getArtifactId().equals(
+									mvnDepExist.getArtifactId());
+					if (exists) {
+						mvnDep = mvnDepExist;
+						break;
+					}
+				}
+
+				if (mvnMgmtDep == null) {
+					mvnMgmtDep = mvnMgmtDeps.addNewDependency();
+				}
+
+				mvnMgmtDep.setGroupId(dep.getGroupId());
+				mvnMgmtDep.setArtifactId(dep.getArtifactId());
+				mvnMgmtDep.setVersion(dep.getVersion());
 			}
 		}
 	}

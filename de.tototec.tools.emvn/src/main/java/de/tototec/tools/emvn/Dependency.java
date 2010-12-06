@@ -17,6 +17,7 @@ public class Dependency {
 	private boolean optionalAsTransitive = false;
 	@Setter(AccessLevel.NONE)
 	private List<Dependency> excludes;
+	private String jarPath;
 
 	public void addToExcludes(Dependency dependency) {
 		if (excludes == null) {

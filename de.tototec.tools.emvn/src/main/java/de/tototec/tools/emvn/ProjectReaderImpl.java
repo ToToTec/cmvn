@@ -79,6 +79,8 @@ public class ProjectReaderImpl implements ProjectReader {
 							}
 							dep.addToExcludes(new Dependency(exclude[0].trim(),
 									exclude[1].trim(), "0"));
+						} else if ("systemPath".equalsIgnoreCase(oKey)) {
+							dep.setJarPath(oValue);
 						} else {
 							throw new RuntimeException("Unsupported option: "
 									+ depWithOptions[i]);

@@ -75,7 +75,7 @@ public class Project {
 					+ "\t<modelVersion>4.0.0</modelVersion>\n</project>\n";
 
 			// System.out.println("Using empty pom.xml as template:\n"
-			//		+ xmlAsString);
+			// + xmlAsString);
 
 			try {
 				pom = ProjectDocument.Factory.parse(xmlAsString, xmlOptions);
@@ -216,6 +216,13 @@ public class Project {
 					mvnExclusion.setGroupId(exclude.getGroupId());
 					mvnExclusion.setArtifactId(exclude.getArtifactId());
 				}
+			}
+			String jarPath = dep.getJarPath();
+			if (jarPath != null) {
+				if (!new File(jarPath).isAbsolute()) {
+					jarPath = "${basedir}/" + jarPath;
+				}
+				mvnDep.setSystemPath(jarPath);
 			}
 		}
 	}

@@ -19,6 +19,7 @@ import org.apache.maven.pom.x400.Model.Properties;
 import org.apache.maven.pom.x400.Model.Repositories;
 import org.apache.maven.pom.x400.ProjectDocument;
 import org.apache.xmlbeans.XmlCursor;
+import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlOptions;
 
 @ToString
@@ -66,7 +67,22 @@ public class Project {
 		} catch (Exception e) {
 			// throw new RuntimeException(e);
 			// create new pom.xml
-			pom = ProjectDocument.Factory.newInstance(xmlOptions);
+			// pom = ProjectDocument.Factory.newInstance(xmlOptions);
+
+			String xmlAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+					+ "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" "
+					+ "xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
+					+ "\t<modelVersion>4.0.0</modelVersion>\n</project>\n";
+
+			// System.out.println("Using empty pom.xml as template:\n"
+			//		+ xmlAsString);
+
+			try {
+				pom = ProjectDocument.Factory.parse(xmlAsString, xmlOptions);
+			} catch (XmlException e1) {
+				throw new RuntimeException(e1);
+			}
+
 		}
 
 		Model mvn = pom.getProject();

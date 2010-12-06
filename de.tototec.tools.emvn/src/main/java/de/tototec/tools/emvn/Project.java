@@ -22,6 +22,10 @@ import org.apache.xmlbeans.XmlCursor;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlOptions;
 
+import de.tototec.tools.emvn.model.Dependency;
+import de.tototec.tools.emvn.model.ProjectConfig;
+import de.tototec.tools.emvn.model.Repository;
+
 @ToString
 public class Project {
 

@@ -1,9 +1,10 @@
-package de.tototec.tools.emvn;
+package de.tototec.tools.emvn.model;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package de.tototec.tools.emvn;
+package de.tototec.tools.emvn.model;
 
 import java.util.LinkedList;
 import java.util.List;

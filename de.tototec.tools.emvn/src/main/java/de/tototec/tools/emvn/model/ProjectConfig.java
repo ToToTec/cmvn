@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
 import lombok.Data;
 
 @Data
@@ -16,4 +15,5 @@ public class ProjectConfig {
 	private final List<Repository> repositories = new LinkedList<Repository>();
 	private String pomTemplateFileName = "pom.xml.emvn";
 	private String pomFileName = "pom.xml";
+	private String packaging;
 }

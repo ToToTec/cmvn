@@ -21,6 +21,13 @@ public class Emvn {
 				filteredArgs.add(arg);
 			} else if (arg.equals("--")) {
 				unfilteredArgs = true;
+			} else if (arg.equals("--help") || arg.equals("-")) {
+				System.out
+						.println("Usage: emvn <emvn-options> [--] <mvn-options>");
+				runGenerate = false;
+				runMaven = false;
+				filteredArgs.clear();
+				break;
 			} else if (arg.equals("-version") || arg.equals("--version")) {
 				System.out.println("emvn 0.0.1-SNAPSHOT");
 				runGenerate = false;

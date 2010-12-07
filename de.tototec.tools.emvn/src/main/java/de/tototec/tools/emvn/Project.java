@@ -91,7 +91,8 @@ public class Project {
 			// + xmlAsString);
 
 			try {
-				pom = ProjectDocument.Factory.parse(xmlAsString, xmlOptions);
+				pom = ProjectDocument.Factory.parse(xmlAsString,
+						createXmlOptions());
 			} catch (final XmlException e1) {
 				throw new RuntimeException(e1);
 			}
@@ -123,7 +124,7 @@ public class Project {
 			generatePlugins(mvn);
 
 			try {
-				pom.save(pomFile, xmlOptions);
+				pom.save(pomFile, createXmlSaveOptions());
 			} catch (final Exception e) {
 				throw new RuntimeException(e);
 			}
@@ -443,6 +444,16 @@ public class Project {
 		final Map<String, String> ns = new HashMap<String, String>();
 		ns.put("", "http://maven.apache.org/POM/4.0.0");
 		opts.setLoadSubstituteNamespaces(ns);
+		return opts;
+	}
+
+	public XmlOptions createXmlSaveOptions() {
+		final XmlOptions opts = new XmlOptions();
+		// final Map<String, String> ns = new HashMap<String, String>();
+		// ns.put("", "http://maven.apache.org/POM/4.0.0");
+		// opts.setLoadSubstituteNamespaces(ns);
+		opts.setSavePrettyPrint();
+		opts.setSavePrettyPrintIndent(2);
 		return opts;
 	}
 

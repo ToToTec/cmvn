@@ -16,4 +16,5 @@ public class ProjectConfig {
 	private String pomTemplateFileName = "pom.xml.emvn";
 	private String pomFileName = "pom.xml";
 	private String packaging;
+	private List<String> modules;
 }

@@ -1,5 +1,8 @@
 package de.tototec.tools.emvn;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import lombok.Getter;
 import de.tototec.tools.emvn.configfile.KeyValue;
 import de.tototec.tools.emvn.configfile.KeyValueWithOptions;
@@ -105,6 +108,22 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 				repo.setForPlugins(false);
 			}
 			projectConfig.getRepositories().add(repo);
+		}
+	},
+
+	MODULE("module") {
+		@Override
+		public void read(final ProjectConfig projectConfig,
+				final KeyValue keyValue) {
+
+			if (projectConfig.getModules() == null) {
+				projectConfig.setModules(new LinkedList<String>());
+			}
+
+			final String[] modules = keyValue.getValue().split(",");
+			for(final String module : modules)  {
+				projectConfig.getModules().add(module);
+			}
 		}
 	}
 

@@ -13,12 +13,15 @@ public class Emvn {
 
 		boolean runGenerate = true;
 		boolean runMaven = true;
+		boolean runClean = false;
+		boolean forceGenerate = false;
 		boolean unfilteredArgs = false;
 
-		final List<String> filteredArgs = new LinkedList<String>();
+		final List<String> mavenArgs = new LinkedList<String>();
+
 		for (final String arg : args) {
 			if (unfilteredArgs) {
-				filteredArgs.add(arg);
+				mavenArgs.add(arg);
 			} else if (arg.equals("--")) {
 				unfilteredArgs = true;
 			} else if (arg.equals("--help") || arg.equals("-")) {
@@ -26,30 +29,40 @@ public class Emvn {
 						.println("Usage: emvn <emvn-options> [--] <mvn-options>");
 				runGenerate = false;
 				runMaven = false;
-				filteredArgs.clear();
+				mavenArgs.clear();
 				break;
 			} else if (arg.equals("-version") || arg.equals("--version")) {
 				System.out.println("emvn 0.0.1-SNAPSHOT");
 				runGenerate = false;
 				runMaven = true;
-				filteredArgs.clear();
-				filteredArgs.add("-version");
+				mavenArgs.clear();
+				mavenArgs.add("-version");
 				break;
+			} else if (arg.equals("-clean") || arg.equals("--clean")) {
+				runGenerate = false;
+				runMaven = false;
+				runClean = true;
+			} else if (arg.equals("-force") || arg.equals("--force")) {
+				forceGenerate = true;
 			} else {
-				filteredArgs.add(arg);
+				mavenArgs.add(arg);
 			}
 		}
 
-		if (runGenerate) {
-			final Project project = new Project(new File(
-					System.getProperty("user.dir")));
-			// System.out.println(project);
+		final Project project = new Project(new File(
+				System.getProperty("user.dir")));
+		// System.out.println(project);
 
-			project.generateMavenProject(true, true);
+		if (runGenerate) {
+			project.generateMavenProject(!forceGenerate, true);
+		}
+
+		if (runClean) {
+			project.cleanMavenProject(true);
 		}
 
 		if (runMaven) {
-			final LinkedList<String> mvnArgs = new LinkedList<String>(filteredArgs);
+			final LinkedList<String> mvnArgs = new LinkedList<String>(mavenArgs);
 			mvnArgs.add(0, "mvn");
 			final ProcessBuilder pB = new ProcessBuilder(mvnArgs);
 			Process process = null;

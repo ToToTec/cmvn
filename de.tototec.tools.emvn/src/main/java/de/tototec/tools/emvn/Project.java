@@ -61,44 +61,58 @@ public class Project {
 
 	public void generateMavenProject(final boolean onlyIfNeeded,
 			final boolean recursive) {
+		processMavenProject(onlyIfNeeded, recursive, false);
+	}
 
-		if (onlyIfNeeded && needsGenerate()) {
+	public void cleanMavenProject(final boolean recursive) {
+		processMavenProject(true, recursive, true);
+	}
 
-			System.out.println("Generating " + projectConfig.getPomFileName()
-					+ "...");
+	protected void processMavenProject(final boolean onlyIfNeeded,
+			final boolean recursive, final boolean cleanInsteadOfGenerate) {
 
-			ProjectDocument pom;
-			final XmlOptions xmlOptions = createXmlOptions();
+		ProjectDocument pom;
+		final XmlOptions xmlOptions = createXmlOptions();
+		try {
+			pom = ProjectDocument.Factory.parse(
+					new File(projectFile.getParent(), projectConfig
+							.getPomTemplateFileName()), xmlOptions);
+		} catch (final Exception e) {
+			// throw new RuntimeException(e);
+			// create new pom.xml
+			// pom = ProjectDocument.Factory.newInstance(xmlOptions);
+
+			final String xmlAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+					+ "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" "
+					+ "xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
+					+ "\t<modelVersion>4.0.0</modelVersion>\n</project>\n";
+
+			// System.out.println("Using empty pom.xml as template:\n"
+			// + xmlAsString);
+
 			try {
-				pom = ProjectDocument.Factory.parse(
-						new File(projectFile.getParent(), projectConfig
-								.getPomTemplateFileName()), xmlOptions);
-			} catch (final Exception e) {
-				// throw new RuntimeException(e);
-				// create new pom.xml
-				// pom = ProjectDocument.Factory.newInstance(xmlOptions);
-
-				final String xmlAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-						+ "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" "
-						+ "xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
-						+ "\t<modelVersion>4.0.0</modelVersion>\n</project>\n";
-
-				// System.out.println("Using empty pom.xml as template:\n"
-				// + xmlAsString);
-
-				try {
-					pom = ProjectDocument.Factory
-							.parse(xmlAsString, xmlOptions);
-				} catch (final XmlException e1) {
-					throw new RuntimeException(e1);
-				}
-
+				pom = ProjectDocument.Factory.parse(xmlAsString, xmlOptions);
+			} catch (final XmlException e1) {
+				throw new RuntimeException(e1);
 			}
 
-			Model mvn = pom.getProject();
-			if (mvn == null) {
-				mvn = pom.addNewProject();
+		}
+
+		Model mvn = pom.getProject();
+		if (mvn == null) {
+			mvn = pom.addNewProject();
+		}
+
+		final File pomFile = new File(projectFile.getParent(),
+				projectConfig.getPomFileName());
+
+		if (cleanInsteadOfGenerate) {
+			if (pomFile.exists()) {
+				System.out.println("Deleting " + pomFile + "...");
+				pomFile.delete();
 			}
+		} else if (!onlyIfNeeded || needsGenerate()) {
+			System.out.println("Generating " + pomFile + "...");
 
 			generateMarkerComment(mvn);
 			generateProjectInfo(mvn);
@@ -109,9 +123,7 @@ public class Project {
 			generatePlugins(mvn);
 
 			try {
-				pom.save(
-						new File(projectFile.getParent(), projectConfig
-								.getPomFileName()), xmlOptions);
+				pom.save(pomFile, xmlOptions);
 			} catch (final Exception e) {
 				throw new RuntimeException(e);
 			}
@@ -122,7 +134,8 @@ public class Project {
 			for (final String module : projectConfig.getModules()) {
 				final File moduleDir = new File(projectFile.getParent(), module);
 				final Project subProject = new Project(moduleDir);
-				subProject.generateMavenProject(onlyIfNeeded, recursive);
+				subProject.processMavenProject(onlyIfNeeded, recursive,
+						cleanInsteadOfGenerate);
 			}
 		}
 	}
@@ -157,7 +170,7 @@ public class Project {
 					break;
 				}
 			}
-			
+
 			if (mvnPlugin == null) {
 				mvnPlugin = mvnPlugins.addNewPlugin();
 				mvnPlugin.setGroupId(pluginInfo.getGroupId());

@@ -10,20 +10,26 @@ import java.util.Map.Entry;
 import lombok.Getter;
 import lombok.ToString;
 
+import org.apache.maven.pom.x400.Build;
+import org.apache.maven.pom.x400.Build.Plugins;
 import org.apache.maven.pom.x400.Dependency.Exclusions;
 import org.apache.maven.pom.x400.DependencyManagement;
 import org.apache.maven.pom.x400.Exclusion;
 import org.apache.maven.pom.x400.Model;
 import org.apache.maven.pom.x400.Model.Dependencies;
+import org.apache.maven.pom.x400.Model.Modules;
 import org.apache.maven.pom.x400.Model.PluginRepositories;
 import org.apache.maven.pom.x400.Model.Properties;
 import org.apache.maven.pom.x400.Model.Repositories;
+import org.apache.maven.pom.x400.Plugin.Configuration;
 import org.apache.maven.pom.x400.ProjectDocument;
 import org.apache.xmlbeans.XmlCursor;
 import org.apache.xmlbeans.XmlException;
+import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
 
 import de.tototec.tools.emvn.model.Dependency;
+import de.tototec.tools.emvn.model.Plugin;
 import de.tototec.tools.emvn.model.ProjectConfig;
 import de.tototec.tools.emvn.model.Repository;
 
@@ -40,12 +46,6 @@ public class Project {
 		projectConfig = reader.readConfigFile(projectFile);
 	}
 
-	public void updateMavenProject() {
-		if (needsGenerate()) {
-			generateMavenProject();
-		}
-	}
-
 	public boolean needsGenerate() {
 		long lastModified = projectFile.lastModified();
 		final File templateFile = new File(projectFile.getParent(),
@@ -59,54 +59,148 @@ public class Project {
 		return !pomFile.exists() || lastModified > pomFile.lastModified();
 	}
 
-	public void generateMavenProject() {
-		System.out.println("Generating " + projectConfig.getPomFileName()
-				+ "...");
+	public void generateMavenProject(final boolean onlyIfNeeded,
+			final boolean recursive) {
 
-		ProjectDocument pom;
-		final XmlOptions xmlOptions = createXmlOptions();
-		try {
-			pom = ProjectDocument.Factory.parse(
-					new File(projectFile.getParent(), projectConfig
-							.getPomTemplateFileName()), xmlOptions);
-		} catch (final Exception e) {
-			// throw new RuntimeException(e);
-			// create new pom.xml
-			// pom = ProjectDocument.Factory.newInstance(xmlOptions);
+		if (onlyIfNeeded && needsGenerate()) {
 
-			final String xmlAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-					+ "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" "
-					+ "xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
-					+ "\t<modelVersion>4.0.0</modelVersion>\n</project>\n";
+			System.out.println("Generating " + projectConfig.getPomFileName()
+					+ "...");
 
-			// System.out.println("Using empty pom.xml as template:\n"
-			// + xmlAsString);
+			ProjectDocument pom;
+			final XmlOptions xmlOptions = createXmlOptions();
+			try {
+				pom = ProjectDocument.Factory.parse(
+						new File(projectFile.getParent(), projectConfig
+								.getPomTemplateFileName()), xmlOptions);
+			} catch (final Exception e) {
+				// throw new RuntimeException(e);
+				// create new pom.xml
+				// pom = ProjectDocument.Factory.newInstance(xmlOptions);
+
+				final String xmlAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+						+ "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" "
+						+ "xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
+						+ "\t<modelVersion>4.0.0</modelVersion>\n</project>\n";
+
+				// System.out.println("Using empty pom.xml as template:\n"
+				// + xmlAsString);
+
+				try {
+					pom = ProjectDocument.Factory
+							.parse(xmlAsString, xmlOptions);
+				} catch (final XmlException e1) {
+					throw new RuntimeException(e1);
+				}
+
+			}
+
+			Model mvn = pom.getProject();
+			if (mvn == null) {
+				mvn = pom.addNewProject();
+			}
+
+			generateMarkerComment(mvn);
+			generateProjectInfo(mvn);
+			generateModules(mvn);
+			generateProperties(mvn);
+			generateDependencies(mvn);
+			generateRepositories(mvn);
+			generatePlugins(mvn);
 
 			try {
-				pom = ProjectDocument.Factory.parse(xmlAsString, xmlOptions);
-			} catch (final XmlException e1) {
-				throw new RuntimeException(e1);
+				pom.save(
+						new File(projectFile.getParent(), projectConfig
+								.getPomFileName()), xmlOptions);
+			} catch (final Exception e) {
+				throw new RuntimeException(e);
 			}
 
 		}
 
-		Model mvn = pom.getProject();
-		if (mvn == null) {
-			mvn = pom.addNewProject();
+		if (recursive) {
+			for (final String module : projectConfig.getModules()) {
+				final File moduleDir = new File(projectFile.getParent(), module);
+				final Project subProject = new Project(moduleDir);
+				subProject.generateMavenProject(onlyIfNeeded, recursive);
+			}
+		}
+	}
+
+	protected void generatePlugins(final Model mvn) {
+		if (projectConfig.getPlugins().isEmpty()) {
+			return;
 		}
 
-		generateMarkerComment(mvn);
-		generateProjectInfo(mvn);
-		generateProperties(mvn);
-		generateDependencies(mvn);
-		generateRepositories(mvn);
+		Build mvnBuild = mvn.getBuild();
+		if (mvnBuild == null) {
+			mvnBuild = mvn.addNewBuild();
+		}
 
-		try {
-			pom.save(
-					new File(projectFile.getParent(), projectConfig
-							.getPomFileName()), xmlOptions);
-		} catch (final Exception e) {
-			throw new RuntimeException(e);
+		Plugins mvnPlugins = mvnBuild.getPlugins();
+		if (mvnPlugins == null) {
+			mvnPlugins = mvnBuild.addNewPlugins();
+		}
+
+		for (final Plugin plugin : projectConfig.getPlugins()) {
+			final Dependency pluginInfo = plugin.getPluginInfo();
+
+			org.apache.maven.pom.x400.Plugin mvnPlugin = null;
+
+			for (final org.apache.maven.pom.x400.Plugin mvnExistingPlugin : mvnPlugins
+					.getPluginArray()) {
+				if (pluginInfo.getGroupId().equals(
+						mvnExistingPlugin.getGroupId())
+						&& pluginInfo.getArtifactId().equals(
+								mvnExistingPlugin.getArtifactId())) {
+					mvnPlugin = mvnExistingPlugin;
+					break;
+				}
+			}
+			
+			if (mvnPlugin == null) {
+				mvnPlugin = mvnPlugins.addNewPlugin();
+				mvnPlugin.setGroupId(pluginInfo.getGroupId());
+				mvnPlugin.setArtifactId(pluginInfo.getArtifactId());
+			}
+
+			mvnPlugin.setVersion(pluginInfo.getVersion());
+
+			// special plugin dependencies
+			// TODO: use generic part
+			if (!plugin.getPluginDependencies().isEmpty()) {
+				org.apache.maven.pom.x400.Plugin.Dependencies pDeps = mvnPlugin
+						.getDependencies();
+				if (pDeps == null) {
+					pDeps = mvnPlugin.addNewDependencies();
+				}
+
+				generateDependenciesBlock(plugin.getPluginDependencies(), pDeps);
+
+			}
+
+			// configuration
+			Configuration mvnConfig = mvnPlugin.getConfiguration();
+			if (mvnConfig == null) {
+				mvnConfig = mvnPlugin.addNewConfiguration();
+			}
+			generatePropertiesBlock(plugin.getConfiguration(), mvnConfig,
+					"\t\t\t\t");
+		}
+	}
+
+	protected void generateModules(final Model mvn) {
+		if (projectConfig.getModules().isEmpty()) {
+			return;
+		}
+
+		Modules mvnModules = mvn.getModules();
+		if (mvnModules == null) {
+			mvnModules = mvn.addNewModules();
+		}
+
+		for (final String module : projectConfig.getModules()) {
+			mvnModules.addModule(module);
 		}
 	}
 
@@ -158,19 +252,26 @@ public class Project {
 			mvnProperties = mvn.addNewProperties();
 		}
 
+		generatePropertiesBlock(projectConfig.getProperties(), mvnProperties,
+				"\t");
+	}
+
+	protected void generatePropertiesBlock(
+			final Map<String, String> properties,
+			final XmlObject mvnProperties, final String indentString) {
+
 		final XmlCursor cursor = mvnProperties.newCursor();
 		// cursor.toFirstContentToken();
 		cursor.toEndToken();
 
-		for (final Entry<String, String> entry : projectConfig.getProperties()
-				.entrySet()) {
-			cursor.insertChars("\n\t\t");
+		for (final Entry<String, String> entry : properties.entrySet()) {
+			cursor.insertChars("\n\t" + indentString);
 			cursor.beginElement(entry.getKey());
 			cursor.insertChars(entry.getValue());
 			cursor.toNextToken();
 		}
 
-		cursor.insertChars("\n\t");
+		cursor.insertChars("\n" + indentString);
 	}
 
 	protected void generateProjectInfo(final Model mvn) {
@@ -187,54 +288,15 @@ public class Project {
 	}
 
 	protected void generateDependencies(final Model mvn) {
-		for (final Dependency dep : projectConfig.getDependencies()) {
+		if (!projectConfig.getDependencies().isEmpty()) {
 			Dependencies mvnDeps = mvn.getDependencies();
 			if (mvnDeps == null) {
 				mvnDeps = mvn.addNewDependencies();
 			}
+			generateDependenciesBlock(projectConfig.getDependencies(), mvnDeps);
+		}
 
-			org.apache.maven.pom.x400.Dependency mvnDep = null;
-
-			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps
-					.getDependencyArray()) {
-				final boolean exists = dep.getGroupId().equals(
-						mvnDepExist.getGroupId())
-						&& dep.getArtifactId().equals(
-								mvnDepExist.getArtifactId());
-				// && dep.getVersion().equals(mvnDepExist.getVersion());
-				if (exists) {
-					mvnDep = mvnDepExist;
-					break;
-				}
-			}
-
-			if (mvnDep == null) {
-				mvnDep = mvnDeps.addNewDependency();
-			}
-			mvnDep.setGroupId(dep.getGroupId());
-			mvnDep.setArtifactId(dep.getArtifactId());
-			mvnDep.setVersion(dep.getVersion());
-			mvnDep.setScope(dep.getScope());
-			mvnDep.setOptional(dep.isOptionalAsTransitive());
-			if (dep.getExcludes() != null) {
-				Exclusions mvnExclusions = mvnDep.getExclusions();
-				if (mvnExclusions == null) {
-					mvnExclusions = mvnDep.addNewExclusions();
-				}
-				for (final Dependency exclude : dep.getExcludes()) {
-					final Exclusion mvnExclusion = mvnExclusions
-							.addNewExclusion();
-					mvnExclusion.setGroupId(exclude.getGroupId());
-					mvnExclusion.setArtifactId(exclude.getArtifactId());
-				}
-			}
-			String jarPath = dep.getJarPath();
-			if (jarPath != null) {
-				if (!new File(jarPath).isAbsolute()) {
-					jarPath = "${basedir}/" + jarPath;
-				}
-				mvnDep.setSystemPath(jarPath);
-			}
+		for (final Dependency dep : projectConfig.getDependencies()) {
 
 			// dependency management
 			if (dep.isForceVerison()) {
@@ -259,7 +321,7 @@ public class Project {
 							&& dep.getArtifactId().equals(
 									mvnDepExist.getArtifactId());
 					if (exists) {
-						mvnDep = mvnDepExist;
+						mvnMgmtDep = mvnDepExist;
 						break;
 					}
 				}
@@ -272,6 +334,94 @@ public class Project {
 				mvnMgmtDep.setArtifactId(dep.getArtifactId());
 				mvnMgmtDep.setVersion(dep.getVersion());
 			}
+		}
+	}
+
+	protected void generateDependenciesBlock(
+			final List<Dependency> dependencies,
+			final Dependencies mvnDependencies) {
+
+		for (final Dependency dep : dependencies) {
+			final Dependencies mvnDeps = mvnDependencies;
+
+			org.apache.maven.pom.x400.Dependency mvnDep = null;
+
+			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps
+					.getDependencyArray()) {
+				final boolean exists = dep.getGroupId().equals(
+						mvnDepExist.getGroupId())
+						&& dep.getArtifactId().equals(
+								mvnDepExist.getArtifactId());
+				if (exists) {
+					mvnDep = mvnDepExist;
+					break;
+				}
+			}
+
+			if (mvnDep == null) {
+				mvnDep = mvnDeps.addNewDependency();
+			}
+
+			generateDependencyBlock(dep, mvnDep);
+
+		}
+	}
+
+	protected void generateDependenciesBlock(
+			final List<Dependency> dependencies,
+			final org.apache.maven.pom.x400.Plugin.Dependencies mvnPluginDependencies) {
+
+		for (final Dependency dep : dependencies) {
+			final org.apache.maven.pom.x400.Plugin.Dependencies mvnDeps = mvnPluginDependencies;
+
+			org.apache.maven.pom.x400.Dependency mvnDep = null;
+
+			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps
+					.getDependencyArray()) {
+				final boolean exists = dep.getGroupId().equals(
+						mvnDepExist.getGroupId())
+						&& dep.getArtifactId().equals(
+								mvnDepExist.getArtifactId());
+				if (exists) {
+					mvnDep = mvnDepExist;
+					break;
+				}
+			}
+
+			if (mvnDep == null) {
+				mvnDep = mvnDeps.addNewDependency();
+			}
+
+			generateDependencyBlock(dep, mvnDep);
+
+		}
+	}
+
+	protected void generateDependencyBlock(final Dependency dep,
+			final org.apache.maven.pom.x400.Dependency mvnDep) {
+
+		mvnDep.setGroupId(dep.getGroupId());
+		mvnDep.setArtifactId(dep.getArtifactId());
+		mvnDep.setVersion(dep.getVersion());
+		mvnDep.setScope(dep.getScope());
+		mvnDep.setOptional(dep.isOptionalAsTransitive());
+		if (dep.getExcludes() != null) {
+			Exclusions mvnExclusions = mvnDep.getExclusions();
+			if (mvnExclusions == null) {
+				mvnExclusions = mvnDep.addNewExclusions();
+			}
+			for (final Dependency exclude : dep.getExcludes()) {
+				final Exclusion mvnExclusion = mvnExclusions.addNewExclusion();
+				mvnExclusion.setGroupId(exclude.getGroupId());
+				mvnExclusion.setArtifactId(exclude.getArtifactId());
+			}
+		}
+		String jarPath = dep.getJarPath();
+		if (jarPath != null) {
+			if (!new File(jarPath).isAbsolute()) {
+				jarPath = "${basedir}/" + jarPath;
+			}
+			mvnDep.setSystemPath(jarPath);
 		}
 	}
 

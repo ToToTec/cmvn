@@ -9,14 +9,14 @@ import java.util.List;
 
 public class Emvn {
 
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 
 		boolean runGenerate = true;
 		boolean runMaven = true;
 		boolean unfilteredArgs = false;
 
-		List<String> filteredArgs = new LinkedList<String>();
-		for (String arg : args) {
+		final List<String> filteredArgs = new LinkedList<String>();
+		for (final String arg : args) {
 			if (unfilteredArgs) {
 				filteredArgs.add(arg);
 			} else if (arg.equals("--")) {
@@ -41,32 +41,32 @@ public class Emvn {
 		}
 
 		if (runGenerate) {
-			Project project = new Project(new File(
+			final Project project = new Project(new File(
 					System.getProperty("user.dir")));
 			// System.out.println(project);
 
-			project.updateMavenProject();
+			project.generateMavenProject(true, true);
 		}
 
 		if (runMaven) {
-			LinkedList<String> mvnArgs = new LinkedList<String>(filteredArgs);
+			final LinkedList<String> mvnArgs = new LinkedList<String>(filteredArgs);
 			mvnArgs.add(0, "mvn");
-			ProcessBuilder pB = new ProcessBuilder(mvnArgs);
+			final ProcessBuilder pB = new ProcessBuilder(mvnArgs);
 			Process process = null;
 			try {
 				System.out.println("Executing " + mvnArgs + "...");
 				process = pB.start();
 				copyInBackgroundThread(process.getErrorStream(), System.err);
 				copyInBackgroundThread(process.getInputStream(), System.out);
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				throw new RuntimeException(
 						"Error occured while starting process mvn.", e);
 			}
 			if (process != null) {
 				try {
-					int exitValue = process.waitFor();
+					final int exitValue = process.waitFor();
 					System.exit(exitValue);
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 					throw new RuntimeException(
 							"Error occured while execution process mvn.", e);
 				}
@@ -85,7 +85,7 @@ public class Emvn {
 
 	protected static void copy(final InputStream in, final OutputStream out) {
 		try {
-			byte[] buf = new byte[1024];
+			final byte[] buf = new byte[1024];
 			int len;
 			while ((len = in.read(buf)) > 0) {
 				out.write(buf, 0, len);

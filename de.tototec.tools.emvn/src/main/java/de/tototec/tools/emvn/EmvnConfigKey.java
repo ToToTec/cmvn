@@ -1,12 +1,10 @@
 package de.tototec.tools.emvn;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import lombok.Getter;
 import de.tototec.tools.emvn.configfile.KeyValue;
 import de.tototec.tools.emvn.configfile.KeyValueWithOptions;
 import de.tototec.tools.emvn.model.Dependency;
+import de.tototec.tools.emvn.model.Plugin;
 import de.tototec.tools.emvn.model.ProjectConfig;
 import de.tototec.tools.emvn.model.Repository;
 
@@ -116,14 +114,49 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 		public void read(final ProjectConfig projectConfig,
 				final KeyValue keyValue) {
 
-			if (projectConfig.getModules() == null) {
-				projectConfig.setModules(new LinkedList<String>());
-			}
-
 			final String[] modules = keyValue.getValue().split(",");
-			for(final String module : modules)  {
+			for (final String module : modules) {
 				projectConfig.getModules().add(module);
 			}
+		}
+	},
+
+	PLUGIN("plugin") {
+		@Override
+		public void read(final ProjectConfig projectConfig,
+				final KeyValue keyValue) {
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
+					keyValue, ";", "=", "true");
+
+			final String[] split = withOptions.getValue().split(":", 3);
+			if (split.length < 3) {
+				throw new RuntimeException("Unsupported plugin specifier: "
+						+ withOptions.getValue());
+			}
+			final Plugin plugin = new Plugin();
+			final Dependency pluginInfo = new Dependency(split[0].trim(),
+					split[1].trim(), split[2].trim());
+			plugin.setPluginInfo(pluginInfo);
+
+			for (final KeyValue option : withOptions.getOptions()) {
+				final String oKey = option.getKey();
+				final String oVal = option.getValue();
+				if (oKey.equals("-plugindependency")) {
+					final String[] depSplit = oVal.split(":", 3);
+					if (depSplit.length < 3) {
+						throw new RuntimeException(
+								"Unsupported plugin dependency: " + oVal);
+					}
+					final Dependency pluginDep = new Dependency(
+							depSplit[0].trim(), depSplit[1].trim(),
+							depSplit[2].trim());
+					plugin.getPluginDependencies().add(pluginDep);
+				} else {
+					plugin.getConfiguration().put(oKey, oVal);
+				}
+			}
+
+			projectConfig.getPlugins().add(plugin);
 		}
 	}
 

@@ -18,4 +18,5 @@ public class ProjectConfig {
 	private String packaging;
 	private final List<String> modules = new LinkedList<String>();
 	private final List<Plugin> plugins = new LinkedList<Plugin>();
+	private Build build;
 }

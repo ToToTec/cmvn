@@ -1,7 +1,6 @@
 package de.tototec.tools.emvn;
 
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,33 +13,25 @@ import de.tototec.tools.emvn.model.ProjectConfig;
 
 public class ProjectReaderImpl implements ProjectReader {
 
-	@Getter
 	@Setter
 	private Map<String, ProjectConfigKeyValueReader> projectConfigKeyValueReader;
 
-	public ProjectReaderImpl() {
-		Map<String, ProjectConfigKeyValueReader> supportedKeys = new LinkedHashMap<String, ProjectConfigKeyValueReader>();
-		for (EmvnConfigKey key : EmvnConfigKey.values()) {
-			for (String keyName : key.getKey()) {
-				supportedKeys.put(keyName, key);
-			}
-		}
-		setProjectConfigKeyValueReader(supportedKeys);
-	}
-
+	@Setter
+	private ConfigFileReader configFileReader;
+	
 	@Override
-	public ProjectConfig readConfigFile(File file) {
-		ConfigFileReader reader = new ConfigFileReaderImpl();
-		List<KeyValue> readKeyValues = reader.readKeyValues(file);
+	public ProjectConfig readConfigFile(final File file) {
+		final ConfigFileReader reader = configFileReader;
+		final List<KeyValue> readKeyValues = reader.readKeyValues(file);
 
-		Map<String, ProjectConfigKeyValueReader> supportedKeys = getProjectConfigKeyValueReader();
+		final Map<String, ProjectConfigKeyValueReader> supportedKeys = projectConfigKeyValueReader;
 		if (supportedKeys == null) {
 			throw new RuntimeException(
 					"No ProjectConfigKeyValueReader registered.");
 		}
 
-		ProjectConfig projectConfig = new ProjectConfig();
-		for (KeyValue keyValue : readKeyValues) {
+		final ProjectConfig projectConfig = new ProjectConfig();
+		for (final KeyValue keyValue : readKeyValues) {
 			if (supportedKeys.containsKey(keyValue.getKey())) {
 				supportedKeys.get(keyValue.getKey()).read(projectConfig,
 						keyValue);

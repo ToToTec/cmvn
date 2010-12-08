@@ -13,24 +13,34 @@ import de.tototec.tools.emvn.configfile.KeyValue;
 
 public class ConfigFileReaderImpl implements ConfigFileReader {
 
+	private KeyValue includeFileLine;
+
+	public void setIncludeFileLine(final String prefix, final String suffix) {
+		setIncludeFileLine(new KeyValue(prefix, suffix));
+	}
+
+	public void setIncludeFileLine(final KeyValue includeFileLine) {
+		this.includeFileLine = includeFileLine;
+	}
+
 	@Override
-	public List<KeyValue> readKeyValues(File configFile) {
-		List<KeyValue> result = new LinkedList<KeyValue>();
+	public List<KeyValue> readKeyValues(final File configFile) {
+		final List<KeyValue> result = new LinkedList<KeyValue>();
 
 		FileReader fileReader;
 		try {
 			fileReader = new FileReader(configFile);
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			throw new RuntimeException("Could not found file: " + configFile, e);
 		}
-		LineNumberReader lineReader = new LineNumberReader(fileReader);
+		final LineNumberReader lineReader = new LineNumberReader(fileReader);
 
 		String continuedLine = null;
 		String line = null;
 		do {
 			try {
 				line = lineReader.readLine();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				throw new RuntimeException(
 						"Could not read file: " + configFile, e);
 			}
@@ -53,8 +63,9 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 					continue;
 				}
 
-				String trimmedLine = (continuedLine == null ? line
-						: continuedLine + line).trim();
+				final String untrimmedLine = continuedLine == null ? line
+						: continuedLine + line;
+				final String trimmedLine = untrimmedLine.trim();
 				if (continuedLine != null) {
 					// System.out.println("procesing continued line: \""
 					// + trimmedLine + "\"");
@@ -65,7 +76,30 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 					continue;
 				}
 
-				String[] keyVal = trimmedLine.split(":", 2);
+				if (includeFileLine != null) {
+					if (untrimmedLine.startsWith(includeFileLine.getKey())
+							&& untrimmedLine.endsWith(includeFileLine
+									.getValue())) {
+						// This is an include
+						final String includeString = untrimmedLine.substring(
+								includeFileLine.getKey().length(),
+								untrimmedLine.length()
+										- includeFileLine.getValue().length())
+								.trim();
+						File includeFile = new File(includeString);
+						if (!includeFile.isAbsolute()) {
+							includeFile = new File(configFile.getParent(),
+									includeString);
+						}
+						System.out.println("Including file: " + includeFile);
+						final List<KeyValue> includeKeyValues = readKeyValues(includeFile);
+						result.addAll(includeKeyValues);
+						// do not process this line further
+						continue;
+					}
+				}
+
+				final String[] keyVal = trimmedLine.split(":", 2);
 				if (keyVal.length != 2) {
 					throw new RuntimeException("Invalid line nr "
 							+ lineReader.getLineNumber() + ": " + line);

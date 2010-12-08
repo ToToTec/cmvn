@@ -49,7 +49,7 @@ public class Emvn {
 			}
 		}
 
-		final Project project = new Project(new File(
+		final MavenProject project = new MavenProject(new File(
 				System.getProperty("user.dir")));
 		// System.out.println(project);
 

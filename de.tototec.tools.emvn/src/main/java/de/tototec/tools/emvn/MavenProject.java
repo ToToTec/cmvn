@@ -2,6 +2,7 @@ package de.tototec.tools.emvn;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,6 @@ import java.util.Map.Entry;
 import lombok.Getter;
 import lombok.ToString;
 
-import org.apache.maven.pom.x400.Build;
 import org.apache.maven.pom.x400.Build.Plugins;
 import org.apache.maven.pom.x400.Dependency.Exclusions;
 import org.apache.maven.pom.x400.DependencyManagement;
@@ -28,21 +28,36 @@ import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
 
+import de.tototec.tools.emvn.configfile.bndlike.ConfigFileReaderImpl;
+import de.tototec.tools.emvn.model.Build;
 import de.tototec.tools.emvn.model.Dependency;
 import de.tototec.tools.emvn.model.Plugin;
 import de.tototec.tools.emvn.model.ProjectConfig;
 import de.tototec.tools.emvn.model.Repository;
 
 @ToString
-public class Project {
+public class MavenProject {
 
 	private final File projectFile;
 	@Getter
 	private ProjectConfig projectConfig;
 
-	public Project(final File file) {
+	public MavenProject(final File file) {
 		projectFile = file.isDirectory() ? new File(file, "emvn.conf") : file;
-		final ProjectReader reader = new ProjectReaderImpl();
+		final ProjectReaderImpl reader = new ProjectReaderImpl();
+
+		final Map<String, ProjectConfigKeyValueReader> supportedKeys = new LinkedHashMap<String, ProjectConfigKeyValueReader>();
+		for (final EmvnConfigKey key : EmvnConfigKey.values()) {
+			for (final String keyName : key.getKey()) {
+				supportedKeys.put(keyName, key);
+			}
+		}
+		reader.setProjectConfigKeyValueReader(supportedKeys);
+
+		final ConfigFileReaderImpl configFileReader = new ConfigFileReaderImpl();
+		configFileReader.setIncludeFileLine("-include:", "");
+		reader.setConfigFileReader(configFileReader);
+
 		projectConfig = reader.readConfigFile(projectFile);
 	}
 
@@ -78,25 +93,16 @@ public class Project {
 					new File(projectFile.getParent(), projectConfig
 							.getPomTemplateFileName()), xmlOptions);
 		} catch (final Exception e) {
-			// throw new RuntimeException(e);
-			// create new pom.xml
-			// pom = ProjectDocument.Factory.newInstance(xmlOptions);
-
 			final String xmlAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 					+ "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" "
 					+ "xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
 					+ "\t<modelVersion>4.0.0</modelVersion>\n</project>\n";
-
-			// System.out.println("Using empty pom.xml as template:\n"
-			// + xmlAsString);
-
 			try {
 				pom = ProjectDocument.Factory.parse(xmlAsString,
 						createXmlOptions());
 			} catch (final XmlException e1) {
 				throw new RuntimeException(e1);
 			}
-
 		}
 
 		Model mvn = pom.getProject();
@@ -122,6 +128,7 @@ public class Project {
 			generateDependencies(mvn);
 			generateRepositories(mvn);
 			generatePlugins(mvn);
+			generateBuild(mvn);
 
 			try {
 				pom.save(pomFile, createXmlSaveOptions());
@@ -134,10 +141,26 @@ public class Project {
 		if (recursive) {
 			for (final String module : projectConfig.getModules()) {
 				final File moduleDir = new File(projectFile.getParent(), module);
-				final Project subProject = new Project(moduleDir);
+				final MavenProject subProject = new MavenProject(moduleDir);
 				subProject.processMavenProject(onlyIfNeeded, recursive,
 						cleanInsteadOfGenerate);
 			}
+		}
+	}
+
+	private void generateBuild(final Model mvn) {
+		final Build build = projectConfig.getBuild();
+		if (build == null) {
+			return;
+		}
+
+		org.apache.maven.pom.x400.Build mvnBuild = mvn.getBuild();
+		if (mvnBuild == null) {
+			mvnBuild = mvn.addNewBuild();
+		}
+
+		if (build.getSources() != null) {
+			mvnBuild.setSourceDirectory(build.getSources());
 		}
 	}
 
@@ -146,7 +169,7 @@ public class Project {
 			return;
 		}
 
-		Build mvnBuild = mvn.getBuild();
+		org.apache.maven.pom.x400.Build mvnBuild = mvn.getBuild();
 		if (mvnBuild == null) {
 			mvnBuild = mvn.addNewBuild();
 		}

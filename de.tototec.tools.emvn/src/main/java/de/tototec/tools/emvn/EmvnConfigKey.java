@@ -3,6 +3,7 @@ package de.tototec.tools.emvn;
 import lombok.Getter;
 import de.tototec.tools.emvn.configfile.KeyValue;
 import de.tototec.tools.emvn.configfile.KeyValueWithOptions;
+import de.tototec.tools.emvn.model.Build;
 import de.tototec.tools.emvn.model.Dependency;
 import de.tototec.tools.emvn.model.Plugin;
 import de.tototec.tools.emvn.model.ProjectConfig;
@@ -26,8 +27,13 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 			projectConfig.setProject(projectInfo);
 
 			for (final KeyValue option : withOptions.getOptions()) {
-				if (option.getKey().equals("packaging")) {
-					projectConfig.setPackaging(option.getValue());
+				final String oKey = option.getKey();
+				final String oVal = option.getValue();
+				if (oKey.equals("packaging")) {
+					projectConfig.setPackaging(oVal);
+				} else {
+					throw new RuntimeException("Unsupported project option: "
+							+ option);
 				}
 			}
 		}
@@ -157,6 +163,29 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 			}
 
 			projectConfig.getPlugins().add(plugin);
+		}
+	},
+
+	BUILD("build") {
+		@Override
+		public void read(final ProjectConfig projectConfig,
+				final KeyValue keyValue) {
+			// We only have options, so we start the value with an ";"
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
+					keyValue.getKey(), ";" + keyValue.getValue(), ";", "=",
+					"true");
+			final Build build = new Build();
+			for (final KeyValue option : withOptions.getOptions()) {
+				final String oKey = option.getKey();
+				final String oVal = option.getValue();
+				if (oKey.equals("sources")) {
+					build.setSources(oVal);
+				}
+				else {
+					throw new RuntimeException("Unsupported build option: "+option);
+				}
+			}
+			projectConfig.setBuild(build);
 		}
 	}
 

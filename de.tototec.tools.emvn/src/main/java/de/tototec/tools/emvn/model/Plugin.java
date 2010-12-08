@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 public class Plugin {
-	private Dependency pluginInfo;
+	private final Dependency pluginInfo;
 	private final List<Dependency> pluginDependencies = new LinkedList<Dependency>();
 	private final Map<String, String> configuration = new LinkedHashMap<String, String>();
 }

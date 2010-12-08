@@ -31,6 +31,7 @@ import org.apache.xmlbeans.XmlOptions;
 import de.tototec.tools.emvn.configfile.bndlike.ConfigFileReaderImpl;
 import de.tototec.tools.emvn.model.Build;
 import de.tototec.tools.emvn.model.Dependency;
+import de.tototec.tools.emvn.model.Module;
 import de.tototec.tools.emvn.model.Plugin;
 import de.tototec.tools.emvn.model.ProjectConfig;
 import de.tototec.tools.emvn.model.Repository;
@@ -139,11 +140,14 @@ public class MavenProject {
 		}
 
 		if (recursive) {
-			for (final String module : projectConfig.getModules()) {
-				final File moduleDir = new File(projectFile.getParent(), module);
-				final MavenProject subProject = new MavenProject(moduleDir);
-				subProject.processMavenProject(onlyIfNeeded, recursive,
-						cleanInsteadOfGenerate);
+			for (final Module module : projectConfig.getModules()) {
+				if (!module.isSkipEmvn()) {
+					final File moduleDir = new File(projectFile.getParent(),
+							module.getModuleName());
+					final MavenProject subProject = new MavenProject(moduleDir);
+					subProject.processMavenProject(onlyIfNeeded, recursive,
+							cleanInsteadOfGenerate);
+				}
 			}
 		}
 	}
@@ -236,8 +240,8 @@ public class MavenProject {
 			mvnModules = mvn.addNewModules();
 		}
 
-		for (final String module : projectConfig.getModules()) {
-			mvnModules.addModule(module);
+		for (final Module module : projectConfig.getModules()) {
+			mvnModules.addModule(module.getModuleName());
 		}
 	}
 

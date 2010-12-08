@@ -5,6 +5,7 @@ import de.tototec.tools.emvn.configfile.KeyValue;
 import de.tototec.tools.emvn.configfile.KeyValueWithOptions;
 import de.tototec.tools.emvn.model.Build;
 import de.tototec.tools.emvn.model.Dependency;
+import de.tototec.tools.emvn.model.Module;
 import de.tototec.tools.emvn.model.Plugin;
 import de.tototec.tools.emvn.model.ProjectConfig;
 import de.tototec.tools.emvn.model.Repository;
@@ -120,10 +121,21 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 		public void read(final ProjectConfig projectConfig,
 				final KeyValue keyValue) {
 
-			final String[] modules = keyValue.getValue().split(",");
-			for (final String module : modules) {
-				projectConfig.getModules().add(module);
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
+					keyValue, ";", "=", "true");
+			final Module module = new Module(withOptions.getValue());
+
+			for (final KeyValue option : withOptions.getOptions()) {
+				if (option.getKey().equals("skipEmvn")) {
+					module.setSkipEmvn(option.getValue().equalsIgnoreCase(
+							"true"));
+				} else {
+					throw new RuntimeException("Unsupported module option: "
+							+ option);
+				}
 			}
+
+			projectConfig.getModules().add(module);
 		}
 	},
 
@@ -139,10 +151,9 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 				throw new RuntimeException("Unsupported plugin specifier: "
 						+ withOptions.getValue());
 			}
-			final Plugin plugin = new Plugin();
 			final Dependency pluginInfo = new Dependency(split[0].trim(),
 					split[1].trim(), split[2].trim());
-			plugin.setPluginInfo(pluginInfo);
+			final Plugin plugin = new Plugin(pluginInfo);
 
 			for (final KeyValue option : withOptions.getOptions()) {
 				final String oKey = option.getKey();
@@ -180,9 +191,9 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 				final String oVal = option.getValue();
 				if (oKey.equals("sources")) {
 					build.setSources(oVal);
-				}
-				else {
-					throw new RuntimeException("Unsupported build option: "+option);
+				} else {
+					throw new RuntimeException("Unsupported build option: "
+							+ option);
 				}
 			}
 			projectConfig.setBuild(build);

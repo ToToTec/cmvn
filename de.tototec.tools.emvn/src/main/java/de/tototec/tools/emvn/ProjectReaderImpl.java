@@ -4,11 +4,9 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Getter;
 import lombok.Setter;
 import de.tototec.tools.emvn.configfile.ConfigFileReader;
 import de.tototec.tools.emvn.configfile.KeyValue;
-import de.tototec.tools.emvn.configfile.bndlike.ConfigFileReaderImpl;
 import de.tototec.tools.emvn.model.ProjectConfig;
 
 public class ProjectReaderImpl implements ProjectReader {

@@ -92,7 +92,7 @@
   </dependencies>
   <repositories>
     <repository>
-      <id>54cbf30e</id>
+      <id>artifact_http://projectlombok.org/mavenrepo</id>
       <releases>
         <enabled>true</enabled>
       </releases>

@@ -441,18 +441,24 @@ public class MavenProject {
 				if (repos == null) {
 					repos = mvn.addNewRepositories();
 				}
-				mvnRepos.add(repos.addNewRepository());
+				final org.apache.maven.pom.x400.Repository mvnRepo = repos
+						.addNewRepository();
+				mvnRepo.setId("artifact_" + repo.getUrl());
+				mvnRepos.add(mvnRepo);
 			}
 			if (repo.isForPlugins()) {
 				PluginRepositories repos = mvn.getPluginRepositories();
 				if (repos == null) {
 					repos = mvn.addNewPluginRepositories();
 				}
-				mvnRepos.add(repos.addNewPluginRepository());
+				final org.apache.maven.pom.x400.Repository mvnRepo = repos
+						.addNewPluginRepository();
+				mvnRepo.setId("plugin_" + repo.getUrl());
+				mvnRepos.add(mvnRepo);
 			}
 
 			for (final org.apache.maven.pom.x400.Repository mvnRepo : mvnRepos) {
-				mvnRepo.setId(Integer.toHexString(mvnRepo.hashCode()));
+				// mvnRepo.setId(Integer.toHexString(mvnRepo.hashCode()));
 				mvnRepo.addNewReleases().setEnabled(repo.isForReleases());
 				mvnRepo.addNewSnapshots().setEnabled(repo.isForSnapshots());
 				mvnRepo.setUrl(repo.getUrl());

@@ -54,7 +54,7 @@ public class Emvn {
 				runGenerate = true;
 				forceGenerate = true;
 				runMaven = false;
-			} else if (arg.equals("--auto-configure")
+			} else if (arg.equals("--auto-reconfigure")
 					|| arg.equals("-auto-reconfigure")) {
 				autoReconfigure = true;
 			} else {
@@ -62,9 +62,14 @@ public class Emvn {
 			}
 		}
 
+		if (autoReconfigure && runGenerate) {
+			throw new RuntimeException(
+					"Cannot configure and auto-reconfigure at the same time.");
+		}
+
 		final MavenProject project = new MavenProject(new File(
 				System.getProperty("user.dir")));
-		System.out.println(project);
+		// System.out.println(project);
 
 		if (runDistClean) {
 			System.out.println("Cleaning generated files and emvn state...");
@@ -79,14 +84,32 @@ public class Emvn {
 		final boolean upToDate = project.isUpToDateRecursive();
 		System.out.println("Project up-to-date: " + upToDate);
 
-		final boolean generateAllowed = runGenerate; // || autoReconfigure;
+		final boolean generateAllowed = runGenerate || autoReconfigure;
 
 		if (!upToDate && !generateAllowed && runMaven) {
 			throw new RuntimeException(
 					"Projects are not up-to-date. Please run with '--configure' or '--auto-reconfigure' option.");
 		}
 
-		if (generateAllowed) {
+		if (autoReconfigure) {
+			if (!upToDate || forceGenerate) {
+				System.out.println("Reconfiguring...");
+
+				final MavenConfig mavenConfig = project.getMavenConfig();
+				if (mavenConfig == null
+						|| mavenConfig.getRootProjectFile() == null) {
+					throw new RuntimeException(
+							"Cannot reconfigure. Not enough information (unknown root project)");
+				}
+
+				final String rootProjectFile = mavenConfig.getRootProjectFile();
+				final MavenProject rootProject = new MavenProject(new File(
+						rootProjectFile));
+				rootProject.generateMavenProjectRecursive(true);
+			}
+		}
+
+		if (runGenerate) {
 			System.out.println("Generating (if needed)...");
 			project.generateMavenProjectRecursive(forceGenerate);
 		}

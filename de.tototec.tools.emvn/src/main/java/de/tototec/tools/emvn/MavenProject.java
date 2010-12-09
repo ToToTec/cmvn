@@ -187,8 +187,8 @@ public class MavenProject {
 					for (final KeyValue keyValue : configFileReader
 							.readKeyValues(mavenConfigFile)) {
 						if (keyValue.getKey().equals("settingsFile")) {
-							System.out.println("Read settings file: "
-									+ keyValue.getValue());
+							// System.out.println("Read settings file: "
+							// + keyValue.getValue());
 							config.setSettingsFile(keyValue.getValue());
 						} else if (keyValue.getKey().equals("rootProjectFile")) {
 							config.setRootProjectFile(keyValue.getValue());
@@ -266,6 +266,7 @@ public class MavenProject {
 	}
 
 	public String getMavenSettingsFile() {
+		final MavenConfig mavenConfig = getMavenConfig();
 		if (mavenConfig == null) {
 			throw new RuntimeException("Project is not configured: "
 					+ projectFile);

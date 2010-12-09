@@ -91,7 +91,7 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 							includeFile = new File(configFile.getParent(),
 									includeString);
 						}
-						System.out.println("Including file: " + includeFile);
+						// System.out.println("Including file: " + includeFile);
 						final List<KeyValue> includeKeyValues = readKeyValues(includeFile);
 						result.addAll(includeKeyValues);
 						// do not process this line further

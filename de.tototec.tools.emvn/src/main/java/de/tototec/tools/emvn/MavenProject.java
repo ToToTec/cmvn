@@ -1,6 +1,9 @@
 package de.tototec.tools.emvn;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -28,6 +31,8 @@ import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
 
+import de.tototec.tools.emvn.configfile.ConfigFileReader;
+import de.tototec.tools.emvn.configfile.KeyValue;
 import de.tototec.tools.emvn.configfile.bndlike.ConfigFileReaderImpl;
 import de.tototec.tools.emvn.model.Build;
 import de.tototec.tools.emvn.model.Dependency;
@@ -36,56 +41,227 @@ import de.tototec.tools.emvn.model.Plugin;
 import de.tototec.tools.emvn.model.ProjectConfig;
 import de.tototec.tools.emvn.model.Repository;
 
-@ToString
+@ToString(exclude = { "configFileReader" })
 public class MavenProject {
 
 	private final File projectFile;
+	private final File pomFile;
+	private final File pomTemplateFile;
+	private final File mavenConfigFile;
 	@Getter
-	private ProjectConfig projectConfig;
+	private final ProjectConfig projectConfig;
+	private final ConfigFileReader configFileReader;
+	private final MavenProject rootProject;
+
+	private MavenConfig mavenConfig;
+	private List<MavenProject> scannedProjects;
 
 	public MavenProject(final File file) {
+		// root project
+		this(file, null);
+	}
+
+	public MavenProject(final File file, final MavenProject parent) {
+
 		projectFile = file.isDirectory() ? new File(file, "emvn.conf") : file;
 		final ProjectReaderImpl reader = new ProjectReaderImpl();
 
-		final Map<String, ProjectConfigKeyValueReader> supportedKeys = new LinkedHashMap<String, ProjectConfigKeyValueReader>();
-		for (final EmvnConfigKey key : EmvnConfigKey.values()) {
-			for (final String keyName : key.getKey()) {
-				supportedKeys.put(keyName, key);
-			}
-		}
-		reader.setProjectConfigKeyValueReader(supportedKeys);
+		this.rootProject = parent;
 
-		final ConfigFileReaderImpl configFileReader = new ConfigFileReaderImpl();
-		configFileReader.setIncludeFileLine("-include:", "");
-		reader.setConfigFileReader(configFileReader);
+		// TODO: read or create maven config
+
+		// static setup
+		{
+			final Map<String, ProjectConfigKeyValueReader> supportedKeys = new LinkedHashMap<String, ProjectConfigKeyValueReader>();
+			for (final EmvnConfigKey key : EmvnConfigKey.values()) {
+				for (final String keyName : key.getKey()) {
+					supportedKeys.put(keyName, key);
+				}
+			}
+			reader.setProjectConfigKeyValueReader(supportedKeys);
+
+			final ConfigFileReaderImpl configFileReader = new ConfigFileReaderImpl();
+			configFileReader.setIncludeFileLine("-include:", "");
+			this.configFileReader = configFileReader;
+			reader.setConfigFileReader(configFileReader);
+		}
 
 		projectConfig = reader.readConfigFile(projectFile);
+
+		final String parentDir = projectFile.getParent();
+		this.pomFile = new File(parentDir, projectConfig.getPomFileName());
+		this.pomTemplateFile = new File(parentDir,
+				projectConfig.getPomTemplateFileName());
+		this.mavenConfigFile = new File(parentDir, ".emvn.state");
 	}
 
-	public boolean needsGenerate() {
+	List<MavenProject> scanForMavenProjects() {
+		if (this.scannedProjects == null) {
+			final List<MavenProject> projects = new LinkedList<MavenProject>();
+			projects.add(this);
+			for (final Module module : projectConfig.getModules()) {
+				if (!module.isSkipEmvn()) {
+					final File moduleDir = new File(projectFile.getParent(),
+							module.getModuleName());
+					final MavenProject subProject = new MavenProject(moduleDir,
+							rootProject != null ? rootProject : this);
+					projects.addAll(subProject.scanForMavenProjects());
+				}
+			}
+			this.scannedProjects = projects;
+		}
+		return this.scannedProjects;
+	}
+
+	public boolean isUpToDateRecursive() {
+		for (final MavenProject project : scanForMavenProjects()) {
+			if (!project.isUpToDate()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	protected boolean isUpToDate() {
 		long lastModified = projectFile.lastModified();
-		final File templateFile = new File(projectFile.getParent(),
-				projectConfig.getPomTemplateFileName());
-		if (templateFile.exists()) {
-			lastModified = Math.max(lastModified, templateFile.lastModified());
+
+		if (pomTemplateFile.exists()) {
+			lastModified = Math.max(lastModified,
+					pomTemplateFile.lastModified());
 		}
 
-		final File pomFile = new File(projectFile.getParent(),
-				projectConfig.getPomFileName());
-		return !pomFile.exists() || lastModified > pomFile.lastModified();
+		return mavenConfigFile.exists() && pomFile.exists()
+				&& lastModified < pomFile.lastModified();
 	}
 
-	public void generateMavenProject(final boolean onlyIfNeeded,
-			final boolean recursive) {
-		processMavenProject(onlyIfNeeded, recursive, false);
+	public void cleanGeneratedFilesRecursive() {
+		for (final MavenProject project : scanForMavenProjects()) {
+			project.cleanGeneratedFiles();
+		}
 	}
 
-	public void cleanMavenProject(final boolean recursive) {
-		processMavenProject(true, recursive, true);
+	protected void cleanGeneratedFiles() {
+		if (pomFile.exists()) {
+			System.out.println("Deleting " + pomFile + "...");
+			pomFile.delete();
+		}
+		// if (mavenConfigFile.exists()) {
+		// System.out.println("Deleting " + mavenConfigFile + "...");
+		// mavenConfigFile.delete();
+		// }
 	}
 
-	protected void processMavenProject(final boolean onlyIfNeeded,
-			final boolean recursive, final boolean cleanInsteadOfGenerate) {
+	public MavenConfig getMavenConfig() {
+		readMavenConfig();
+		return mavenConfig;
+	}
+
+	protected void readMavenConfig() {
+		if (mavenConfig == null) {
+			if (rootProject != null) {
+				mavenConfig = rootProject.getMavenConfig();
+				if (mavenConfig == null) {
+					throw new RuntimeException(
+							"Maven config of root project was null. Internal error!");
+				}
+			} else {
+				// I am the root project
+				if (mavenConfigFile.exists()) {
+					final MavenConfig config = new MavenConfig();
+					// read config
+					for (final KeyValue keyValue : configFileReader
+							.readKeyValues(mavenConfigFile)) {
+						if (keyValue.getKey().equals("settingsFile")) {
+							System.out.println("Read settings file: "
+									+ keyValue.getValue());
+							config.setSettingsFile(keyValue.getValue());
+						}
+					}
+					mavenConfig = config;
+				}
+			}
+		}
+
+	}
+
+	protected void createMavenConfig() {
+		if (mavenConfig == null) {
+			if (rootProject == null) {
+				// I am the root project
+				final MavenConfig config = new MavenConfig();
+				final File settingsDir = new File(projectFile.getParentFile(),
+						".emvn");
+				final File settingsFile = new File(settingsDir, "settings.xml");
+				if (!settingsFile.exists()) {
+					settingsDir.mkdirs();
+					final File localRepoDir = new File(settingsDir,
+							"repository");
+
+					PrintWriter settingsWriter;
+					try {
+						settingsWriter = new PrintWriter(settingsFile);
+					} catch (final FileNotFoundException e) {
+						throw new RuntimeException(
+								"Could not write Maven settings file: "
+										+ settingsFile, e);
+					}
+					settingsWriter.append("<settings>\n");
+					settingsWriter.append("<localRepository>");
+					settingsWriter.append(localRepoDir.getAbsolutePath());
+					settingsWriter.append("</localRepository>\n");
+					settingsWriter.append("</settings>\n");
+					settingsWriter.close();
+				}
+				config.setSettingsFile(settingsFile.getAbsolutePath());
+				mavenConfig = config;
+			}
+		}
+	}
+
+	protected void writeMavenConfig() {
+		if (mavenConfig == null) {
+			throw new RuntimeException("Internal Error: no maven config");
+		}
+
+		PrintWriter configWriter;
+		try {
+			configWriter = new PrintWriter(mavenConfigFile);
+		} catch (final FileNotFoundException e) {
+			throw new RuntimeException("Could not write Maven config file: "
+					+ mavenConfigFile);
+		}
+
+		configWriter.append("# emvn Maven configuration file. Generated on ")
+				.append(new Date().toString()).append("\n");
+		configWriter.append("settingsFile: ").append(
+				mavenConfig.getSettingsFile());
+		configWriter.append("\n");
+		configWriter.close();
+	}
+
+	public void generateMavenProjectRecursive(final boolean force) {
+		for (final MavenProject project : scanForMavenProjects()) {
+			project.generateMavenProject(force);
+		}
+	}
+
+	public String getMavenSettingsFile() {
+		if (mavenConfig == null) {
+			throw new RuntimeException("Project is not configured: "
+					+ projectFile);
+		}
+		return mavenConfig.getSettingsFile();
+	}
+
+	protected void generateMavenProject(final boolean force) {
+		if (!force && isUpToDate()) {
+			return;
+		}
+
+		System.out.println("Generating " + pomFile + "...");
+
+		readMavenConfig();
+		createMavenConfig();
 
 		ProjectDocument pom;
 		final XmlOptions xmlOptions = createXmlOptions();
@@ -111,45 +287,22 @@ public class MavenProject {
 			mvn = pom.addNewProject();
 		}
 
-		final File pomFile = new File(projectFile.getParent(),
-				projectConfig.getPomFileName());
+		generateMarkerComment(mvn);
+		generateProjectInfo(mvn);
+		generateModules(mvn);
+		generateProperties(mvn);
+		generateDependencies(mvn);
+		generateRepositories(mvn);
+		generatePlugins(mvn);
+		generateBuild(mvn);
 
-		if (cleanInsteadOfGenerate) {
-			if (pomFile.exists()) {
-				System.out.println("Deleting " + pomFile + "...");
-				pomFile.delete();
-			}
-		} else if (!onlyIfNeeded || needsGenerate()) {
-			System.out.println("Generating " + pomFile + "...");
-
-			generateMarkerComment(mvn);
-			generateProjectInfo(mvn);
-			generateModules(mvn);
-			generateProperties(mvn);
-			generateDependencies(mvn);
-			generateRepositories(mvn);
-			generatePlugins(mvn);
-			generateBuild(mvn);
-
-			try {
-				pom.save(pomFile, createXmlSaveOptions());
-			} catch (final Exception e) {
-				throw new RuntimeException(e);
-			}
-
+		try {
+			pom.save(pomFile, createXmlSaveOptions());
+		} catch (final Exception e) {
+			throw new RuntimeException(e);
 		}
 
-		if (recursive) {
-			for (final Module module : projectConfig.getModules()) {
-				if (!module.isSkipEmvn()) {
-					final File moduleDir = new File(projectFile.getParent(),
-							module.getModuleName());
-					final MavenProject subProject = new MavenProject(moduleDir);
-					subProject.processMavenProject(onlyIfNeeded, recursive,
-							cleanInsteadOfGenerate);
-				}
-			}
-		}
+		writeMavenConfig();
 	}
 
 	private void generateBuild(final Model mvn) {

@@ -11,11 +11,12 @@ public class Emvn {
 
 	public static void main(final String[] args) {
 
-		boolean runGenerate = true;
+		boolean runGenerate = false;
 		boolean runMaven = true;
 		boolean runClean = false;
 		boolean forceGenerate = false;
 		boolean unfilteredArgs = false;
+		boolean autoReconfigure = false;
 
 		final List<String> mavenArgs = new LinkedList<String>();
 
@@ -44,6 +45,13 @@ public class Emvn {
 				runClean = true;
 			} else if (arg.equals("-force") || arg.equals("--force")) {
 				forceGenerate = true;
+			} else if (arg.equals("--configure") || arg.equals("-configure")) {
+				runGenerate = true;
+				forceGenerate = true;
+				runMaven = false;
+			} else if (arg.equals("--auto-configure")
+					|| arg.equals("-auto-reconfigure")) {
+				autoReconfigure = true;
 			} else {
 				mavenArgs.add(arg);
 			}
@@ -51,19 +59,34 @@ public class Emvn {
 
 		final MavenProject project = new MavenProject(new File(
 				System.getProperty("user.dir")));
-		// System.out.println(project);
-
-		if (runGenerate) {
-			project.generateMavenProject(!forceGenerate, true);
-		}
+		System.out.println(project);
 
 		if (runClean) {
-			project.cleanMavenProject(true);
+			System.out.println("Cleaning...");
+			project.cleanGeneratedFilesRecursive();
+		}
+
+		final boolean upToDate = project.isUpToDateRecursive();
+		System.out.println("Project up-to-date: " + upToDate);
+
+		final boolean generateAllowed = runGenerate; // || autoReconfigure;
+
+		if (!upToDate && !generateAllowed && runMaven) {
+			throw new RuntimeException(
+					"Projects are not up-to-date. Please run with '--configure' or '--auto-reconfigure' option.");
+		}
+
+		if (generateAllowed) {
+			System.out.println("Generating (if needed)...");
+			project.generateMavenProjectRecursive(forceGenerate);
 		}
 
 		if (runMaven) {
+			System.out.println("Running Maven...");
 			final LinkedList<String> mvnArgs = new LinkedList<String>(mavenArgs);
 			mvnArgs.add(0, "mvn");
+			mvnArgs.add(1, "-s");
+			mvnArgs.add(2, project.getMavenSettingsFile());
 			final ProcessBuilder pB = new ProcessBuilder(mvnArgs);
 			Process process = null;
 			try {

@@ -6,4 +6,5 @@ import lombok.Data;
 public class MavenConfig {
 	// private String localRepository;
 	private String settingsFile;
+	private String rootProjectFile;
 }

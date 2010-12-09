@@ -134,6 +134,21 @@ public class MavenProject {
 				&& lastModified < pomFile.lastModified();
 	}
 
+	public void cleanEmvnStateRecurive() {
+		for (final MavenProject project : scanForMavenProjects()) {
+			project.cleanEmvnState();
+		}
+	}
+
+	protected void cleanEmvnState() {
+		cleanGeneratedFiles();
+
+		if (mavenConfigFile.exists()) {
+			System.out.println("Deleting " + mavenConfigFile + "...");
+			mavenConfigFile.delete();
+		}
+	}
+
 	public void cleanGeneratedFilesRecursive() {
 		for (final MavenProject project : scanForMavenProjects()) {
 			project.cleanGeneratedFiles();
@@ -175,6 +190,8 @@ public class MavenProject {
 							System.out.println("Read settings file: "
 									+ keyValue.getValue());
 							config.setSettingsFile(keyValue.getValue());
+						} else if (keyValue.getKey().equals("rootProjectFile")) {
+							config.setRootProjectFile(keyValue.getValue());
 						}
 					}
 					mavenConfig = config;
@@ -233,9 +250,12 @@ public class MavenProject {
 
 		configWriter.append("# emvn Maven configuration file. Generated on ")
 				.append(new Date().toString()).append("\n");
-		configWriter.append("settingsFile: ").append(
-				mavenConfig.getSettingsFile());
-		configWriter.append("\n");
+		configWriter.append("settingsFile: ")
+				.append(mavenConfig.getSettingsFile()).append("\n");
+		final File rootProjectConfigFile = rootProject == null ? projectFile
+				: rootProject.projectFile;
+		configWriter.append("rootProjectFile: ")
+				.append(rootProjectConfigFile.getAbsolutePath()).append("\n");
 		configWriter.close();
 	}
 

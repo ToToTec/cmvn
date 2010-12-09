@@ -14,6 +14,7 @@ public class Emvn {
 		boolean runGenerate = false;
 		boolean runMaven = true;
 		boolean runClean = false;
+		boolean runDistClean = false;
 		boolean forceGenerate = false;
 		boolean unfilteredArgs = false;
 		boolean autoReconfigure = false;
@@ -43,6 +44,10 @@ public class Emvn {
 				runGenerate = false;
 				runMaven = false;
 				runClean = true;
+			} else if (arg.equals("-distclean") || arg.equals("--distclean")) {
+				runGenerate = false;
+				runMaven = false;
+				runDistClean = true;
 			} else if (arg.equals("-force") || arg.equals("--force")) {
 				forceGenerate = true;
 			} else if (arg.equals("--configure") || arg.equals("-configure")) {
@@ -61,8 +66,13 @@ public class Emvn {
 				System.getProperty("user.dir")));
 		System.out.println(project);
 
+		if (runDistClean) {
+			System.out.println("Cleaning generated files and emvn state...");
+			project.cleanEmvnStateRecurive();
+		}
+
 		if (runClean) {
-			System.out.println("Cleaning...");
+			System.out.println("Cleaning generated files...");
 			project.cleanGeneratedFilesRecursive();
 		}
 

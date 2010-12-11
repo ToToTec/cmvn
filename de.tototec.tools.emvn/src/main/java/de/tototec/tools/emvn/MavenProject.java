@@ -62,7 +62,6 @@ public class MavenProject {
 	}
 
 	public MavenProject(final File file, final MavenProject parent) {
-
 		projectFile = file.isDirectory() ? new File(file, "emvn.conf") : file;
 		final ProjectReaderImpl reader = new ProjectReaderImpl();
 
@@ -457,6 +456,10 @@ public class MavenProject {
 		cursor.insertChars("\n");
 	}
 
+	protected String normalizeRepositoryId(final String repoId) {
+		return repoId.replaceAll("[\\/:\"<>|?*]", "_").replaceAll("_+", "_");
+	}
+
 	protected void generateRepositories(final Model mvn) {
 
 		for (final Repository repo : projectConfig.getRepositories()) {
@@ -470,7 +473,8 @@ public class MavenProject {
 				}
 				final org.apache.maven.pom.x400.Repository mvnRepo = repos
 						.addNewRepository();
-				mvnRepo.setId("artifact_" + repo.getUrl());
+				mvnRepo.setId("artifact_"
+						+ normalizeRepositoryId(repo.getUrl()));
 				mvnRepos.add(mvnRepo);
 			}
 			if (repo.isForPlugins()) {
@@ -480,7 +484,7 @@ public class MavenProject {
 				}
 				final org.apache.maven.pom.x400.Repository mvnRepo = repos
 						.addNewPluginRepository();
-				mvnRepo.setId("plugin_" + repo.getUrl());
+				mvnRepo.setId("plugin_" + normalizeRepositoryId(repo.getUrl()));
 				mvnRepos.add(mvnRepo);
 			}
 

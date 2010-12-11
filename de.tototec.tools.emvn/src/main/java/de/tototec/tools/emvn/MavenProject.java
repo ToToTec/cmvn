@@ -186,12 +186,19 @@ public class MavenProject {
 					// read config
 					for (final KeyValue keyValue : configFileReader
 							.readKeyValues(mavenConfigFile)) {
-						if (keyValue.getKey().equals("settingsFile")) {
+						final String key = keyValue.getKey();
+						final String value = keyValue.getValue();
+						if (key.equals("settingsFile")) {
 							// System.out.println("Read settings file: "
 							// + keyValue.getValue());
-							config.setSettingsFile(keyValue.getValue());
-						} else if (keyValue.getKey().equals("rootProjectFile")) {
-							config.setRootProjectFile(keyValue.getValue());
+							config.setSettingsFile(value);
+						} else if (key.equals("rootProjectFile")) {
+							config.setRootProjectFile(value);
+						} else if (key.equals("autoReconfigure")) {
+							config.setAutoReconfigure(value.equals("true"));
+						} else {
+							System.out.println("Unknown config option found: "
+									+ keyValue);
 						}
 					}
 					mavenConfig = config;
@@ -256,12 +263,15 @@ public class MavenProject {
 				: rootProject.projectFile;
 		configWriter.append("rootProjectFile: ")
 				.append(rootProjectConfigFile.getAbsolutePath()).append("\n");
+		configWriter.append("autoReconfigure: ").append(
+				mavenConfig.isAutoReconfigure() ? "true" : "false");
 		configWriter.close();
 	}
 
-	public void generateMavenProjectRecursive(final boolean force) {
+	public void generateMavenProjectRecursive(final boolean force,
+			final Boolean autoReconfigure) {
 		for (final MavenProject project : scanForMavenProjects()) {
-			project.generateMavenProject(force);
+			project.generateMavenProject(force, autoReconfigure);
 		}
 	}
 
@@ -274,7 +284,8 @@ public class MavenProject {
 		return mavenConfig.getSettingsFile();
 	}
 
-	protected void generateMavenProject(final boolean force) {
+	protected void generateMavenProject(final boolean force,
+			final Boolean autoReconfigure) {
 		if (!force && isUpToDate()) {
 			return;
 		}
@@ -321,6 +332,10 @@ public class MavenProject {
 			pom.save(pomFile, createXmlSaveOptions());
 		} catch (final Exception e) {
 			throw new RuntimeException(e);
+		}
+
+		if (autoReconfigure != null) {
+			mavenConfig.setAutoReconfigure(autoReconfigure.booleanValue());
 		}
 
 		writeMavenConfig();

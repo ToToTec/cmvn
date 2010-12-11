@@ -18,6 +18,7 @@ public class Emvn {
 		boolean forceGenerate = false;
 		boolean unfilteredArgs = false;
 		boolean autoReconfigure = false;
+		boolean reconfigure = false;
 
 		final List<String> mavenArgs = new LinkedList<String>();
 
@@ -57,12 +58,15 @@ public class Emvn {
 			} else if (arg.equals("--auto-reconfigure")
 					|| arg.equals("-auto-reconfigure")) {
 				autoReconfigure = true;
+			} else if (arg.equals("--reconfigure")
+					|| arg.equals("-reconfigure")) {
+				reconfigure = true;
 			} else {
 				mavenArgs.add(arg);
 			}
 		}
 
-		if (autoReconfigure && runGenerate) {
+		if (reconfigure && runGenerate) {
 			throw new RuntimeException(
 					"Cannot configure and auto-reconfigure at the same time.");
 		}
@@ -84,14 +88,19 @@ public class Emvn {
 		final boolean upToDate = project.isUpToDateRecursive();
 		System.out.println("Project up-to-date: " + upToDate);
 
-		final boolean generateAllowed = runGenerate || autoReconfigure;
+		final boolean generateAllowed = runGenerate || reconfigure;
 
 		if (!upToDate && !generateAllowed && runMaven) {
-			throw new RuntimeException(
-					"Projects are not up-to-date. Please run with '--configure' or '--auto-reconfigure' option.");
+			if (project.getMavenConfig() != null
+					&& project.getMavenConfig().isAutoReconfigure()) {
+				reconfigure = true;
+			} else {
+				throw new RuntimeException(
+						"Projects are not up-to-date. Please run with '--configure' or '--reconfigure' option.");
+			}
 		}
 
-		if (autoReconfigure) {
+		if (reconfigure) {
 			if (!upToDate || forceGenerate) {
 				System.out.println("Reconfiguring...");
 
@@ -105,13 +114,15 @@ public class Emvn {
 				final String rootProjectFile = mavenConfig.getRootProjectFile();
 				final MavenProject rootProject = new MavenProject(new File(
 						rootProjectFile));
-				rootProject.generateMavenProjectRecursive(true);
+				// second param is null, we wont change to current state
+				rootProject.generateMavenProjectRecursive(forceGenerate, null);
 			}
 		}
 
 		if (runGenerate) {
 			System.out.println("Generating (if needed)...");
-			project.generateMavenProjectRecursive(forceGenerate);
+			project.generateMavenProjectRecursive(forceGenerate,
+					autoReconfigure);
 		}
 
 		if (runMaven) {

@@ -9,6 +9,10 @@ import java.util.List;
 
 public class Emvn {
 
+	interface NextArgAction {
+		void processArg(String arg);
+	}
+
 	public static void main(final String[] args) {
 
 		boolean runGenerate = false;
@@ -19,10 +23,19 @@ public class Emvn {
 		boolean unfilteredArgs = false;
 		boolean autoReconfigure = false;
 		boolean reconfigure = false;
+		final List<String> mavenSettingsFile = new LinkedList<String>();
+
+		NextArgAction nextArgAction = null;
 
 		final List<String> mavenArgs = new LinkedList<String>();
 
 		for (final String arg : args) {
+			if (nextArgAction != null) {
+				nextArgAction.processArg(arg);
+				nextArgAction = null;
+				continue;
+			}
+
 			if (unfilteredArgs) {
 				mavenArgs.add(arg);
 			} else if (arg.equals("--")) {
@@ -61,6 +74,13 @@ public class Emvn {
 			} else if (arg.equals("--reconfigure")
 					|| arg.equals("-reconfigure")) {
 				reconfigure = true;
+			} else if (arg.equals("--maven-settings")) {
+				nextArgAction = new NextArgAction() {
+					@Override
+					public void processArg(final String arg) {
+						mavenSettingsFile.add(arg);
+					}
+				};
 			} else {
 				mavenArgs.add(arg);
 			}
@@ -115,14 +135,21 @@ public class Emvn {
 				final MavenProject rootProject = new MavenProject(new File(
 						rootProjectFile));
 				// second param is null, we wont change to current state
-				rootProject.generateMavenProjectRecursive(forceGenerate, null);
+				final ConfigureRequest configureRequest = new ConfigureRequest();
+				configureRequest.setForce(forceGenerate);
+				rootProject.generateMavenProjectRecursive(configureRequest);
 			}
 		}
 
 		if (runGenerate) {
 			System.out.println("Generating (if needed)...");
-			project.generateMavenProjectRecursive(forceGenerate,
-					autoReconfigure);
+			final ConfigureRequest configureRequest = new ConfigureRequest();
+			configureRequest.setForce(forceGenerate);
+			configureRequest.setAutoReconfigure(autoReconfigure);
+			if (!mavenSettingsFile.isEmpty()) {
+				configureRequest.setMavenSettings(mavenSettingsFile.get(0));
+			}
+			project.generateMavenProjectRecursive(configureRequest);
 		}
 
 		if (runMaven) {

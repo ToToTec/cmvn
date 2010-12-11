@@ -208,15 +208,20 @@ public class MavenProject {
 
 	}
 
-	protected void createMavenConfig() {
+	protected void createMavenConfig(final String settingsFileOrNull) {
 		if (mavenConfig == null) {
 			if (rootProject == null) {
 				// I am the root project
 				final MavenConfig config = new MavenConfig();
-				final File settingsDir = new File(projectFile.getParentFile(),
+				File settingsFile = new File(projectFile.getParentFile(),
+						"settings.xml");
+				if (settingsFileOrNull != null) {
+					settingsFile = new File(settingsFileOrNull);
+				}
+				final File settingsDir = new File(settingsFile.getParentFile(),
 						".emvn");
-				final File settingsFile = new File(settingsDir, "settings.xml");
 				if (!settingsFile.exists()) {
+					System.out.println("Creating settings.xml...");
 					settingsDir.mkdirs();
 					final File localRepoDir = new File(settingsDir,
 							"repository");
@@ -268,10 +273,10 @@ public class MavenProject {
 		configWriter.close();
 	}
 
-	public void generateMavenProjectRecursive(final boolean force,
-			final Boolean autoReconfigure) {
+	public void generateMavenProjectRecursive(
+			final ConfigureRequest configureRequest) {
 		for (final MavenProject project : scanForMavenProjects()) {
-			project.generateMavenProject(force, autoReconfigure);
+			project.generateMavenProject(configureRequest);
 		}
 	}
 
@@ -284,8 +289,10 @@ public class MavenProject {
 		return mavenConfig.getSettingsFile();
 	}
 
-	protected void generateMavenProject(final boolean force,
-			final Boolean autoReconfigure) {
+	protected void generateMavenProject(final ConfigureRequest configureRequest) {
+		final boolean force = configureRequest != null
+				&& configureRequest.getForce();
+
 		if (!force && isUpToDate()) {
 			return;
 		}
@@ -293,7 +300,15 @@ public class MavenProject {
 		System.out.println("Generating " + pomFile + "...");
 
 		readMavenConfig();
-		createMavenConfig();
+		createMavenConfig(configureRequest.getMavenSettings());
+
+		if (configureRequest.getMavenSettings() != null) {
+			mavenConfig.setSettingsFile(configureRequest.getMavenSettings());
+		}
+		if (configureRequest.getAutoReconfigure() != null) {
+			mavenConfig.setAutoReconfigure(configureRequest
+					.getAutoReconfigure().booleanValue());
+		}
 
 		ProjectDocument pom;
 		final XmlOptions xmlOptions = createXmlOptions();
@@ -332,10 +347,6 @@ public class MavenProject {
 			pom.save(pomFile, createXmlSaveOptions());
 		} catch (final Exception e) {
 			throw new RuntimeException(e);
-		}
-
-		if (autoReconfigure != null) {
-			mavenConfig.setAutoReconfigure(autoReconfigure.booleanValue());
 		}
 
 		writeMavenConfig();

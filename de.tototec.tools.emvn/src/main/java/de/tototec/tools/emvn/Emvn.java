@@ -97,7 +97,7 @@ public class Emvn {
 
 		if (runDistClean) {
 			System.out.println("Cleaning generated files and emvn state...");
-			project.cleanEmvnStateRecurive();
+			project.cleanEmvnStateRecursive();
 		}
 
 		if (runClean) {
@@ -144,7 +144,7 @@ public class Emvn {
 		if (runGenerate) {
 			System.out.println("Generating (if needed)...");
 			final ConfigureRequest configureRequest = new ConfigureRequest();
-			configureRequest.setForce(forceGenerate);
+			configureRequest.setForce(true);
 			configureRequest.setAutoReconfigure(autoReconfigure);
 			if (!mavenSettingsFile.isEmpty()) {
 				configureRequest.setMavenSettings(mavenSettingsFile.get(0));

@@ -67,8 +67,6 @@ public class MavenProject {
 
 		this.rootProject = parent;
 
-		// TODO: read or create maven config
-
 		// static setup
 		{
 			final Map<String, ProjectConfigKeyValueReader> supportedKeys = new LinkedHashMap<String, ProjectConfigKeyValueReader>();
@@ -133,7 +131,7 @@ public class MavenProject {
 				&& lastModified < pomFile.lastModified();
 	}
 
-	public void cleanEmvnStateRecurive() {
+	public void cleanEmvnStateRecursive() {
 		for (final MavenProject project : scanForMavenProjects()) {
 			project.cleanEmvnState();
 		}
@@ -159,10 +157,6 @@ public class MavenProject {
 			System.out.println("Deleting " + pomFile + "...");
 			pomFile.delete();
 		}
-		// if (mavenConfigFile.exists()) {
-		// System.out.println("Deleting " + mavenConfigFile + "...");
-		// mavenConfigFile.delete();
-		// }
 	}
 
 	public MavenConfig getMavenConfig() {
@@ -212,15 +206,19 @@ public class MavenProject {
 			if (rootProject == null) {
 				// I am the root project
 				final MavenConfig config = new MavenConfig();
-				File settingsFile = new File(projectFile.getParentFile(),
-						"settings.xml");
+				File settingsFile;
 				if (settingsFileOrNull != null) {
 					settingsFile = new File(settingsFileOrNull);
+				} else {
+					final File settingsDir = new File(
+							projectFile.getParentFile(), ".emvn");
+					settingsFile = new File(settingsDir, "settings.xml");
 				}
-				final File settingsDir = new File(settingsFile.getParentFile(),
-						".emvn");
 				if (!settingsFile.exists()) {
 					System.out.println("Creating settings.xml...");
+
+					final File settingsDir = new File(
+							settingsFile.getParentFile(), ".emvn");
 					settingsDir.mkdirs();
 					final File localRepoDir = new File(settingsDir,
 							"repository");
@@ -407,7 +405,6 @@ public class MavenProject {
 			mvnPlugin.setVersion(pluginInfo.getVersion());
 
 			// special plugin dependencies
-			// TODO: use generic part
 			if (!plugin.getPluginDependencies().isEmpty()) {
 				org.apache.maven.pom.x400.Plugin.Dependencies pDeps = mvnPlugin
 						.getDependencies();
@@ -424,8 +421,7 @@ public class MavenProject {
 			if (mvnConfig == null) {
 				mvnConfig = mvnPlugin.addNewConfiguration();
 			}
-			generatePropertiesBlock(plugin.getConfiguration(), mvnConfig,
-					"\t\t\t\t");
+			generatePropertiesBlock(plugin.getConfiguration(), mvnConfig);
 		}
 	}
 
@@ -489,7 +485,6 @@ public class MavenProject {
 			}
 
 			for (final org.apache.maven.pom.x400.Repository mvnRepo : mvnRepos) {
-				// mvnRepo.setId(Integer.toHexString(mvnRepo.hashCode()));
 				mvnRepo.addNewReleases().setEnabled(repo.isForReleases());
 				mvnRepo.addNewSnapshots().setEnabled(repo.isForSnapshots());
 				mvnRepo.setUrl(repo.getUrl());
@@ -503,26 +498,20 @@ public class MavenProject {
 			mvnProperties = mvn.addNewProperties();
 		}
 
-		generatePropertiesBlock(projectConfig.getProperties(), mvnProperties,
-				"\t");
+		generatePropertiesBlock(projectConfig.getProperties(), mvnProperties);
 	}
 
 	protected void generatePropertiesBlock(
-			final Map<String, String> properties,
-			final XmlObject mvnProperties, final String indentString) {
+			final Map<String, String> properties, final XmlObject mvnProperties) {
 
 		final XmlCursor cursor = mvnProperties.newCursor();
-		// cursor.toFirstContentToken();
 		cursor.toEndToken();
 
 		for (final Entry<String, String> entry : properties.entrySet()) {
-			cursor.insertChars("\n\t" + indentString);
 			cursor.beginElement(entry.getKey());
 			cursor.insertChars(entry.getValue());
 			cursor.toNextToken();
 		}
-
-		cursor.insertChars("\n" + indentString);
 	}
 
 	protected void generateProjectInfo(final Model mvn) {
@@ -686,9 +675,6 @@ public class MavenProject {
 
 	public XmlOptions createXmlSaveOptions() {
 		final XmlOptions opts = new XmlOptions();
-		// final Map<String, String> ns = new HashMap<String, String>();
-		// ns.put("", "http://maven.apache.org/POM/4.0.0");
-		// opts.setLoadSubstituteNamespaces(ns);
 		opts.setSavePrettyPrint();
 		opts.setSavePrettyPrintIndent(2);
 		return opts;

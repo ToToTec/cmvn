@@ -104,13 +104,33 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 		@Override
 		public void read(final ProjectConfig projectConfig,
 				final KeyValue keyValue) {
-			final String url = keyValue.getValue();
+
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
+					keyValue, ";", "=", "true");
+
+			final String url = withOptions.getValue();
 			final Repository repo = new Repository(url);
-			final String key = keyValue.getKey();
+			final String key = withOptions.getKey();
 			if (key.equals("pluginrepo")) {
-				repo.setForArtefacts(false);
+				repo.setForArtifacts(false);
 			} else if (key.equals("artifactrepo")) {
 				repo.setForPlugins(false);
+			}
+			for (final KeyValue option : withOptions.getOptions()) {
+				if (option.getKey().equals("id")) {
+					repo.setId(option.getValue());
+				} else if(option.getKey().equals("releases")) {
+					repo.setForReleases(option.getValue().equals("true"));
+				} else if(option.getKey().equals("snapshots")) {
+					repo.setForSnapshots(option.getValue().equals("true"));
+				} else if(option.getKey().equals("artifacts")) {
+					repo.setForArtifacts(option.getValue().equals("true"));
+				} else if(option.getKey().equals("plugins")) {
+					repo.setForPlugins(option.getValue().equals("true"));
+				} else {
+					throw new RuntimeException(
+							"Unsupported repository option: " + option);
+				}
 			}
 			projectConfig.getRepositories().add(repo);
 		}

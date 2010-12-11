@@ -462,7 +462,7 @@ public class MavenProject {
 
 			final List<org.apache.maven.pom.x400.Repository> mvnRepos = new LinkedList<org.apache.maven.pom.x400.Repository>();
 
-			if (repo.isForArtefacts()) {
+			if (repo.isForArtifacts()) {
 				Repositories repos = mvn.getRepositories();
 				if (repos == null) {
 					repos = mvn.addNewRepositories();
@@ -485,6 +485,9 @@ public class MavenProject {
 			}
 
 			for (final org.apache.maven.pom.x400.Repository mvnRepo : mvnRepos) {
+				if(repo.getId() != null) {
+					mvnRepo.setId(repo.getId());
+				}
 				mvnRepo.addNewReleases().setEnabled(repo.isForReleases());
 				mvnRepo.addNewSnapshots().setEnabled(repo.isForSnapshots());
 				mvnRepo.setUrl(repo.getUrl());

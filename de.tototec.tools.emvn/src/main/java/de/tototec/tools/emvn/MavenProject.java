@@ -55,7 +55,8 @@ public class MavenProject {
 
 	private MavenConfig mavenConfig;
 	private List<MavenProject> scannedProjects;
-
+	private List<String> includedFiles = new LinkedList<String>();
+	
 	public MavenProject(final File file) {
 		// root project
 		this(file, null);
@@ -75,10 +76,18 @@ public class MavenProject {
 					supportedKeys.put(keyName, key);
 				}
 			}
+			supportedKeys.put("-include", new ProjectConfigKeyValueReader() {
+				
+				@Override
+				public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+					includedFiles.add(keyValue.getValue());
+				}
+			});
 			reader.setProjectConfigKeyValueReader(supportedKeys);
 
 			final ConfigFileReaderImpl configFileReader = new ConfigFileReaderImpl();
 			configFileReader.setIncludeFileLine("-include:", "");
+			configFileReader.setAddIncludeLinesToResult("-include");
 			this.configFileReader = configFileReader;
 			reader.setConfigFileReader(configFileReader);
 		}
@@ -120,15 +129,30 @@ public class MavenProject {
 	}
 
 	protected boolean isUpToDate() {
-		long lastModified = projectFile.lastModified();
-
-		if (pomTemplateFile.exists()) {
-			lastModified = Math.max(lastModified,
-					pomTemplateFile.lastModified());
+		if(!mavenConfigFile.exists()) {
+			return false;
+		}
+		if(!pomFile.exists()) {
+			return false;
+		}
+		
+		final long lastGenerated = Math.min(mavenConfigFile.lastModified(), pomFile.lastModified());
+		
+		if(projectFile.lastModified() > lastGenerated) {
+			return false;
 		}
 
-		return mavenConfigFile.exists() && pomFile.exists()
-				&& lastModified < pomFile.lastModified();
+		if (pomTemplateFile.exists() && pomTemplateFile.lastModified() > lastGenerated) {
+			return false;
+		}
+
+		for(final String includeFile : includedFiles) {
+			if(new File(includeFile).lastModified() > lastGenerated) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 
 	public void cleanEmvnStateRecursive() {
@@ -485,7 +509,7 @@ public class MavenProject {
 			}
 
 			for (final org.apache.maven.pom.x400.Repository mvnRepo : mvnRepos) {
-				if(repo.getId() != null) {
+				if (repo.getId() != null) {
 					mvnRepo.setId(repo.getId());
 				}
 				mvnRepo.addNewReleases().setEnabled(repo.isForReleases());

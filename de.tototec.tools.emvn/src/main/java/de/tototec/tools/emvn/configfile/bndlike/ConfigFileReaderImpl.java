@@ -8,12 +8,15 @@ import java.io.LineNumberReader;
 import java.util.LinkedList;
 import java.util.List;
 
+import lombok.Setter;
 import de.tototec.tools.emvn.configfile.ConfigFileReader;
 import de.tototec.tools.emvn.configfile.KeyValue;
 
 public class ConfigFileReaderImpl implements ConfigFileReader {
 
 	private KeyValue includeFileLine;
+	@Setter
+	private String addIncludeLinesToResult;
 
 	public void setIncludeFileLine(final String prefix, final String suffix) {
 		setIncludeFileLine(new KeyValue(prefix, suffix));
@@ -91,6 +94,13 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 							includeFile = new File(configFile.getParent(),
 									includeString);
 						}
+
+						if (addIncludeLinesToResult != null) {
+							// Add the included file to result
+							result.add(new KeyValue(addIncludeLinesToResult,
+									includeFile.getPath()));
+						}
+
 						// System.out.println("Including file: " + includeFile);
 						final List<KeyValue> includeKeyValues = readKeyValues(includeFile);
 						result.addAll(includeKeyValues);

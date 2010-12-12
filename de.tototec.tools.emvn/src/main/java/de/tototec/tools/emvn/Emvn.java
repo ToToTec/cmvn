@@ -147,7 +147,11 @@ public class Emvn {
 			configureRequest.setForce(true);
 			configureRequest.setAutoReconfigure(autoReconfigure);
 			if (!mavenSettingsFile.isEmpty()) {
-				configureRequest.setMavenSettings(mavenSettingsFile.get(0));
+				File file = new File(mavenSettingsFile.get(0));
+				if (!file.isAbsolute()) {
+					file = file.getAbsoluteFile();
+				}
+				configureRequest.setMavenSettings(file.getPath());
 			}
 			project.generateMavenProjectRecursive(configureRequest);
 		}

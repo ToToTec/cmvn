@@ -63,6 +63,10 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 
 				if (oKey.equals("scope")) {
 					dep.setScope(oValue);
+				} else if (oKey.equals("classifier")) {
+					dep.setClassifier(oValue);
+				} else if (oKey.equals("type")) {
+					dep.setType(oValue);
 				} else if (oKey.equals("optional")) {
 					dep.setOptionalAsTransitive(oValue.equalsIgnoreCase("true"));
 				} else if (oKey.equals("exclude")) {
@@ -178,7 +182,7 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 			for (final KeyValue option : withOptions.getOptions()) {
 				final String oKey = option.getKey();
 				final String oVal = option.getValue();
-				if (oKey.equals("-plugindependency")) {
+				if (oKey.equals("-plugindependency") || oKey.equals("-pluginDependency")) {
 					final String[] depSplit = oVal.split(":", 3);
 					if (depSplit.length < 3) {
 						throw new RuntimeException(
@@ -188,6 +192,8 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 							depSplit[0].trim(), depSplit[1].trim(),
 							depSplit[2].trim());
 					plugin.getPluginDependencies().add(pluginDep);
+				} else if(oKey.equals("-extension")) {
+					plugin.setExtension(oVal.equals("true"));
 				} else {
 					plugin.getConfiguration().put(oKey, oVal);
 				}

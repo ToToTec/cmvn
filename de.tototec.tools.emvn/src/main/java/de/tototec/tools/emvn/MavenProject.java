@@ -56,7 +56,7 @@ public class MavenProject {
 	private MavenConfig mavenConfig;
 	private List<MavenProject> scannedProjects;
 	private List<String> includedFiles = new LinkedList<String>();
-	
+
 	public MavenProject(final File file) {
 		// root project
 		this(file, null);
@@ -77,9 +77,10 @@ public class MavenProject {
 				}
 			}
 			supportedKeys.put("-include", new ProjectConfigKeyValueReader() {
-				
+
 				@Override
-				public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+				public void read(final ProjectConfig projectConfig,
+						final KeyValue keyValue) {
 					includedFiles.add(keyValue.getValue());
 				}
 			});
@@ -129,29 +130,31 @@ public class MavenProject {
 	}
 
 	protected boolean isUpToDate() {
-		if(!mavenConfigFile.exists()) {
+		if (!mavenConfigFile.exists()) {
 			return false;
 		}
-		if(!pomFile.exists()) {
-			return false;
-		}
-		
-		final long lastGenerated = Math.min(mavenConfigFile.lastModified(), pomFile.lastModified());
-		
-		if(projectFile.lastModified() > lastGenerated) {
+		if (!pomFile.exists()) {
 			return false;
 		}
 
-		if (pomTemplateFile.exists() && pomTemplateFile.lastModified() > lastGenerated) {
+		final long lastGenerated = Math.min(mavenConfigFile.lastModified(),
+				pomFile.lastModified());
+
+		if (projectFile.lastModified() > lastGenerated) {
 			return false;
 		}
 
-		for(final String includeFile : includedFiles) {
-			if(new File(includeFile).lastModified() > lastGenerated) {
+		if (pomTemplateFile.exists()
+				&& pomTemplateFile.lastModified() > lastGenerated) {
+			return false;
+		}
+
+		for (final String includeFile : includedFiles) {
+			if (new File(includeFile).lastModified() > lastGenerated) {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -427,7 +430,10 @@ public class MavenProject {
 			}
 
 			mvnPlugin.setVersion(pluginInfo.getVersion());
-
+			if(plugin.isExtension()) {
+				mvnPlugin.setExtensions(true);
+			}
+			
 			// special plugin dependencies
 			if (!plugin.getPluginDependencies().isEmpty()) {
 				org.apache.maven.pom.x400.Plugin.Dependencies pDeps = mvnPlugin
@@ -670,7 +676,15 @@ public class MavenProject {
 		mvnDep.setGroupId(dep.getGroupId());
 		mvnDep.setArtifactId(dep.getArtifactId());
 		mvnDep.setVersion(dep.getVersion());
-		mvnDep.setScope(dep.getScope());
+		if (dep.getScope() != null) {
+			mvnDep.setScope(dep.getScope());
+		}
+		if (dep.getClassifier() != null) {
+			mvnDep.setClassifier(dep.getClassifier());
+		}
+		if (dep.getType() != null) {
+			mvnDep.setType(dep.getType());
+		}
 		mvnDep.setOptional(dep.isOptionalAsTransitive());
 		if (dep.getExcludes() != null) {
 			Exclusions mvnExclusions = mvnDep.getExclusions();

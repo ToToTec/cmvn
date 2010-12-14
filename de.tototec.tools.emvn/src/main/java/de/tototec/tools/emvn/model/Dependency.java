@@ -14,6 +14,8 @@ public class Dependency {
 	private final String artifactId;
 	private final String version;
 	private String scope = "compile";
+	private String classifier;
+	private String type;
 	private boolean optionalAsTransitive = false;
 	@Setter(AccessLevel.NONE)
 	private List<Dependency> excludes;

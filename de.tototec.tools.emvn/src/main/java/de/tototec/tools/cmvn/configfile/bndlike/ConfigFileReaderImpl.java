@@ -1,4 +1,4 @@
-package de.tototec.tools.emvn.configfile.bndlike;
+package de.tototec.tools.cmvn.configfile.bndlike;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,8 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Setter;
-import de.tototec.tools.emvn.configfile.ConfigFileReader;
-import de.tototec.tools.emvn.configfile.KeyValue;
+import de.tototec.tools.cmvn.configfile.ConfigFileReader;
+import de.tototec.tools.cmvn.configfile.KeyValue;
 
 public class ConfigFileReaderImpl implements ConfigFileReader {
 

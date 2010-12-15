@@ -1,13 +1,13 @@
-package de.tototec.tools.emvn;
+package de.tototec.tools.cmvn;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 import lombok.Setter;
-import de.tototec.tools.emvn.configfile.ConfigFileReader;
-import de.tototec.tools.emvn.configfile.KeyValue;
-import de.tototec.tools.emvn.model.ProjectConfig;
+import de.tototec.tools.cmvn.configfile.ConfigFileReader;
+import de.tototec.tools.cmvn.configfile.KeyValue;
+import de.tototec.tools.cmvn.model.ProjectConfig;
 
 public class ProjectReaderImpl implements ProjectReader {
 

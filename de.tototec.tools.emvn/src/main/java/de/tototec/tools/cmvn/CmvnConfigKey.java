@@ -1,16 +1,16 @@
-package de.tototec.tools.emvn;
+package de.tototec.tools.cmvn;
 
 import lombok.Getter;
-import de.tototec.tools.emvn.configfile.KeyValue;
-import de.tototec.tools.emvn.configfile.KeyValueWithOptions;
-import de.tototec.tools.emvn.model.Build;
-import de.tototec.tools.emvn.model.Dependency;
-import de.tototec.tools.emvn.model.Module;
-import de.tototec.tools.emvn.model.Plugin;
-import de.tototec.tools.emvn.model.ProjectConfig;
-import de.tototec.tools.emvn.model.Repository;
+import de.tototec.tools.cmvn.configfile.KeyValue;
+import de.tototec.tools.cmvn.configfile.KeyValueWithOptions;
+import de.tototec.tools.cmvn.model.Build;
+import de.tototec.tools.cmvn.model.Dependency;
+import de.tototec.tools.cmvn.model.Module;
+import de.tototec.tools.cmvn.model.Plugin;
+import de.tototec.tools.cmvn.model.ProjectConfig;
+import de.tototec.tools.cmvn.model.Repository;
 
-public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
+public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	PROJECT("project") {
 		@Override
@@ -231,7 +231,7 @@ public enum EmvnConfigKey implements ProjectConfigKeyValueReader {
 	@Getter
 	private final String[] key;
 
-	private EmvnConfigKey(final String... key) {
+	private CmvnConfigKey(final String... key) {
 		this.key = key;
 	}
 

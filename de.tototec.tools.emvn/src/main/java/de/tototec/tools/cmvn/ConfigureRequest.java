@@ -1,4 +1,4 @@
-package de.tototec.tools.emvn;
+package de.tototec.tools.cmvn;
 
 import lombok.Data;
 

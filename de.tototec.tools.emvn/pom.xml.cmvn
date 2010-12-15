@@ -15,7 +15,7 @@
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
 						<Conditional-Package>*</Conditional-Package>
-						<Main-Class>de.tototec.tools.emvn.Emvn</Main-Class>
+						<Main-Class>de.tototec.tools.cmvn.Cmvn</Main-Class>
 					</instructions>
 				</configuration>
 			</plugin>

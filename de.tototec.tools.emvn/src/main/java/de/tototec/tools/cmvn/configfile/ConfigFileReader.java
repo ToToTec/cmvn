@@ -1,4 +1,4 @@
-package de.tototec.tools.emvn.configfile;
+package de.tototec.tools.cmvn.configfile;
 
 import java.io.File;
 import java.util.List;

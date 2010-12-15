@@ -1,8 +1,8 @@
-package de.tototec.tools.emvn;
+package de.tototec.tools.cmvn;
 
 import java.io.File;
 
-import de.tototec.tools.emvn.model.ProjectConfig;
+import de.tototec.tools.cmvn.model.ProjectConfig;
 
 public interface ProjectReader {
 

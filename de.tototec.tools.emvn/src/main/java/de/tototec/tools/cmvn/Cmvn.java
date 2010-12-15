@@ -1,4 +1,4 @@
-package de.tototec.tools.emvn;
+package de.tototec.tools.cmvn;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Emvn {
+public class Cmvn {
 
 	interface NextArgAction {
 		void processArg(String arg);

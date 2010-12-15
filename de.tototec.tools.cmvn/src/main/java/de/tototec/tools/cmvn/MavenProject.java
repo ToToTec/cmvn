@@ -244,14 +244,16 @@ public class MavenProject {
 					settingsFile = new File(settingsFileOrNull);
 				} else {
 					final File settingsDir = new File(
-							projectFile.getParentFile(), DEFAULT_MVN_SETTINGS_DIR_NAME);
+							projectFile.getParentFile(),
+							DEFAULT_MVN_SETTINGS_DIR_NAME);
 					settingsFile = new File(settingsDir, "settings.xml");
 				}
 				if (!settingsFile.exists()) {
 					System.out.println("Creating settings.xml...");
 
 					final File settingsDir = new File(
-							settingsFile.getParentFile(), DEFAULT_MVN_SETTINGS_DIR_NAME);
+							settingsFile.getParentFile(),
+							DEFAULT_MVN_SETTINGS_DIR_NAME);
 					settingsDir.mkdirs();
 					final File localRepoDir = new File(settingsDir,
 							"repository");
@@ -457,7 +459,8 @@ public class MavenProject {
 			if (mvnConfig == null) {
 				mvnConfig = mvnPlugin.addNewConfiguration();
 			}
-			generatePropertiesBlock(plugin.getConfiguration(), mvnConfig);
+			generatePropertiesBlock(plugin.getConfiguration(), mvnConfig,
+					"-xml:");
 		}
 	}
 
@@ -537,18 +540,43 @@ public class MavenProject {
 			mvnProperties = mvn.addNewProperties();
 		}
 
-		generatePropertiesBlock(projectConfig.getProperties(), mvnProperties);
+		generatePropertiesBlock(projectConfig.getProperties(), mvnProperties,
+				null);
 	}
 
 	protected void generatePropertiesBlock(
-			final Map<String, String> properties, final XmlObject mvnProperties) {
+			final Map<String, String> properties,
+			final XmlObject mvnProperties, final String rawXmlPrefix) {
 
 		final XmlCursor cursor = mvnProperties.newCursor();
 		cursor.toEndToken();
 
 		for (final Entry<String, String> entry : properties.entrySet()) {
-			cursor.beginElement(entry.getKey());
-			cursor.insertChars(entry.getValue());
+
+			if (rawXmlPrefix != null && entry.getKey().startsWith(rawXmlPrefix)) {
+
+				final String xmlTag = entry.getKey().substring(
+						rawXmlPrefix.length());
+
+				try {
+					final XmlObject xmlObject = XmlObject.Factory.parse("<"
+							+ xmlTag + ">" + entry.getValue() + "</" + xmlTag
+							+ ">");
+					// System.out.println("Prop with XML: " + xmlObject);
+					final XmlCursor newCursor = xmlObject.newCursor();
+					newCursor.toFirstContentToken();
+
+					newCursor.copyXml(cursor);
+
+				} catch (final XmlException e) {
+					throw new RuntimeException(
+							"Could not parse plugin property as xml: " + entry,
+							e);
+				}
+			} else {
+				cursor.beginElement(entry.getKey());
+				cursor.insertChars(entry.getValue());
+			}
 			cursor.toNextToken();
 		}
 	}

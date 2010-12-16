@@ -388,7 +388,8 @@ public class MavenProject {
 		String pomFileText = inMemoryOutputStream.toString();
 		// Remove all empty namespaces like <someTag xmlns="">
 		// FIXME: extend regex to esure that only xml attributes are matched
-		pomFileText = pomFileText.replaceAll("xmlns=\"\"", "");
+		pomFileText = pomFileText.replaceAll(" xmlns=\"\"[>]", ">");
+		pomFileText = pomFileText.replaceAll("xmlns=\"\"[>]", "");
 
 		try {
 			final PrintWriter pomWriter = new PrintWriter(pomFile);

@@ -1,5 +1,6 @@
 package de.tototec.tools.cmvn;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -25,6 +26,7 @@ import org.apache.maven.pom.x400.Model.PluginRepositories;
 import org.apache.maven.pom.x400.Model.Properties;
 import org.apache.maven.pom.x400.Model.Repositories;
 import org.apache.maven.pom.x400.Plugin.Configuration;
+import org.apache.maven.pom.x400.Plugin.Executions;
 import org.apache.maven.pom.x400.ProjectDocument;
 import org.apache.xmlbeans.XmlCursor;
 import org.apache.xmlbeans.XmlException;
@@ -375,10 +377,25 @@ public class MavenProject {
 		generatePlugins(mvn);
 		generateBuild(mvn);
 
+		final ByteArrayOutputStream inMemoryOutputStream = new ByteArrayOutputStream();
+
 		try {
-			pom.save(pomFile, createXmlSaveOptions());
+			pom.save(inMemoryOutputStream, createXmlSaveOptions());
 		} catch (final Exception e) {
 			throw new RuntimeException(e);
+		}
+
+		String pomFileText = inMemoryOutputStream.toString();
+		// Remove all empty namespaces like <someTag xmlns="">
+		// FIXME: extend regex to esure that only xml attributes are matched
+		pomFileText = pomFileText.replaceAll("xmlns=\"\"", "");
+
+		try {
+			final PrintWriter pomWriter = new PrintWriter(pomFile);
+			pomWriter.append(pomFileText);
+			pomWriter.close();
+		} catch (final FileNotFoundException e) {
+			throw new RuntimeException("Cannot write pom file: " + pomFile, e);
 		}
 
 		writeMavenConfig();
@@ -451,7 +468,22 @@ public class MavenProject {
 				}
 
 				generateDependenciesBlock(plugin.getPluginDependencies(), pDeps);
+			}
 
+			if (!plugin.getExecutionsAsXml().isEmpty()) {
+				Executions pExecs = mvnPlugin.getExecutions();
+				if (pExecs == null) {
+					pExecs = mvnPlugin.addNewExecutions();
+				}
+
+				final XmlCursor execCursor = pExecs.newCursor();
+				execCursor.toFirstContentToken();
+
+				for (final String exec : plugin.getExecutionsAsXml()) {
+					generateFreeXmlBlock(execCursor, exec, "execution");
+				}
+
+				execCursor.dispose();
 			}
 
 			// configuration
@@ -544,6 +576,28 @@ public class MavenProject {
 				null);
 	}
 
+	protected void generateFreeXmlBlock(final XmlCursor xmlCursor,
+			final String xmlBlock, final String parentOrNull) {
+		try {
+			String xml = xmlBlock;
+			if (parentOrNull != null) {
+				xml = "<" + parentOrNull + ">" + xmlBlock + "</" + parentOrNull
+						+ ">";
+			}
+
+			final XmlObject xmlObject = XmlObject.Factory.parse(xml,
+					freeXmlOptions());
+			final XmlCursor newCursor = xmlObject.newCursor();
+			newCursor.toFirstContentToken();
+			newCursor.copyXml(xmlCursor);
+			newCursor.dispose();
+
+		} catch (final XmlException e) {
+			throw new RuntimeException("Could not generate xml block "
+					+ xmlBlock, e);
+		}
+	}
+
 	protected void generatePropertiesBlock(
 			final Map<String, String> properties,
 			final XmlObject mvnProperties, final String rawXmlPrefix) {
@@ -557,28 +611,16 @@ public class MavenProject {
 
 				final String xmlTag = entry.getKey().substring(
 						rawXmlPrefix.length());
+				generateFreeXmlBlock(cursor, entry.getValue(), xmlTag);
 
-				try {
-					final XmlObject xmlObject = XmlObject.Factory.parse("<"
-							+ xmlTag + ">" + entry.getValue() + "</" + xmlTag
-							+ ">");
-					// System.out.println("Prop with XML: " + xmlObject);
-					final XmlCursor newCursor = xmlObject.newCursor();
-					newCursor.toFirstContentToken();
-
-					newCursor.copyXml(cursor);
-
-				} catch (final XmlException e) {
-					throw new RuntimeException(
-							"Could not parse plugin property as xml: " + entry,
-							e);
-				}
 			} else {
 				cursor.beginElement(entry.getKey());
 				cursor.insertChars(entry.getValue());
 			}
 			cursor.toNextToken();
 		}
+
+		cursor.dispose();
 	}
 
 	protected void generateProjectInfo(final Model mvn) {
@@ -748,10 +790,21 @@ public class MavenProject {
 		return opts;
 	}
 
+	public XmlOptions freeXmlOptions() {
+		final XmlOptions opts = new XmlOptions();
+		final Map<String, String> nsMap = new LinkedHashMap<String, String>();
+		nsMap.put("", "http://maven.apache.org/POM/4.0.0");
+		opts.setSaveImplicitNamespaces(nsMap);
+		return opts;
+	}
+
 	public XmlOptions createXmlSaveOptions() {
 		final XmlOptions opts = new XmlOptions();
 		opts.setSavePrettyPrint();
 		opts.setSavePrettyPrintIndent(2);
+		final Map<String, String> nsMap = new LinkedHashMap<String, String>();
+		nsMap.put("", "http://maven.apache.org/POM/4.0.0");
+		opts.setSaveImplicitNamespaces(nsMap);
 		return opts;
 	}
 

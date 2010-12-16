@@ -13,4 +13,5 @@ public class Plugin {
 	private boolean extension = false;
 	private final List<Dependency> pluginDependencies = new LinkedList<Dependency>();
 	private final Map<String, String> configuration = new LinkedHashMap<String, String>();
+	private final List<String> executionsAsXml = new LinkedList<String>();
 }

@@ -123,13 +123,13 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			for (final KeyValue option : withOptions.getOptions()) {
 				if (option.getKey().equals("id")) {
 					repo.setId(option.getValue());
-				} else if(option.getKey().equals("releases")) {
+				} else if (option.getKey().equals("releases")) {
 					repo.setForReleases(option.getValue().equals("true"));
-				} else if(option.getKey().equals("snapshots")) {
+				} else if (option.getKey().equals("snapshots")) {
 					repo.setForSnapshots(option.getValue().equals("true"));
-				} else if(option.getKey().equals("artifacts")) {
+				} else if (option.getKey().equals("artifacts")) {
 					repo.setForArtifacts(option.getValue().equals("true"));
-				} else if(option.getKey().equals("plugins")) {
+				} else if (option.getKey().equals("plugins")) {
 					repo.setForPlugins(option.getValue().equals("true"));
 				} else {
 					throw new RuntimeException(
@@ -182,7 +182,8 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			for (final KeyValue option : withOptions.getOptions()) {
 				final String oKey = option.getKey();
 				final String oVal = option.getValue();
-				if (oKey.equals("-plugindependency") || oKey.equals("-pluginDependency")) {
+				if (oKey.equals("-plugindependency")
+						|| oKey.equals("-pluginDependency")) {
 					final String[] depSplit = oVal.split(":", 3);
 					if (depSplit.length < 3) {
 						throw new RuntimeException(
@@ -192,8 +193,10 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 							depSplit[0].trim(), depSplit[1].trim(),
 							depSplit[2].trim());
 					plugin.getPluginDependencies().add(pluginDep);
-				} else if(oKey.equals("-extension")) {
+				} else if (oKey.equals("-extension")) {
 					plugin.setExtension(oVal.equals("true"));
+				} else if (oKey.equals("-execution")) {
+					plugin.getExecutionsAsXml().add(oVal);
 				} else {
 					plugin.getConfiguration().put(oKey, oVal);
 				}

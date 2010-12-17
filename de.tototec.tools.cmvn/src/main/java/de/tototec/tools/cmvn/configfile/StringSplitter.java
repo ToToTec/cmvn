@@ -24,7 +24,9 @@ public class StringSplitter {
 				if (mergeString == null) {
 					mergeString = "";
 				} else {
-					mergeString += delim;
+					mergeString = mergeString.substring(0, mergeString.length()
+							- delimMaskLength)
+							+ delim;
 				}
 				mergeString += part;
 			} else {

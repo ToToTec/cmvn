@@ -44,6 +44,7 @@ public class StringSplitterTest extends Assert {
 		tests.splittedStringSemicolon("par1;par2", "par1", "par2");
 		tests.splittedStringSemicolon("par1 ;par2", "par1 ", "par2");
 		tests.splittedStringSemicolon("par1\\;par2", "par1;par2");
+		tests.splittedStringSemicolon("par1\\;par2\\;par3", "par1;par2;par3");
 		tests.splittedStringSemicolon("par1\\ ;par2", "par1\\ ", "par2");
 		tests.splittedStringSemicolon("par1;par2\\", "par1", "par2\\");
 

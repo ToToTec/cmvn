@@ -11,6 +11,7 @@ import java.util.List;
 import lombok.Setter;
 import de.tototec.tools.cmvn.configfile.ConfigFileReader;
 import de.tototec.tools.cmvn.configfile.KeyValue;
+import de.tototec.tools.cmvn.configfile.StringSplitter;
 
 public class ConfigFileReaderImpl implements ConfigFileReader {
 
@@ -29,6 +30,8 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 	@Override
 	public List<KeyValue> readKeyValues(final File configFile) {
 		final List<KeyValue> result = new LinkedList<KeyValue>();
+
+		final StringSplitter splitter = new StringSplitter();
 
 		FileReader fileReader;
 		try {
@@ -52,6 +55,11 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 				if (line.startsWith("#")) {
 					// empty line
 					continue;
+				}
+				if (line.contains("#")) {
+					// FIXME: check for masking
+					final int indexOfComment = line.indexOf("#");
+					line = line.substring(0, indexOfComment);
 				}
 				if (line.endsWith("\\")) {
 					// an unfinished line
@@ -109,7 +117,8 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 					}
 				}
 
-				final String[] keyVal = trimmedLine.split(":", 2);
+				final String[] keyVal = splitter.split(trimmedLine, ":", "\\",
+						2);
 				if (keyVal.length != 2) {
 					throw new RuntimeException("Invalid line nr "
 							+ lineReader.getLineNumber() + ": " + line);

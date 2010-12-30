@@ -253,10 +253,11 @@ public class MavenProject {
 				if (!settingsFile.exists()) {
 					System.out.println("Creating settings.xml...");
 
-					final File settingsDir = new File(
-							settingsFile.getParentFile(),
-							DEFAULT_MVN_SETTINGS_DIR_NAME);
+					// Create the directory that should contain the settings
+					// file if it does not exists yet
+					final File settingsDir = settingsFile.getParentFile();
 					settingsDir.mkdirs();
+
 					final File localRepoDir = new File(settingsDir,
 							"repository");
 

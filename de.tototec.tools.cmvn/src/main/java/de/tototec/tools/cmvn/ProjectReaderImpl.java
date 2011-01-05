@@ -59,6 +59,19 @@ public class ProjectReaderImpl implements ProjectReader {
 			value = value.replaceAll(Pattern.quote(key), entry.getValue());
 		}
 
+		int startPattern = value.indexOf(prefix);
+		if (startPattern >= 0) {
+			startPattern += prefix.length();
+			final int endPattern = value.substring(startPattern)
+					.indexOf(suffix);
+			if (endPattern >= 0) {
+				final String var = value.substring(startPattern, startPattern
+						+ endPattern);
+				throw new RuntimeException(
+						"Cannot substitute unknown variable: " + var);
+			}
+		}
+
 		return new KeyValue(keyValue.getKey(), value);
 	}
 }

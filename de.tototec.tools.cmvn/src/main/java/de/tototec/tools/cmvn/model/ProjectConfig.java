@@ -19,4 +19,5 @@ public class ProjectConfig {
 	private final List<Module> modules = new LinkedList<Module>();
 	private final List<Plugin> plugins = new LinkedList<Plugin>();
 	private Build build;
+	private final Map<String,String> variables = new LinkedHashMap<String, String>();
 }

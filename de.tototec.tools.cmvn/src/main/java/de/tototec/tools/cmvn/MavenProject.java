@@ -693,6 +693,11 @@ public class MavenProject {
 			final Dependencies mvnDependencies) {
 
 		for (final Dependency dep : dependencies) {
+			if(dep.isOnlyManagement()) {
+				// skip this dependency, it is only for dependencyManagement blocks
+				continue;
+			}
+			
 			final Dependencies mvnDeps = mvnDependencies;
 
 			org.apache.maven.pom.x400.Dependency mvnDep = null;

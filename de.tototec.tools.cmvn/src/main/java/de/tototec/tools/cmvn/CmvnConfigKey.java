@@ -40,7 +40,8 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		}
 	},
 
-	DEPENDENCY("dependency", "compile", "test", "runtime", "system") {
+	DEPENDENCY("dependency", "compile", "test", "runtime", "system",
+			"dependencyManagement") {
 		public void read(final ProjectConfig projectConfig,
 				final KeyValue keyValue) {
 
@@ -54,8 +55,10 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			}
 			final Dependency dep = new Dependency(split[0].trim(),
 					split[1].trim(), split[2].trim());
-			final String scope = keyValue.getKey();
-			dep.setScope(scope.equals("dependency") ? "compile" : scope);
+			final String depKey = keyValue.getKey();
+			dep.setScope(depKey.equals("dependency") ? "compile" : depKey);
+			dep.setOnlyManagement(depKey.equals("dependencyManagement") ? true
+					: false);
 
 			for (final KeyValue option : withOptions.getOptions()) {
 				final String oKey = option.getKey();
@@ -226,6 +229,29 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				}
 			}
 			projectConfig.setBuild(build);
+		}
+	},
+
+	VARIABLE("-val") {
+		@Override
+		public void read(final ProjectConfig projectConfig,
+				final KeyValue keyValue) {
+
+			final String[] split = keyValue.getValue().split("=", 2);
+			if (split.length != 2) {
+				throw new RuntimeException(
+						"Invalid varibale format. Must be 'variable=value'. Was: "
+								+ keyValue.getValue());
+			}
+
+			final String key = split[0].trim();
+			final String value = split[1].trim();
+
+			if (projectConfig.getVariables().containsKey(key)) {
+				throw new RuntimeException(
+						"Double declaration of immutable value: " + key);
+			}
+			projectConfig.getVariables().put(key, value);
 		}
 	}
 

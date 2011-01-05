@@ -20,6 +20,7 @@ public class Dependency {
 	@Setter(AccessLevel.NONE)
 	private List<Dependency> excludes;
 	private String jarPath;
+	private boolean onlyManagement = false;
 	private boolean forceVerison = false;
 
 	public void addToExcludes(final Dependency dependency) {

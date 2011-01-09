@@ -21,36 +21,35 @@ public class ProjectReaderImpl implements ProjectReader {
 
 	@Override
 	public ProjectConfig readConfigFile(final File file) {
-		final ConfigFileReader reader = configFileReader;
-		final List<KeyValue> readKeyValues = reader.readKeyValues(file);
+		try {
+			final ConfigFileReader reader = configFileReader;
+			final List<KeyValue> readKeyValues = reader.readKeyValues(file);
 
-		final Map<String, ProjectConfigKeyValueReader> supportedKeys = projectConfigKeyValueReader;
-		if (supportedKeys == null) {
-			throw new RuntimeException(
-					"No ProjectConfigKeyValueReader registered.");
-		}
-
-		final ProjectConfig projectConfig = new ProjectConfig();
-
-		for (final KeyValue keyValue : readKeyValues) {
-			if (supportedKeys.containsKey(keyValue.getKey())) {
-				final Map<String, String> values = projectConfig.getVariables();
-				final KeyValue enhancedKeyValue = enhanceKeyValue(keyValue,
-						values, "$${", "}");
-				supportedKeys.get(keyValue.getKey()).read(projectConfig,
-						enhancedKeyValue);
-			} else {
-				throw new RuntimeException("Unsupported config line: "
-						+ keyValue);
+			final Map<String, ProjectConfigKeyValueReader> supportedKeys = projectConfigKeyValueReader;
+			if (supportedKeys == null) {
+				throw new RuntimeException("No ProjectConfigKeyValueReader registered.");
 			}
-		}
 
-		return projectConfig;
+			final ProjectConfig projectConfig = new ProjectConfig();
+
+			for (final KeyValue keyValue : readKeyValues) {
+				if (supportedKeys.containsKey(keyValue.getKey())) {
+					final Map<String, String> values = projectConfig.getVariables();
+					final KeyValue enhancedKeyValue = enhanceKeyValue(keyValue, values, "$${", "}");
+					supportedKeys.get(keyValue.getKey()).read(projectConfig, enhancedKeyValue);
+				} else {
+					throw new RuntimeException("Unsupported config line: " + keyValue);
+				}
+			}
+
+			return projectConfig;
+		} catch (final RuntimeException e) {
+			throw new RuntimeException("Error while reading file: " + file, e);
+		}
 	}
 
-	protected KeyValue enhanceKeyValue(final KeyValue keyValue,
-			final Map<String, String> replacements, final String prefix,
-			final String suffix) {
+	protected KeyValue enhanceKeyValue(final KeyValue keyValue, final Map<String, String> replacements,
+			final String prefix, final String suffix) {
 
 		String value = keyValue.getValue();
 
@@ -62,13 +61,10 @@ public class ProjectReaderImpl implements ProjectReader {
 		int startPattern = value.indexOf(prefix);
 		if (startPattern >= 0) {
 			startPattern += prefix.length();
-			final int endPattern = value.substring(startPattern)
-					.indexOf(suffix);
+			final int endPattern = value.substring(startPattern).indexOf(suffix);
 			if (endPattern >= 0) {
-				final String var = value.substring(startPattern, startPattern
-						+ endPattern);
-				throw new RuntimeException(
-						"Cannot substitute unknown variable: " + var);
+				final String var = value.substring(startPattern, startPattern + endPattern);
+				throw new RuntimeException("Cannot substitute unknown variable: " + var);
 			}
 		}
 

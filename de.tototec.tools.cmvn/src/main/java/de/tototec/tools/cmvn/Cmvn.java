@@ -4,26 +4,107 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import lombok.ToString;
+import de.tobiasroeser.cmdoption.CmdOption;
+import de.tobiasroeser.cmdoption.CmdOptionsParser;
+import de.tobiasroeser.cmdoption.CmdOptionsParser.Result;
+import de.tobiasroeser.cmdoption.CmdParameter;
+import de.tobiasroeser.cmdoption.GroupConstraint;
+import de.tobiasroeser.cmdoption.GroupConstraintType;
+import de.tobiasroeser.cmdoption.GroupConstraints;
+
 public class Cmvn {
 
+	/**
+	 * Single argument processor that can provide it successor (for the next
+	 * argument).
+	 */
 	interface NextArgAction {
-		void processArg(String arg);
+		NextArgAction processArg(String arg);
+	}
+
+	@ToString
+	@GroupConstraints({ @GroupConstraint(groups = "mode-switch", type = GroupConstraintType.EXACT_ONE_OPTION_OF_GROUPS) })
+	public static class CmdlineOptions {
+		@CmdOption(description = "Configure mode.", group = "mode-switch")
+		public boolean configure;
+		@CmdOption
+		public boolean autoReconfigure;
+		@CmdOption
+		public boolean clean;
+		@CmdOption
+		public boolean distclean;
+		@CmdOption
+		public boolean reconfigure;
+		@CmdOption(description = "Show program commandline usage information and exit.")
+		public boolean help;
+		@CmdOption
+		public boolean force;
+		@CmdOption(description = "Build mode (default)", group = "mode-switch")
+		public boolean build;
+
+		@CmdOption(description = "Show program version information and exit.")
+		public boolean version;
+
+		@CmdParameter(args = "maven-arg", maxCount = -1)
+		public final Collection<String> params = new LinkedList<String>();
+
 	}
 
 	public static void main(final String[] args) {
+		try {
+			new Cmvn().run(args);
+		} catch (final RuntimeException e) {
+			System.out.println("*** cmvn exited abnormally. Please check the exception details below. ***");
+			e.printStackTrace(System.out);
+			System.exit(1);
+		}
+	}
 
-		boolean runGenerate = false;
-		boolean runMaven = true;
+	public void run2(final String[] args) {
+		final CmdlineOptions options = new CmdlineOptions();
+		final CmdOptionsParser parser = new CmdOptionsParser(CmdlineOptions.class, true, false);
+		final Result result = parser.parseCmdline(args, options);
+
+		System.out.println("Commandline: " + options);
+
+		if (!result.isOk()) {
+			throw new RuntimeException("Invalid Commandline given. " + result.getCause());
+		}
+
+		if (options.help) {
+			System.out.println(parser.formatOptions());
+			return;
+		}
+		if (options.version) {
+			System.out.println("cmvn trunk development version");
+			return;
+		}
+
+	}
+
+	public void run(final String[] args) {
+
+		// Cmdline parser
+		boolean unfilteredArgs = false;
+
+		// Default Mode: run maven
+		boolean runMaven = false;
+		boolean reconfigure = false;
+
+		// Clean Mode
 		boolean runClean = false;
 		boolean runDistClean = false;
+
+		// Configure mode
+		boolean runGenerate = false;
 		boolean forceGenerate = false;
-		boolean unfilteredArgs = false;
 		boolean autoReconfigure = false;
-		boolean reconfigure = false;
-		final List<String> mavenSettingsFile = new LinkedList<String>();
+		final String[] mavenSettingsFile = new String[1];
 
 		NextArgAction nextArgAction = null;
 
@@ -31,22 +112,16 @@ public class Cmvn {
 
 		for (final String arg : args) {
 			if (nextArgAction != null) {
-				nextArgAction.processArg(arg);
-				nextArgAction = null;
+				nextArgAction = nextArgAction.processArg(arg);
 				continue;
 			}
-
 			if (unfilteredArgs) {
 				mavenArgs.add(arg);
 			} else if (arg.equals("--")) {
 				unfilteredArgs = true;
-			} else if (arg.equals("--help") || arg.equals("-")) {
-				System.out
-						.println("Usage: emvn <emvn-options> [--] <mvn-options>");
-				runGenerate = false;
-				runMaven = false;
-				mavenArgs.clear();
-				break;
+			} else if (arg.equals("--help") || arg.equals("-h")) {
+				printUsage();
+				return;
 			} else if (arg.equals("-version") || arg.equals("--version")) {
 				System.out.println("emvn 0.0.1-SNAPSHOT");
 				runGenerate = false;
@@ -54,31 +129,34 @@ public class Cmvn {
 				mavenArgs.clear();
 				mavenArgs.add("-version");
 				break;
-			} else if (arg.equals("-clean") || arg.equals("--clean")) {
+			} else if (arg.equals("--build")) {
+				runMaven = true;
+			} else if (arg.equals("--clean")) {
 				runGenerate = false;
 				runMaven = false;
 				runClean = true;
-			} else if (arg.equals("-distclean") || arg.equals("--distclean")) {
+			} else if (arg.equals("--distclean")) {
 				runGenerate = false;
 				runMaven = false;
 				runDistClean = true;
-			} else if (arg.equals("-force") || arg.equals("--force")) {
+			} else if (arg.equals("--force")) {
 				forceGenerate = true;
-			} else if (arg.equals("--configure") || arg.equals("-configure")) {
+			} else if (arg.equals("--configure")) {
 				runGenerate = true;
 				forceGenerate = true;
 				runMaven = false;
-			} else if (arg.equals("--auto-reconfigure")
-					|| arg.equals("-auto-reconfigure")) {
+			} else if (arg.equals("--auto-reconfigure")) {
 				autoReconfigure = true;
-			} else if (arg.equals("--reconfigure")
-					|| arg.equals("-reconfigure")) {
+			} else if (arg.equals("--reconfigure")) {
 				reconfigure = true;
+			} else if (arg.equals("--build")) {
+				runMaven = true;
 			} else if (arg.equals("--maven-settings")) {
 				nextArgAction = new NextArgAction() {
 					@Override
-					public void processArg(final String arg) {
-						mavenSettingsFile.add(arg);
+					public NextArgAction processArg(final String arg) {
+						mavenSettingsFile[0] = arg;
+						return null;
 					}
 				};
 			} else {
@@ -86,14 +164,36 @@ public class Cmvn {
 			}
 		}
 
-		if (reconfigure && runGenerate) {
-			throw new RuntimeException(
-					"Cannot configure and auto-reconfigure at the same time.");
+		int modeCount = 0;
+		for (final boolean flag : new Boolean[] { runGenerate, reconfigure, runMaven }) {
+			if (flag) {
+				++modeCount;
+			}
+		}
+		if (modeCount > 1) {
+			throw new RuntimeException("Only one mode can be selected.");
 		}
 
-		final MavenProject project = new MavenProject(new File(
-				System.getProperty("user.dir")));
+		if (runGenerate && !mavenArgs.isEmpty()) {
+			throw new RuntimeException("Invalid arguments in --configure mode: " + mavenArgs);
+		}
+
+		final MavenProject project = new MavenProject(new File(System.getProperty("user.dir")));
+		final boolean upToDate = project.isUpToDateRecursive();
+		System.out.println("Project up-to-date: " + upToDate);
+
 		// System.out.println(project);
+
+		if (modeCount == 0 && mavenArgs.isEmpty() && project.getMavenConfig() != null
+				&& project.getMavenConfig().isAutoReconfigure()) {
+			reconfigure = true;
+			modeCount = 1;
+		}
+
+		if (modeCount == 0 && !mavenArgs.isEmpty()) {
+			System.out.println("Automatically enabling build-mode (--build)...");
+			runMaven = true;
+		}
 
 		if (runDistClean) {
 			System.out.println("Cleaning generated files and emvn state...");
@@ -105,14 +205,10 @@ public class Cmvn {
 			project.cleanGeneratedFilesRecursive();
 		}
 
-		final boolean upToDate = project.isUpToDateRecursive();
-		System.out.println("Project up-to-date: " + upToDate);
-
 		final boolean generateAllowed = runGenerate || reconfigure;
 
 		if (!upToDate && !generateAllowed && runMaven) {
-			if (project.getMavenConfig() != null
-					&& project.getMavenConfig().isAutoReconfigure()) {
+			if (project.getMavenConfig() != null && project.getMavenConfig().isAutoReconfigure()) {
 				reconfigure = true;
 			} else {
 				throw new RuntimeException(
@@ -125,15 +221,12 @@ public class Cmvn {
 				System.out.println("Reconfiguring...");
 
 				final MavenConfig mavenConfig = project.getMavenConfig();
-				if (mavenConfig == null
-						|| mavenConfig.getRootProjectFile() == null) {
-					throw new RuntimeException(
-							"Cannot reconfigure. Not enough information (unknown root project)");
+				if (mavenConfig == null || mavenConfig.getRootProjectFile() == null) {
+					throw new RuntimeException("Cannot reconfigure. Not enough information (unknown root project)");
 				}
 
 				final String rootProjectFile = mavenConfig.getRootProjectFile();
-				final MavenProject rootProject = new MavenProject(new File(
-						rootProjectFile));
+				final MavenProject rootProject = new MavenProject(new File(rootProjectFile));
 				// second param is null, we wont change to current state
 				final ConfigureRequest configureRequest = new ConfigureRequest();
 				configureRequest.setForce(forceGenerate);
@@ -146,8 +239,8 @@ public class Cmvn {
 			final ConfigureRequest configureRequest = new ConfigureRequest();
 			configureRequest.setForce(true);
 			configureRequest.setAutoReconfigure(autoReconfigure);
-			if (!mavenSettingsFile.isEmpty()) {
-				File file = new File(mavenSettingsFile.get(0));
+			if (mavenSettingsFile[0] != null) {
+				File file = new File(mavenSettingsFile[0]);
 				if (!file.isAbsolute()) {
 					file = file.getAbsoluteFile();
 				}
@@ -170,24 +263,42 @@ public class Cmvn {
 				copyInBackgroundThread(process.getErrorStream(), System.err);
 				copyInBackgroundThread(process.getInputStream(), System.out);
 			} catch (final IOException e) {
-				throw new RuntimeException(
-						"Error occured while starting process mvn.", e);
+				throw new RuntimeException("Error occured while starting process mvn.", e);
 			}
 			if (process != null) {
 				try {
 					final int exitValue = process.waitFor();
 					System.exit(exitValue);
 				} catch (final InterruptedException e) {
-					throw new RuntimeException(
-							"Error occured while execution process mvn.", e);
+					throw new RuntimeException("Error occured while execution process mvn.", e);
 				}
 			}
 		}
 	}
 
-	protected static void copyInBackgroundThread(final InputStream in,
-			final OutputStream out) {
-		new Thread() {
+	private void printUsage() {
+		String help = "";
+		help += "Usage: cmvn [Mode] [Options] [--] [Maven-Args]\n";
+		help += "\n";
+		help += "Mode:\n";
+		help += "   --build       Enables BUILD mode\n";
+		help += "   --configure   Enables CONFIGURE mode\n";
+		help += "   --clean       Enables CLEAN mode\n";
+		help += "   --distclean   Enables DISTCLEAN mode\n";
+		help += "\n";
+		help += "Options for CONFIGURE mode:\n";
+		help += "   --auto-reconfigure  Enable automatic reconfiguration for out-of-date files\n";
+		help += "   --force             Configure and generate all files\n";
+		help += "\n";
+		help += "Options for BUILD mode:\n";
+		help += "   --reconfigure   Automatically reconfigure if some source files are out-of-date\n";
+		help += "\n";
+		System.out.println(help);
+	}
+
+	protected static void copyInBackgroundThread(final InputStream in, final OutputStream out) {
+		new Thread("StreamCopyThread") {
+			@Override
 			public void run() {
 				copy(in, out);
 			}

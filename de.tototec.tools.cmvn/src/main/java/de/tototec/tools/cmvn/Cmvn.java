@@ -20,7 +20,7 @@ import de.tobiasroeser.cmdoption.GroupConstraints;
 public class Cmvn {
 
 	/**
-	 * Single argument processor that can provide it successor (for the next
+	 * Single argument processor that can provide its successor (for the next
 	 * argument).
 	 */
 	interface NextArgAction {

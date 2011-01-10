@@ -55,7 +55,13 @@ public class ProjectReaderImpl implements ProjectReader {
 
 		for (final Entry<String, String> entry : replacements.entrySet()) {
 			final String key = prefix + entry.getKey() + suffix;
-			value = value.replaceAll(Pattern.quote(key), entry.getValue());
+
+			int index = -1;
+			while ((index = value.indexOf(key)) != -1) {
+				value = value.substring(0, index) + entry.getValue() + value.substring(index + key.length());
+			}
+
+			// value = value.replaceAll(Pattern.quote(key), entry.getValue());
 		}
 
 		int startPattern = value.indexOf(prefix);

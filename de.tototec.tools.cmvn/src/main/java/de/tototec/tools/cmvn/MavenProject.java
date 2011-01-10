@@ -43,7 +43,7 @@ import de.tototec.tools.cmvn.model.Plugin;
 import de.tototec.tools.cmvn.model.ProjectConfig;
 import de.tototec.tools.cmvn.model.Repository;
 
-@ToString(exclude = { "configFileReader" })
+@ToString(exclude = { "configFileReader", "scannedProjects" })
 public class MavenProject {
 
 	private static final String DEFAULT_PROJECT_FILE_NAME = "cmvn.conf";

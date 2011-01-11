@@ -257,11 +257,39 @@ public class Cmvn {
 			mvnArgs.add(2, project.getMavenSettingsFile());
 			final ProcessBuilder pB = new ProcessBuilder(mvnArgs);
 			Process process = null;
+			Thread outThread = null;
 			try {
 				System.out.println("Executing " + mvnArgs + "...");
 				process = pB.start();
 				copyInBackgroundThread(process.getErrorStream(), System.err);
 				copyInBackgroundThread(process.getInputStream(), System.out);
+
+				final InputStream in = System.in;
+				final OutputStream out = process.getOutputStream();
+				outThread = new Thread() {
+					@Override
+					public void run() {
+						try {
+							int read;
+							while (true) {
+								if (in.available() > 0) {
+									if ((read = in.read()) > 0) {
+										out.write(read);
+										out.flush();
+									}
+								} else {
+									sleep(50);
+								}
+							}
+						} catch (final InterruptedException e) {
+							// this is ok
+						} catch (final Exception e) {
+							throw new RuntimeException("Error: " + e, e);
+						}
+					}
+				};
+				outThread.start();
+
 			} catch (final IOException e) {
 				throw new RuntimeException("Error occured while starting process mvn.", e);
 			}
@@ -271,6 +299,10 @@ public class Cmvn {
 					System.exit(exitValue);
 				} catch (final InterruptedException e) {
 					throw new RuntimeException("Error occured while execution process mvn.", e);
+				} finally {
+					if (outThread != null) {
+						outThread.interrupt();
+					}
 				}
 			}
 		}

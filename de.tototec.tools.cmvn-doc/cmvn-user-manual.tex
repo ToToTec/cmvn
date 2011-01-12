@@ -1,0 +1,202 @@
+\documentclass[a4paper,11pt,english,oneside,halfparskip]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\usepackage{xspace}
+\usepackage{amssymb}
+\usepackage{ifpdf}
+\usepackage{listings}
+\usepackage{mdwlist}
+\usepackage[svgnames]{xcolor}
+\usepackage{hyperref}
+
+\newcommand{\CMVN}{\textsc{\small{}cmvn}}
+\newcommand{\VERSION}{0.1.0}
+
+\definecolor{listgray}{rgb}{0.88,0.88,0.88} 
+
+\newcommand{\G}{\par\noindent\ensuremath{\blacktriangleright}~}
+\newcommand{\GG}{\par\vspace{-\parskip}\hspace{1.4em}\ensuremath{\triangleright}~}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\pom}{\code{pom.xml}}
+
+%opening
+\title{cmvn - Configured~Maven - User~Manual}
+\author{Tobias Roeser}
+
+\makeatletter
+\hypersetup{
+	pdfauthor={\@author}
+	,pdftitle={\@title}
+	%,pdfsubject={\@subjectpdf}
+	%,pdfkeywords={\@keywords}
+% 	,linktocpage
+	,colorlinks=true
+		, linkcolor=DarkBlue, citecolor=Red, urlcolor=MediumBlue
+	,bookmarksnumbered
+}
+\makeatother
+
+
+%%% JavaCode-Listings
+%%% Optional: weitere lst-Optionen, wie z.B. caption und label
+\lstnewenvironment{JavaCode}[1][]{%
+	\lstset{
+		language=Java
+		,basicstyle=\footnotesize
+		,tabsize=2
+		,captionpos=t
+% 		,numbers=left
+% 		,numberblanklines=true, numberstyle=\scriptsize, stepnumber=2
+		,aboveskip={\bigskipamount}, belowskip={\medskipamount}
+% 		,abovecaptionskip={\medskipamount}
+ 		,belowcaptionskip={\medskipamount}
+		,breaklines, breakatwhitespace
+		, #1
+	}
+}{}
+
+%%% JavaCode-Listings
+%%% Optional: weitere lst-Optionen, wie z.B. caption und label
+\lstnewenvironment{Cmdline}[1][]{%
+	\lstset{language=sh
+		,basicstyle=\ttfamily\footnotesize
+		,tabsize=2
+		,captionpos=t
+% 		,numbers=left
+% 		,numberblanklines=true, numberstyle=\scriptsize, stepnumber=2
+		,aboveskip={\bigskipamount}, belowskip={\medskipamount}
+% 		,abovecaptionskip={\medskipamount}
+ 		,belowcaptionskip={\medskipamount}
+		,breaklines, breakatwhitespace
+		,backgroundcolor=\color{listgray} 
+		,frame=tbrl %t: top, r, b, l 
+% 		,frameround=tttt
+		, #1
+	}
+}{}
+
+
+\sloppy
+
+\begin{document}
+\renewcommand{\labelitemi}{$\triangleright$}
+
+\maketitle
+
+\begin{abstract}
+This Handbook describes \CMVN{} in version \VERSION{}.
+
+\end{abstract}
+
+\ifpdf\pdfbookmark[1]{Contents}{bm:Contents}\fi
+\tableofcontents
+
+\section{Preparation}
+
+\subsection{Downlaod}
+
+\subsection{Shell Wrapper (Bash)}
+
+
+I created an executable jar with dependencies. For convenience, you can create a simple shell script \code{cmvn} as an executable wrapper around the program:
+
+\begin{Cmdline}[caption={Shell wrapper \code{mvu}}]
+shell> cat > ~/bin/mvu << "EOF"
+#!/bin/sh
+# pass all arguments to cmvn with $@
+exec java -jar cmvn-0.1.0-executable.jar $@
+EOF
+shell> chmod +x ~/bin/mvu
+\end{Cmdline}
+
+\subsection{Command Shell Wrapper (Windows)}
+
+\begin{Cmdline}[caption={Windows Command Shell wrapper \code{cmvn.bat}}]
+:init
+@REM Decide how to startup depending on the version of windows
+
+@REM -- Windows NT with Novell Login
+if "%OS%"=="WINNT" goto WinNTNovell
+
+@REM -- Win98ME
+if NOT "%OS%"=="Windows_NT" goto Win9xArg
+
+:WinNTNovell
+
+@REM -- 4NT shell
+if "%@eval[2+2]" == "4" goto 4NTArgs
+
+@REM -- Regular WinNT shell
+set CMVN_CMD_LINE_ARGS=%*
+goto endInit
+
+@REM The 4NT Shell from jp software
+:4NTArgs
+set CMVN_CMD_LINE_ARGS=%$
+goto endInit
+
+:Win9xArg
+@REM Slurp the command line arguments.  This loop allows for an unlimited number
+@REM of agruments (up to the command line limit, anyway).
+set CMVN_CMD_LINE_ARGS=
+:Win9xApp
+if %1a==a goto endInit
+set CMVN_CMD_LINE_ARGS=%CMVN_CMD_LINE_ARGS% %1
+shift
+goto Win9xApp
+
+@REM Reaching here means variables are defined and arguments have been captured
+:endInit
+SET CMVN_JAVA_EXE="%JAVA_HOME%\bin\java.exe"
+
+%CMVN_JAVA_EXE% -jar cmvn-executable.jar %CMVN_CMD_LINE_ARGS%
+
+set CMVN_JAVA_EXE=
+set CMVN_CMD_LINE_ARGS=
+\end{Cmdline}
+
+\section{Usage}
+
+
+
+\subsection{Built-in help}	
+
+Then you can run it like this:
+
+\begin{Cmdline}[caption={Output of \code{cmvn --help}}]
+user@dev ~/work $ cmvu --help
+Usage: cmvn [Mode] [Options] [--] [Maven-Args]
+
+Mode:
+   --build       Enables BUILD mode
+   --configure   Enables CONFIGURE mode
+   --clean       Enables CLEAN mode
+   --distclean   Enables DISTCLEAN mode
+
+Options for CONFIGURE mode:
+   --auto-reconfigure  Enable automatic reconfiguration for out-of-date 
+                       files
+   --force             Configure and generate all files
+
+Options for BUILD mode:
+   --reconfigure   Automatically reconfigure if some source files are 
+                   out-of-date
+
+\end{Cmdline}
+
+\subsection{Configuring} 
+
+\begin{Cmdline}
+cmvn --configure 
+\end{Cmdline}
+
+
+\subsection{Add a dependency}
+
+
+
+\section{Terms of use (License)}
+
+\CMVN{} is published under the Apache License 2.0.
+
+\end{document}

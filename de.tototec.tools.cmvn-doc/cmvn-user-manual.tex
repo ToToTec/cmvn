@@ -141,7 +141,7 @@ Just generate the needed build scripts (if needed) of the underlying buildsystem
 
 For Maven this generates a \pom{} and a Maven settings file \code{.cmvn/settings.xml} in a local hidden directory.
 
-\subsubsection{Automatic reconfiguration}
+\subsubsection{Automatic re-configuration}
 
 To reconfigure an already configured project, e.g. because the \cmvn{} config file has changed or a generated file is missing, one can use the option \code{--reconfigure} which does exactly the same as \code{--configure} except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration. 
 
@@ -267,6 +267,7 @@ The following sections contain tables with uses the following keyword in the for
  OPTION & A \emph{key}=\emph{value} pair \\
  TEXT & Text \\
  URL & A URL \\
+ XML & A XML fragement \\
 \end{tabular}
 
 
@@ -274,10 +275,10 @@ The following sections contain tables with uses the following keyword in the for
 
 Directives are instructions to \cmvn{} to do something special.
 
-\begin{tabular}{lll}
+\begin{tabular}{llp{.72\textwidth}}
 \emph{Directive} & \emph{Format} & \emph{Description} \\
-\code{-include} & FILE & Include the content of the given file \\
-\code{-val} & OPTION & Create an immutable variable \emph{key} with content \emph{value} 
+\code{-include} & FILE & Include the content of the given file. The content will be threated as if it was in the actual file. \\
+\code{-val} & OPTION & Create an immutable variable \emph{key} with content \emph{value}. All occurences of this variable were expanded in the value-part of all succeeding lines. \\
 \end{tabular}
 
 
@@ -320,6 +321,20 @@ Options:
 \code{packaging} & TEXT & The packaging of the project, if ommitted, than '\code{jar}'
 \end{tabular}
 
+
+\subsubsection{\code{module}}
+
+Definition of a sub project.
+
+Format: DIR[;OPTION]*
+
+Options:
+
+\begin{tabular}{llp{.7\textwidth}}
+\emph{Option} & \emph{Format} & \emph{Desciption} \\
+\code{skipCmvn} & BOOLEAN & This sub project is a pure Maven project. Do not try to find a \code{cmvn.conf} file. \\
+\code{skipEmvn} & BOOLEAN & Alias for \code{skipCmvn} (for compatibility). \\
+\end{tabular}
 
 \subsubsection{\code{dependency}}
 
@@ -412,44 +427,15 @@ Format: LIST[OPTION]
 Options:
 
 \begin{tabular}{llp{.7\textwidth}}
-\textbf{Option} & \textbf{Format} & \textbf{Desciption} \\
+\emph{Option} & \emph{Format} & \emph{Desciption} \\
 \code{sources} &  DIR & The directory containing the source files. \\
 \end{tabular}
 
 
 
-% \section{Preparation}
 
 
-\section{Usage}
-
-\subsection{Built-in help}
-
-\CMVN{} provides a minimal built-in help as most other commandline tools do. 
-
-\begin{Cmdline}
-shell> cmvu --help
-Usage: cmvn [Mode] [Options] [--] [Maven-Args]
-
-Mode:
-   --build       Enables BUILD mode
-   --configure   Enables CONFIGURE mode
-   --clean       Enables CLEAN mode
-   --distclean   Enables DISTCLEAN mode
-
-Options for CONFIGURE mode:
-   --auto-reconfigure  Enable automatic reconfiguration for out-of-date 
-                       files
-   --force             Configure and generate all files
-
-Options for BUILD mode:
-   --reconfigure   Automatically reconfigure if some source files are 
-                   out-of-date
-
-\end{Cmdline}
-
-
-\section{Terms of use (License)}
+\section{Terms of Use (License)}
 
 \CMVN{} is published under the Apache License, Version 2.0.
 
@@ -458,7 +444,7 @@ Options for BUILD mode:
 \clearpage
 \appendix
 
-\section{Shell Wrapper (Bash)}
+\section{Shell Wrapper}
 
 \cmvn{} is distributed as executable jar including all its required dependencies. 
 

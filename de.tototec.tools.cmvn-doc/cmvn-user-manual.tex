@@ -8,8 +8,15 @@
 \usepackage{mdwlist}
 \usepackage[svgnames]{xcolor}
 \usepackage{hyperref}
+% \usepackage{verbatim}
 
-\newcommand{\CMVN}{\textsc{\small{}cmvn}}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\renewcommand*\familydefault{\sfdefault} %% Only if the base font of the document is to be sans serif
+
+% \newcommand{\CMVN}{\fontseries{sbc}\selectfont{}\texttt{cmvn}\fontseries{sf}\selectfont}
+\newcommand{\CMVN}{\texttt{cmvn}}
+\newcommand{\cmvn}{\texttt{cmvn}}
 \newcommand{\VERSION}{0.1.0}
 
 \definecolor{listgray}{rgb}{0.88,0.88,0.88} 
@@ -18,6 +25,8 @@
 \newcommand{\GG}{\par\vspace{-\parskip}\hspace{1.4em}\ensuremath{\triangleright}~}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\pom}{\code{pom.xml}}
+
+% \newenvironment{notes}{\begin{blockquote}}{\end{blockquote}}
 
 %opening
 \title{cmvn - Configured~Maven - User~Manual}
@@ -75,7 +84,6 @@
 	}
 }{}
 
-
 \sloppy
 
 \begin{document}
@@ -83,35 +91,266 @@
 
 \maketitle
 
-\begin{abstract}
-This Handbook describes \CMVN{} in version \VERSION{}.
+% \begin{abstract}
+% This Handbook describes \CMVN{} in version \VERSION{}.
+% 
+% \end{abstract}
 
-\end{abstract}
+\clearpage
 
 \ifpdf\pdfbookmark[1]{Contents}{bm:Contents}\fi
 \tableofcontents
 
+\clearpage
+
+\section{Introduction}
+
+\CMVN{} is a helper tool for developers targeted at the Java Virtual Machine (JVM). Its main focus is to declaratively describe and configure the required development and build environment. 
+
+A most significant difference between Java-targeted build systems compared to those for C/C++\footnote{e.g. Autotools + GNU Make, CMake, Scons.} is the lack of a defined configuration step before executing the compiler. Although building a Java application is a lot more easy compared to platform dependent programming languages and tools, nevertheless a lot of the (configuration) tasks of those other build systems are still required. Often the lack of a configuration process in Java build systems results in very obscure setups.
+
+A very popular build system for Java is Apache Maven\footnote{\url{http://maven.apache.org}}, currently in version 3. It partially helps the developer with managing her dependencies but fails miserably at producing reliable builds, at least without support of a complex build infrastructure.\footnote{...like a Repository Manager.}
+
+\CMVN{} tries to close this gap by providing a configuration step before the actual build system. Concrete this goal will be reached by generating the build script for the underlying (nativ) build system whenever a configuration has changed and execution the underlying build system with the right (configured) settings.
+To assist the developer but do not stay in his way, \CMVN{} does not want to replace existing build chains. Its main focus is adding another (first) step to the build chain to create more reliable build environments.
+
+In its first release \CMVN{} supports Apache Maven 2.0 and above\footnote{Using Apache Maven 3.0 is highly recommended.}. In later releases support for various other build chains will be added, e.g. Apache Ant + Ivy, SBT, JackBuild, or others. Although \CMVN{} generates the build scripts (in Maven case: \pom{} files) is does not can and it want not handle all aspects of the underlying build infrastructure. To leaf the full power to the developer, \CMVN{} supports templates for the underlying build scripts for those settings \CMVN{} can not generate. But for common project setup, this is rarely needed.
+
+\section{Execution Modes}
+
+\CMVN{} has different execution modes.
+
+\begin{itemize}
+ \item Configuration
+ \item Build
+ \item Cleanup
+\end{itemize}
+
+The execution mode is given as (first) parameter when executing \CMVN{}.
+
+
+
+\subsection{Configuration}
+
+Simplest Example: 
+
+\begin{Cmdline}
+shell> cmvn --configure
+\end{Cmdline}
+
+Just generate the needed build scripts (if needed) of the underlying buildsystem.
+
+For Maven this generates a \pom{} and a Maven settings file \code{.cmvn/settings.xml} in a local hidden directory.
+
+\subsubsection{Automatic reconfiguration}
+
+To reconfigure an already configured project, e.g. because the \cmvn{} config file has changed or a generated file is missing, one can use the option \code{--reconfigure} which does exactly the same as \code{--configure} except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration. 
+
+\begin{Cmdline}
+shell> cmvn --reconfigure
+\end{Cmdline}
+
+If \cmvn{} detects, that the current project is not up-to-date, it must be used with \code{--reconfigure}. To avoid the burden of beeing forced to run a \code{cmvn --reconfigure} after each change of the project (or sub project) configuration, the option \code{--auto-reconfigure} can be used together with \code{--configure}. 
+
+\begin{Cmdline}
+shell> cmvn --configure --auto-reconfigure
+\end{Cmdline}
+
+Configured that way, \cmvn{} will automatically reconfigure the project (and the whole project tree) before a build, if needed.
+
+\subsubsection{Maven Settings}
+
+By default, \code{cmvn --configure} initally created an new project-local Maven settings file and thus uses a project-local repository. This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) realeased dependencies. This default way enables the developer to easy build branches without fearing of interferences and inconsistencies cause by multiple projects (branches) releasing to the same local repository. 
+
+Of course, the newly created repository and Maven settings file is shared between all sub projects of the one you just configured.
+
+In case, this default behavior is not desired, you can tell \cmvn{} to use an alternative existing Maven Settings file with the option \code{--maven-settings}. In this case, you may will loose the benefits of side-effect free development of multiple project on the same computer. Also this may limit the reproducability of the build process in different environments. 
+
+\begin{Cmdline}
+shell> cmvn --configure --maven-settings=/home/user/.m2/settings.xml
+\end{Cmdline}
+
+
+Notice, that if you use an alternative Maven settings file, \cmvn{} will not touch this file and the Local Maven Repository when running in cleanup execution mode.
+
+\subsection{Build}
+
+Maven Example: Clean project build and install the build jar file into the local Maven repository.
+
+\begin{Cmdline}
+shell> cmvn --build clean install
+\end{Cmdline}
+
+The build execution mode is automatically enabled if no other mode was requested and at least one non-option argument was given to \CMVN{}. So the example above could also be written as:
+
+\begin{Cmdline}
+shell> cmvn clean install
+\end{Cmdline}
+
+If \cmvn{} is run without any option and parameter but the project was configured with the \code{reconfigure}-option, all necessary project files will be regenerated automatically if needed.\footnote{Without the \code{auto-reconfigure} setting the same behavior can be achieved by running \code{cmvn --reconfigure}.}
+
+
+
+\subsection{Cleanup}
+
+The execution mode cleanup is used to remove all generated files and the configuration data. Currently there are two variants to enable the cleanup mode: one version enabled with \code{--clean} removes only the generated native build scripts, the other variant \code{--distclean} cleans also the configuration state and any other generated environment setup, e.g. a hidden project local Maven repository.
+
+\begin{Cmdline}
+shell> cmvn --clean
+\end{Cmdline}
+
+Cleans up all generated native build scripts.
+
+\begin{Cmdline}
+shell> cmvn --distclean
+\end{Cmdline}
+
+Cleans up all generated files including configured state.
+
+\section{The configuration file \texttt{cmvn.conf}}
+
+\subsection{Config file syntax}
+
+The config file has a very simplistic human readable and editable format:
+
+\begin{enumerate}
+ \item \emph{empty lines} were ignored
+ \item the hash sign (\code{\#}) starts a \emph{comment} until end of line
+ \item each non-comment line consists of a pair of \emph{key} and \emph{value} delimited by a colon (\code{:})
+ \item keys starting with a hyphen (\code{$-$}) are \emph{directives} all other keys were \emph{settings}
+ \item values may have \emph{options}, in which case options are separated by a semicolon (\code{;})
+ \item value-options are themselves key-value pairs delimited by equal sign (\code{$=$})
+ \item if an option-value is ommitted (an option without an equal sign) it is evaluated to '\code{true}'
+ \item non-comment lines ending with a backslash (\code{$\backslash$}) were \emph{continued} on the next line
+\end{enumerate}
+
+\subsection{Config file example}
+
+The following is an example project config file \code{cmvn.conf}:
+
+\begin{Cmdline}
+# Include directive
+-include: ../common/cmvncommon.conf
+
+# Immutable variable directive
+-val: EXAMPLE_VERSION=0.0.1
+
+# project settings using a variable
+# cmvn uses a short syntax for projects and dependencies
+# group:artifact:version (GAV) or org:name:rev
+project: de.tototec:de.tototec.example:$${EXAMPLE_VERSION}
+
+# a dependency with option spreading two lines
+compile: de.tototec:de.tototec.example.utils:$${EXAMPLE_VERSION}; \
+ classifier=jdk15
+
+# compile-scope dependency 
+compile: org.slf4j:slf4j-api:1.6.1
+
+# optional runtime-dependency
+runtime: ch.qos.logback:logback-classic:0.9.26;optional
+
+# test-scope dependency
+test: org.testng:testng:5.14.6
+\end{Cmdline}
+
+\subsection{Directives}
+
+Directives are instructions to \cmvn{} to do something special.
+
+\begin{tabular}{lll}
+\textbf{Directive} & \textbf{Format} & \textbf{Description} \\
+-include & FILE & Include the content of the given file \\
+-val & \emph{key}=\emph{value} & Create an immutable variable \emph{key} with content \emph{value} 
+\end{tabular}
+
+
+\subsection{Settings}
+
+Settings are used to generate the underlying (native) build scripts. Currently the only supported buildsystem is Maven 2.
+
+\begin{tabular}{lll}
+\textbf{Setting} & \textbf{Format} & \textbf{Description} \\
+project & GAV & project GAV \\
+dependency & GAV & a project/package dependency, see section Dependencies \\
+compile & GAV & alias for dependency with option \code{scope=compile} \\
+test & GAV & alias for dependency with option \code{scope=test} \\
+runtime & GAV & alias for dependency with option \code{scope=runtime} \\
+system & GAV & alias for dependency with option \code{scope=system} \\
+dependencyManagement & GAV & managed dependency in \code{dependencyManagement}-block \\
+property & \emph{key}=\emph{value} & definition of property \emph{key} with value \emph{value} \\
+repository & URL & Maven Repository \\
+repo & URL & alias for repository \\
+pluginrepo & URL & alias for repository with option \code{artifacts=false} \\
+artifactrepo & URL & alias for repository with option \code{plugins=false} \\
+module & DIR & the path of a sub project \\
+plugin & GAV & Maven plugin configuration \\
+build & LIST[OPTION] & List of options for the \code{<build>}-block
+\end{tabular}
+
+% Format:
+
+% \begin{tabular}{ll}
+%  GAV & Package or project coordinates named after the (groupId, artifactId, version)-triplet in Maven. Format: groupId:artifactId:version. In Ivy this is org:name:rev. \\
+%  OPTIONS & A semicolon separated list of value-options (\emph{key}=\emph{value})
+% \end{tabular}
+
+
 \section{Preparation}
 
-\subsection{Downlaod}
 
-\subsection{Shell Wrapper (Bash)}
+\section{Usage}
+
+\subsection{Built-in help}
+
+\CMVN{} provides a minimal built-in help as most other commandline tools do.
+
+\begin{Cmdline}[caption={Output of \code{cmvn --help}}]
+shell> cmvu --help
+Usage: cmvn [Mode] [Options] [--] [Maven-Args]
+
+Mode:
+   --build       Enables BUILD mode
+   --configure   Enables CONFIGURE mode
+   --clean       Enables CLEAN mode
+   --distclean   Enables DISTCLEAN mode
+
+Options for CONFIGURE mode:
+   --auto-reconfigure  Enable automatic reconfiguration for out-of-date 
+                       files
+   --force             Configure and generate all files
+
+Options for BUILD mode:
+   --reconfigure   Automatically reconfigure if some source files are 
+                   out-of-date
+
+\end{Cmdline}
 
 
-I created an executable jar with dependencies. For convenience, you can create a simple shell script \code{cmvn} as an executable wrapper around the program:
+\section{Terms of use (License)}
 
-\begin{Cmdline}[caption={Shell wrapper \code{mvu}}]
-shell> cat > ~/bin/mvu << "EOF"
+\CMVN{} is published under the Apache License, Version 2.0.
+
+\url{http://www.apache.org/licenses/LICENSE-2.0}
+
+\clearpage
+\appendix
+
+\section{Shell Wrapper (Bash)}
+
+\cmvn{} is distributed as executable jar including all its required dependencies. 
+
+For convenience, you may want to create a simple shell script \code{cmvn} as an executable wrapper around the program:
+
+\begin{Cmdline}[caption={Shell wrapper: \code{mvu}}]
 #!/bin/sh
 # pass all arguments to cmvn with $@
 exec java -jar cmvn-0.1.0-executable.jar $@
-EOF
-shell> chmod +x ~/bin/mvu
 \end{Cmdline}
 
-\subsection{Command Shell Wrapper (Windows)}
+\section{Command Shell Wrapper (Windows)}
 
-\begin{Cmdline}[caption={Windows Command Shell wrapper \code{cmvn.bat}}]
+\begin{Cmdline}[caption={Windows Command Shell wrapper: \code{cmvn.bat}}]
 :init
 @REM Decide how to startup depending on the version of windows
 
@@ -155,48 +394,6 @@ set CMVN_JAVA_EXE=
 set CMVN_CMD_LINE_ARGS=
 \end{Cmdline}
 
-\section{Usage}
 
-
-
-\subsection{Built-in help}	
-
-Then you can run it like this:
-
-\begin{Cmdline}[caption={Output of \code{cmvn --help}}]
-user@dev ~/work $ cmvu --help
-Usage: cmvn [Mode] [Options] [--] [Maven-Args]
-
-Mode:
-   --build       Enables BUILD mode
-   --configure   Enables CONFIGURE mode
-   --clean       Enables CLEAN mode
-   --distclean   Enables DISTCLEAN mode
-
-Options for CONFIGURE mode:
-   --auto-reconfigure  Enable automatic reconfiguration for out-of-date 
-                       files
-   --force             Configure and generate all files
-
-Options for BUILD mode:
-   --reconfigure   Automatically reconfigure if some source files are 
-                   out-of-date
-
-\end{Cmdline}
-
-\subsection{Configuring} 
-
-\begin{Cmdline}
-cmvn --configure 
-\end{Cmdline}
-
-
-\subsection{Add a dependency}
-
-
-
-\section{Terms of use (License)}
-
-\CMVN{} is published under the Apache License 2.0.
 
 \end{document}

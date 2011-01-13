@@ -253,14 +253,31 @@ runtime: ch.qos.logback:logback-classic:0.9.26;optional
 test: org.testng:testng:5.14.6
 \end{Cmdline}
 
+\subsection{Legend}
+
+The following sections contain tables with uses the following keyword in the format column:
+
+\begin{tabular}{ll}
+ BOOLEAN & A boolean value: '\code{true}' or '\code{false}' \\
+ DIR & A directory in the local file system \\
+ FILE & A file in the local file system \\
+ GAV & \emph{groupId}:\emph{artifactId}:\emph{version} (analog to Maven) or \emph{org}:\emph{name}:\emph{rev} (analog to Ivy) \\
+ GA & Same as GAV, but without a version \\
+ LIST[X] & A semicolon delimited list of X (if ommitted, than text) \\
+ OPTION & A \emph{key}=\emph{value} pair \\
+ TEXT & Text \\
+ URL & A URL \\
+\end{tabular}
+
+
 \subsection{Directives}
 
 Directives are instructions to \cmvn{} to do something special.
 
 \begin{tabular}{lll}
-\textbf{Directive} & \textbf{Format} & \textbf{Description} \\
--include & FILE & Include the content of the given file \\
--val & \emph{key}=\emph{value} & Create an immutable variable \emph{key} with content \emph{value} 
+\emph{Directive} & \emph{Format} & \emph{Description} \\
+\code{-include} & FILE & Include the content of the given file \\
+\code{-val} & OPTION & Create an immutable variable \emph{key} with content \emph{value} 
 \end{tabular}
 
 
@@ -268,43 +285,149 @@ Directives are instructions to \cmvn{} to do something special.
 
 Settings are used to generate the underlying (native) build scripts. Currently the only supported buildsystem is Maven 2.
 
+{\small
+\begin{tabular}{llp{.50\linewidth}}
+\emph{Setting} & \emph{Format} & \emph{Description} \\
+\code{project} & GAV & Project coordinates \\
+\code{dependency} & GAV & A project/package dependency \\
+\code{compile} & GAV & Alias for \code{dependency} with option \code{scope=compile} \\
+\code{test} & GAV & Alias for \code{dependency} with option \code{scope=test} \\
+\code{runtime} & GAV & Alias for \code{dependency} with option \code{scope=runtime} \\
+\code{system} & GAV & alias for \code{dependency} with option \code{scope=system} \\
+\code{\small dependencyManagement} & GAV & Managed dependency in \code{dependencyManagement}-block \\
+\code{property} & OPTION & Definition of property \emph{key} with value \emph{value} \\
+\code{repository} & URL & Maven Repository \\
+\code{repo} & URL & Alias for \code{repository} \\
+\code{pluginrepo} & URL & Alias for \code{repository} with option \code{artifacts=false} \\
+\code{artifactrepo} & URL & Alias for \code{repository} with option \code{plugins=false} \\
+\code{module} & DIR & The path of a sub project \\
+\code{plugin} & GAV & Maven plugin configuration \\
+\code{build} & LIST[OPTION] & List of options for the \code{<build>}-block
+\end{tabular}
+}
+
+
+\subsubsection{\code{project}}
+
+Essential project information mandatory for Maven.
+
+Format: GAV[;OPTION]*
+
+Options:
+
 \begin{tabular}{lll}
-\textbf{Setting} & \textbf{Format} & \textbf{Description} \\
-project & GAV & project GAV \\
-dependency & GAV & a project/package dependency, see section Dependencies \\
-compile & GAV & alias for dependency with option \code{scope=compile} \\
-test & GAV & alias for dependency with option \code{scope=test} \\
-runtime & GAV & alias for dependency with option \code{scope=runtime} \\
-system & GAV & alias for dependency with option \code{scope=system} \\
-dependencyManagement & GAV & managed dependency in \code{dependencyManagement}-block \\
-property & \emph{key}=\emph{value} & definition of property \emph{key} with value \emph{value} \\
-repository & URL & Maven Repository \\
-repo & URL & alias for repository \\
-pluginrepo & URL & alias for repository with option \code{artifacts=false} \\
-artifactrepo & URL & alias for repository with option \code{plugins=false} \\
-module & DIR & the path of a sub project \\
-plugin & GAV & Maven plugin configuration \\
-build & LIST[OPTION] & List of options for the \code{<build>}-block
+\emph{Option} & \emph{Format} & \emph{Desciption} \\
+\code{packaging} & TEXT & The packaging of the project, if ommitted, than '\code{jar}'
 \end{tabular}
 
-% Format:
 
-% \begin{tabular}{ll}
-%  GAV & Package or project coordinates named after the (groupId, artifactId, version)-triplet in Maven. Format: groupId:artifactId:version. In Ivy this is org:name:rev. \\
-%  OPTIONS & A semicolon separated list of value-options (\emph{key}=\emph{value})
-% \end{tabular}
+\subsubsection{\code{dependency}}
+
+A dependency referencing a project in a Maven repository (in most cases a \code{*.jar} file).
+
+Format: GAV[;OPTION]*
+
+Options:
+
+\begin{tabular}{llp{.65\textwidth}}
+\emph{Option} & \emph{Format} & \emph{Desciption} \\
+\code{scope} & TEXT & The scope of the dependency. One of '\code{compile}', '\code{runtime}', \code{test}', \code{system}' or '\code{provided}'. \\
+\code{systemPath} & TEXT & The local file path to the jar file. Only valid if \code{scope} is \code{system}. In contrast to Maven specification, this path can be also relative. \\
+\code{classifier} & TEXT & The classifier, e.g. '\code{sources}'. \\
+\code{type} & TEXT &  The type. \\
+\code{optional} & BOOLEAN & An optional dependency is not optional for the current project but will be ignored in a transitive dependency resolution. (In an ideal world any compile type dependency should be optional!) \\
+\code{exclude} & GA & Excluded dependency from transitive resolved dependency tree. \\
+\code{forceversion} & BOOLEAN & Additionally the dependency will be added to the \code{<dependencyManagement>}-block. This enforces the given version and is somethimes an alternative to the \code{exclude} option (and vice versa). \\
+\end{tabular}
+
+Aliases:
+
+\begin{tabular}{ll}
+\code{compile} &  A dependency with option \code{scope=compile}. \\
+\code{test} & A dependency with option \code{scope=test}. \\
+\code{runtime} & A dependency with option \code{scope=runtime}. \\
+\code{system} & A dependency with option \code{scope=system}. \\
+\code{\small dependencyManagement} &  A managed dependency only in \code{dependencyManagement}-block. \\
+\end{tabular}
 
 
-\section{Preparation}
+
+\subsubsection{\code{property}}
+
+Define a property in a \code{<properties>}-block.
+
+Format: OPTION
+
+\subsubsection{\code{repository}}
+
+A remote Maven repository used to download dependencies.
+
+Format: URL
+
+Options:
+
+\begin{tabular}{llp{.7\textwidth}}
+\emph{Option} & \emph{Format} & \emph{Desciption} \\
+\code{plugins} &  BOOLEAN & Can be used to download Maven plugins (default: \code{true}). \\
+\code{artifacts} &  BOOLEAN & Can be used to download Maven artifacts (default: \code{true}). \\
+\code{releases} &  BOOLEAN & Can be used to download released dependencies. \\
+\code{snapshots} &  BOOLEAN & Can be used to download snapshot dependencies. \\
+\end{tabular}
+
+Aliases:
+
+\begin{tabular}{ll}
+\code{repo} &  Same as \code{repository}. \\
+\code{pluginrepo} & A repository with option \code{artifacts=false}. \\
+\code{artifactrepo} &  A repository with option \code{plugins=false}. \\
+\end{tabular}
+
+
+\subsubsection{\code{plugin}}
+
+A Maven plugin contribution to the Maven lifecycle.
+
+Format: GAV
+
+Options: Any option has the format OPTION and is added to the \code{<configuration>}-block of the plugin definition.
+
+
+Directives: 
+
+\begin{tabular}{llp{.65\textwidth}}
+\emph{Directive} & \emph{Format} & \emph{Desciption} \\
+\code{-extension} & BOOLEAN & Specify if this plugin is a extensions-plugin (and thus e.g. can contribute new project packaging types). \\
+\code{-execution} & XML & A free XML fragement that will be placed inside the \code{<executions>}-block of this plugin. \\
+\code{-xml:}\emph{anyOption} & XML & Can be used if the option-value is XML and not text. \\
+\end{tabular}
+
+
+
+\subsubsection{\code{build}}
+
+Redefine some project default settings.
+
+Format: LIST[OPTION]
+
+Options:
+
+\begin{tabular}{llp{.7\textwidth}}
+\textbf{Option} & \textbf{Format} & \textbf{Desciption} \\
+\code{sources} &  DIR & The directory containing the source files. \\
+\end{tabular}
+
+
+
+% \section{Preparation}
 
 
 \section{Usage}
 
 \subsection{Built-in help}
 
-\CMVN{} provides a minimal built-in help as most other commandline tools do.
+\CMVN{} provides a minimal built-in help as most other commandline tools do. 
 
-\begin{Cmdline}[caption={Output of \code{cmvn --help}}]
+\begin{Cmdline}
 shell> cmvu --help
 Usage: cmvn [Mode] [Options] [--] [Maven-Args]
 

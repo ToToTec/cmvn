@@ -3,6 +3,8 @@ package de.tototec.tools.cmvn;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashMap;
@@ -69,8 +71,7 @@ public class MavenProject {
 	}
 
 	public MavenProject(final File file, final MavenProject parent) {
-		projectFile = file.isDirectory() ? new File(file,
-				DEFAULT_PROJECT_FILE_NAME) : file;
+		projectFile = file.isDirectory() ? new File(file, DEFAULT_PROJECT_FILE_NAME) : file;
 		final ProjectReaderImpl reader = new ProjectReaderImpl();
 
 		this.rootProject = parent;
@@ -86,8 +87,7 @@ public class MavenProject {
 			supportedKeys.put("-include", new ProjectConfigKeyValueReader() {
 
 				@Override
-				public void read(final ProjectConfig projectConfig,
-						final KeyValue keyValue) {
+				public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
 					includedFiles.add(keyValue.getValue());
 				}
 			});
@@ -104,10 +104,8 @@ public class MavenProject {
 
 		final String parentDir = projectFile.getParent();
 		this.pomFile = new File(parentDir, projectConfig.getPomFileName());
-		this.pomTemplateFile = new File(parentDir,
-				projectConfig.getPomTemplateFileName());
-		this.mavenConfigFile = new File(parentDir,
-				DEFAULT_PROJECT_STATE_FILE_NAME);
+		this.pomTemplateFile = new File(parentDir, projectConfig.getPomTemplateFileName());
+		this.mavenConfigFile = new File(parentDir, DEFAULT_PROJECT_STATE_FILE_NAME);
 	}
 
 	List<MavenProject> scanForMavenProjects() {
@@ -116,10 +114,9 @@ public class MavenProject {
 			projects.add(this);
 			for (final Module module : projectConfig.getModules()) {
 				if (!module.isSkipEmvn()) {
-					final File moduleDir = new File(projectFile.getParent(),
-							module.getModuleName());
-					final MavenProject subProject = new MavenProject(moduleDir,
-							rootProject != null ? rootProject : this);
+					final File moduleDir = new File(projectFile.getParent(), module.getModuleName());
+					final MavenProject subProject = new MavenProject(moduleDir, rootProject != null ? rootProject
+							: this);
 					projects.addAll(subProject.scanForMavenProjects());
 				}
 			}
@@ -145,15 +142,13 @@ public class MavenProject {
 			return false;
 		}
 
-		final long lastGenerated = Math.min(mavenConfigFile.lastModified(),
-				pomFile.lastModified());
+		final long lastGenerated = Math.min(mavenConfigFile.lastModified(), pomFile.lastModified());
 
 		if (projectFile.lastModified() > lastGenerated) {
 			return false;
 		}
 
-		if (pomTemplateFile.exists()
-				&& pomTemplateFile.lastModified() > lastGenerated) {
+		if (pomTemplateFile.exists() && pomTemplateFile.lastModified() > lastGenerated) {
 			return false;
 		}
 
@@ -204,16 +199,14 @@ public class MavenProject {
 			if (rootProject != null) {
 				mavenConfig = rootProject.getMavenConfig();
 				if (mavenConfig == null) {
-					throw new RuntimeException(
-							"Maven config of root project was null. Internal error!");
+					throw new RuntimeException("Maven config of root project was null. Internal error!");
 				}
 			} else {
 				// I am the root project
 				if (mavenConfigFile.exists()) {
 					final MavenConfig config = new MavenConfig();
 					// read config
-					for (final KeyValue keyValue : configFileReader
-							.readKeyValues(mavenConfigFile)) {
+					for (final KeyValue keyValue : configFileReader.readKeyValues(mavenConfigFile)) {
 						final String key = keyValue.getKey();
 						final String value = keyValue.getValue();
 						if (key.equals("settingsFile")) {
@@ -225,8 +218,7 @@ public class MavenProject {
 						} else if (key.equals("autoReconfigure")) {
 							config.setAutoReconfigure(value.equals("true"));
 						} else {
-							System.out.println("Unknown config option found: "
-									+ keyValue);
+							System.out.println("Unknown config option found: " + keyValue);
 						}
 					}
 					mavenConfig = config;
@@ -245,9 +237,7 @@ public class MavenProject {
 				if (settingsFileOrNull != null) {
 					settingsFile = new File(settingsFileOrNull);
 				} else {
-					final File settingsDir = new File(
-							projectFile.getParentFile(),
-							DEFAULT_MVN_SETTINGS_DIR_NAME);
+					final File settingsDir = new File(projectFile.getParentFile(), DEFAULT_MVN_SETTINGS_DIR_NAME);
 					settingsFile = new File(settingsDir, "settings.xml");
 				}
 				if (!settingsFile.exists()) {
@@ -258,16 +248,13 @@ public class MavenProject {
 					final File settingsDir = settingsFile.getParentFile();
 					settingsDir.mkdirs();
 
-					final File localRepoDir = new File(settingsDir,
-							"repository");
+					final File localRepoDir = new File(settingsDir, "repository");
 
 					PrintWriter settingsWriter;
 					try {
 						settingsWriter = new PrintWriter(settingsFile);
 					} catch (final FileNotFoundException e) {
-						throw new RuntimeException(
-								"Could not write Maven settings file: "
-										+ settingsFile, e);
+						throw new RuntimeException("Could not write Maven settings file: " + settingsFile, e);
 					}
 					settingsWriter.append("<settings>\n");
 					settingsWriter.append("<localRepository>");
@@ -291,25 +278,19 @@ public class MavenProject {
 		try {
 			configWriter = new PrintWriter(mavenConfigFile);
 		} catch (final FileNotFoundException e) {
-			throw new RuntimeException("Could not write Maven config file: "
-					+ mavenConfigFile);
+			throw new RuntimeException("Could not write Maven config file: " + mavenConfigFile);
 		}
 
-		configWriter.append("# cmvn Maven configuration file. Generated on ")
-				.append(new Date().toString()).append("\n");
-		configWriter.append("settingsFile: ")
-				.append(mavenConfig.getSettingsFile()).append("\n");
-		final File rootProjectConfigFile = rootProject == null ? projectFile
-				: rootProject.projectFile;
-		configWriter.append("rootProjectFile: ")
-				.append(rootProjectConfigFile.getAbsolutePath()).append("\n");
-		configWriter.append("autoReconfigure: ").append(
-				mavenConfig.isAutoReconfigure() ? "true" : "false");
+		configWriter.append("# cmvn Maven configuration file. Generated on ").append(new Date().toString())
+				.append("\n");
+		configWriter.append("settingsFile: ").append(mavenConfig.getSettingsFile()).append("\n");
+		final File rootProjectConfigFile = rootProject == null ? projectFile : rootProject.projectFile;
+		configWriter.append("rootProjectFile: ").append(rootProjectConfigFile.getAbsolutePath()).append("\n");
+		configWriter.append("autoReconfigure: ").append(mavenConfig.isAutoReconfigure() ? "true" : "false");
 		configWriter.close();
 	}
 
-	public void generateMavenProjectRecursive(
-			final ConfigureRequest configureRequest) {
+	public void generateMavenProjectRecursive(final ConfigureRequest configureRequest) {
 		for (final MavenProject project : scanForMavenProjects()) {
 			project.generateMavenProject(configureRequest);
 		}
@@ -318,21 +299,19 @@ public class MavenProject {
 	public String getMavenSettingsFile() {
 		final MavenConfig mavenConfig = getMavenConfig();
 		if (mavenConfig == null) {
-			throw new RuntimeException("Project is not configured: "
-					+ projectFile);
+			throw new RuntimeException("Project is not configured: " + projectFile);
 		}
 		return mavenConfig.getSettingsFile();
 	}
 
 	protected void generateMavenProject(final ConfigureRequest configureRequest) {
-		final boolean force = configureRequest != null
-				&& configureRequest.getForce();
+		final boolean force = configureRequest != null && configureRequest.getForce();
 
 		if (!force && isUpToDate()) {
 			return;
 		}
 
-		System.out.println("Generating " + pomFile + "...");
+		System.out.println("Generating " + pomFile);
 
 		readMavenConfig();
 		createMavenConfig(configureRequest.getMavenSettings());
@@ -341,24 +320,21 @@ public class MavenProject {
 			mavenConfig.setSettingsFile(configureRequest.getMavenSettings());
 		}
 		if (configureRequest.getAutoReconfigure() != null) {
-			mavenConfig.setAutoReconfigure(configureRequest
-					.getAutoReconfigure().booleanValue());
+			mavenConfig.setAutoReconfigure(configureRequest.getAutoReconfigure().booleanValue());
 		}
 
 		ProjectDocument pom;
 		final XmlOptions xmlOptions = createXmlOptions();
 		try {
 			pom = ProjectDocument.Factory.parse(
-					new File(projectFile.getParent(), projectConfig
-							.getPomTemplateFileName()), xmlOptions);
+					new File(projectFile.getParent(), projectConfig.getPomTemplateFileName()), xmlOptions);
 		} catch (final Exception e) {
 			final String xmlAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 					+ "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" "
 					+ "xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
 					+ "\t<modelVersion>4.0.0</modelVersion>\n</project>\n";
 			try {
-				pom = ProjectDocument.Factory.parse(xmlAsString,
-						createXmlOptions());
+				pom = ProjectDocument.Factory.parse(xmlAsString, createXmlOptions());
 			} catch (final XmlException e1) {
 				throw new RuntimeException(e1);
 			}
@@ -401,6 +377,49 @@ public class MavenProject {
 		}
 
 		writeMavenConfig();
+
+		if (configureRequest.getGenerateIvy() != null && configureRequest.getGenerateIvy()) {
+			generateIvy();
+		}
+	}
+
+	protected void generateIvy() {
+		final File ivyFile = new File(pomFile.getParentFile(), "ivy.xml");
+		System.out.println("Generating " + ivyFile);
+
+		final StringBuilder ivy = new StringBuilder();
+
+		ivy.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+		ivy.append("<ivy-module version=\"2.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://incubator.apache.org/ivy/schemas/ivy.xsd\">\n");
+
+		final Dependency project = projectConfig.getProject();
+		ivy.append("  <info organization=\"").append(project.getGroupId()).append("\" module=\"")
+				.append(project.getArtifactId()).append("\" revision=\"").append(project.getVersion()).append("\"/>\n");
+
+		ivy.append("  <dependencies>\n");
+		for (final Dependency dep : projectConfig.getDependencies()) {
+			ivy.append("    <dependency org=\"").append(dep.getGroupId()).append("\" name=\"")
+					.append(dep.getArtifactId()).append("\" rev=\"").append(dep.getVersion()).append("\">\n");
+			if (dep.getExcludes() != null) {
+				for (final Dependency ex : dep.getExcludes()) {
+					ivy.append("      <exclude org=\"").append(ex.getGroupId()).append("\" name=\"")
+							.append(ex.getArtifactId()).append("\"/>\n");
+				}
+			}
+			ivy.append("    </dependency>\n");
+		}
+		ivy.append("  </dependencies>\n");
+
+		ivy.append("</ivy-module>\n");
+
+		try {
+			final FileWriter writer = new FileWriter(ivyFile);
+			writer.write(ivy.toString());
+			writer.close();
+		} catch (final IOException e) {
+			throw new RuntimeException("Cannot write ivy file: " + ivyFile, e);
+		}
+
 	}
 
 	private void generateBuild(final Model mvn) {
@@ -439,12 +458,9 @@ public class MavenProject {
 
 			org.apache.maven.pom.x400.Plugin mvnPlugin = null;
 
-			for (final org.apache.maven.pom.x400.Plugin mvnExistingPlugin : mvnPlugins
-					.getPluginArray()) {
-				if (pluginInfo.getGroupId().equals(
-						mvnExistingPlugin.getGroupId())
-						&& pluginInfo.getArtifactId().equals(
-								mvnExistingPlugin.getArtifactId())) {
+			for (final org.apache.maven.pom.x400.Plugin mvnExistingPlugin : mvnPlugins.getPluginArray()) {
+				if (pluginInfo.getGroupId().equals(mvnExistingPlugin.getGroupId())
+						&& pluginInfo.getArtifactId().equals(mvnExistingPlugin.getArtifactId())) {
 					mvnPlugin = mvnExistingPlugin;
 					break;
 				}
@@ -463,8 +479,7 @@ public class MavenProject {
 
 			// special plugin dependencies
 			if (!plugin.getPluginDependencies().isEmpty()) {
-				org.apache.maven.pom.x400.Plugin.Dependencies pDeps = mvnPlugin
-						.getDependencies();
+				org.apache.maven.pom.x400.Plugin.Dependencies pDeps = mvnPlugin.getDependencies();
 				if (pDeps == null) {
 					pDeps = mvnPlugin.addNewDependencies();
 				}
@@ -493,8 +508,7 @@ public class MavenProject {
 			if (mvnConfig == null) {
 				mvnConfig = mvnPlugin.addNewConfiguration();
 			}
-			generatePropertiesBlock(plugin.getConfiguration(), mvnConfig,
-					"-xml:");
+			generatePropertiesBlock(plugin.getConfiguration(), mvnConfig, "-xml:");
 		}
 	}
 
@@ -540,10 +554,8 @@ public class MavenProject {
 				if (repos == null) {
 					repos = mvn.addNewRepositories();
 				}
-				final org.apache.maven.pom.x400.Repository mvnRepo = repos
-						.addNewRepository();
-				mvnRepo.setId("artifact_"
-						+ normalizeRepositoryId(repo.getUrl()));
+				final org.apache.maven.pom.x400.Repository mvnRepo = repos.addNewRepository();
+				mvnRepo.setId("artifact_" + normalizeRepositoryId(repo.getUrl()));
 				mvnRepos.add(mvnRepo);
 			}
 			if (repo.isForPlugins()) {
@@ -551,8 +563,7 @@ public class MavenProject {
 				if (repos == null) {
 					repos = mvn.addNewPluginRepositories();
 				}
-				final org.apache.maven.pom.x400.Repository mvnRepo = repos
-						.addNewPluginRepository();
+				final org.apache.maven.pom.x400.Repository mvnRepo = repos.addNewPluginRepository();
 				mvnRepo.setId("plugin_" + normalizeRepositoryId(repo.getUrl()));
 				mvnRepos.add(mvnRepo);
 			}
@@ -574,35 +585,29 @@ public class MavenProject {
 			mvnProperties = mvn.addNewProperties();
 		}
 
-		generatePropertiesBlock(projectConfig.getProperties(), mvnProperties,
-				null);
+		generatePropertiesBlock(projectConfig.getProperties(), mvnProperties, null);
 	}
 
-	protected void generateFreeXmlBlock(final XmlCursor xmlCursor,
-			final String xmlBlock, final String parentOrNull) {
+	protected void generateFreeXmlBlock(final XmlCursor xmlCursor, final String xmlBlock, final String parentOrNull) {
 		try {
 			String xml = xmlBlock;
 			if (parentOrNull != null) {
-				xml = "<" + parentOrNull + ">" + xmlBlock + "</" + parentOrNull
-						+ ">";
+				xml = "<" + parentOrNull + ">" + xmlBlock + "</" + parentOrNull + ">";
 			}
 
-			final XmlObject xmlObject = XmlObject.Factory.parse(xml,
-					freeXmlOptions());
+			final XmlObject xmlObject = XmlObject.Factory.parse(xml, freeXmlOptions());
 			final XmlCursor newCursor = xmlObject.newCursor();
 			newCursor.toFirstContentToken();
 			newCursor.copyXml(xmlCursor);
 			newCursor.dispose();
 
 		} catch (final XmlException e) {
-			throw new RuntimeException("Could not generate xml block "
-					+ xmlBlock, e);
+			throw new RuntimeException("Could not generate xml block " + xmlBlock, e);
 		}
 	}
 
-	protected void generatePropertiesBlock(
-			final Map<String, String> properties,
-			final XmlObject mvnProperties, final String rawXmlPrefix) {
+	protected void generatePropertiesBlock(final Map<String, String> properties, final XmlObject mvnProperties,
+			final String rawXmlPrefix) {
 
 		final XmlCursor cursor = mvnProperties.newCursor();
 		cursor.toEndToken();
@@ -611,8 +616,7 @@ public class MavenProject {
 
 			if (rawXmlPrefix != null && entry.getKey().startsWith(rawXmlPrefix)) {
 
-				final String xmlTag = entry.getKey().substring(
-						rawXmlPrefix.length());
+				final String xmlTag = entry.getKey().substring(rawXmlPrefix.length());
 				generateFreeXmlBlock(cursor, entry.getValue(), xmlTag);
 
 			} else {
@@ -657,20 +661,16 @@ public class MavenProject {
 					mvnMgmt = mvn.addNewDependencyManagement();
 				}
 
-				org.apache.maven.pom.x400.DependencyManagement.Dependencies mvnMgmtDeps = mvnMgmt
-						.getDependencies();
+				org.apache.maven.pom.x400.DependencyManagement.Dependencies mvnMgmtDeps = mvnMgmt.getDependencies();
 				if (mvnMgmtDeps == null) {
 					mvnMgmtDeps = mvnMgmt.addNewDependencies();
 				}
 
 				org.apache.maven.pom.x400.Dependency mvnMgmtDep = null;
 
-				for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnMgmtDeps
-						.getDependencyArray()) {
-					final boolean exists = dep.getGroupId().equals(
-							mvnDepExist.getGroupId())
-							&& dep.getArtifactId().equals(
-									mvnDepExist.getArtifactId());
+				for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnMgmtDeps.getDependencyArray()) {
+					final boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
+							&& dep.getArtifactId().equals(mvnDepExist.getArtifactId());
 					if (exists) {
 						mvnMgmtDep = mvnDepExist;
 						break;
@@ -688,26 +688,22 @@ public class MavenProject {
 		}
 	}
 
-	protected void generateDependenciesBlock(
-			final List<Dependency> dependencies,
-			final Dependencies mvnDependencies) {
+	protected void generateDependenciesBlock(final List<Dependency> dependencies, final Dependencies mvnDependencies) {
 
 		for (final Dependency dep : dependencies) {
-			if(dep.isOnlyManagement()) {
-				// skip this dependency, it is only for dependencyManagement blocks
+			if (dep.isOnlyManagement()) {
+				// skip this dependency, it is only for dependencyManagement
+				// blocks
 				continue;
 			}
-			
+
 			final Dependencies mvnDeps = mvnDependencies;
 
 			org.apache.maven.pom.x400.Dependency mvnDep = null;
 
-			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps
-					.getDependencyArray()) {
-				final boolean exists = dep.getGroupId().equals(
-						mvnDepExist.getGroupId())
-						&& dep.getArtifactId().equals(
-								mvnDepExist.getArtifactId());
+			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps.getDependencyArray()) {
+				final boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
+						&& dep.getArtifactId().equals(mvnDepExist.getArtifactId());
 				if (exists) {
 					mvnDep = mvnDepExist;
 					break;
@@ -723,8 +719,7 @@ public class MavenProject {
 		}
 	}
 
-	protected void generateDependenciesBlock(
-			final List<Dependency> dependencies,
+	protected void generateDependenciesBlock(final List<Dependency> dependencies,
 			final org.apache.maven.pom.x400.Plugin.Dependencies mvnPluginDependencies) {
 
 		for (final Dependency dep : dependencies) {
@@ -732,12 +727,9 @@ public class MavenProject {
 
 			org.apache.maven.pom.x400.Dependency mvnDep = null;
 
-			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps
-					.getDependencyArray()) {
-				final boolean exists = dep.getGroupId().equals(
-						mvnDepExist.getGroupId())
-						&& dep.getArtifactId().equals(
-								mvnDepExist.getArtifactId());
+			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps.getDependencyArray()) {
+				final boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
+						&& dep.getArtifactId().equals(mvnDepExist.getArtifactId());
 				if (exists) {
 					mvnDep = mvnDepExist;
 					break;
@@ -753,8 +745,7 @@ public class MavenProject {
 		}
 	}
 
-	protected void generateDependencyBlock(final Dependency dep,
-			final org.apache.maven.pom.x400.Dependency mvnDep) {
+	protected void generateDependencyBlock(final Dependency dep, final org.apache.maven.pom.x400.Dependency mvnDep) {
 
 		mvnDep.setGroupId(dep.getGroupId());
 		mvnDep.setArtifactId(dep.getArtifactId());

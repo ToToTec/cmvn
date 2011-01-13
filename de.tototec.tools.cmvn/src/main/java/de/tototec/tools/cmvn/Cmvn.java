@@ -106,6 +106,8 @@ public class Cmvn {
 		boolean autoReconfigure = false;
 		final String[] mavenSettingsFile = new String[1];
 
+		boolean runGenerateIvyFiles = false;
+
 		NextArgAction nextArgAction = null;
 
 		final List<String> mavenArgs = new LinkedList<String>();
@@ -149,6 +151,8 @@ public class Cmvn {
 				autoReconfigure = true;
 			} else if (arg.equals("--reconfigure")) {
 				reconfigure = true;
+			} else if (arg.equals("--generate-ivy")) {
+				runGenerateIvyFiles = true;
 			} else if (arg.equals("--build")) {
 				runMaven = true;
 			} else if (arg.equals("--maven-settings")) {
@@ -239,6 +243,7 @@ public class Cmvn {
 			final ConfigureRequest configureRequest = new ConfigureRequest();
 			configureRequest.setForce(true);
 			configureRequest.setAutoReconfigure(autoReconfigure);
+			configureRequest.setGenerateIvy(runGenerateIvyFiles);
 			if (mavenSettingsFile[0] != null) {
 				File file = new File(mavenSettingsFile[0]);
 				if (!file.isAbsolute()) {

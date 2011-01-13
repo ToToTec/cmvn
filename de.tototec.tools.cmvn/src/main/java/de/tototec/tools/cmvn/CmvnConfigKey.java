@@ -14,17 +14,13 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	PROJECT("project") {
 		@Override
-		public void read(final ProjectConfig projectConfig,
-				final KeyValue keyValue) {
-			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
-					keyValue, ";", "=", "true");
+		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 			final String[] split = withOptions.getValue().split(":", 3);
 			if (split.length < 3) {
-				throw new RuntimeException("Unsupported project value: "
-						+ keyValue);
+				throw new RuntimeException("Unsupported project value: " + keyValue);
 			}
-			final Dependency projectInfo = new Dependency(split[0], split[1],
-					split[2]);
+			final Dependency projectInfo = new Dependency(split[0], split[1], split[2]);
 			projectConfig.setProject(projectInfo);
 
 			for (final KeyValue option : withOptions.getOptions()) {
@@ -33,32 +29,26 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				if (oKey.equals("packaging")) {
 					projectConfig.setPackaging(oVal);
 				} else {
-					throw new RuntimeException("Unsupported project option: "
-							+ option);
+					throw new RuntimeException("Unsupported project option: " + option);
 				}
 			}
 		}
 	},
 
-	DEPENDENCY("dependency", "compile", "test", "runtime", "system",
-			"dependencyManagement") {
-		public void read(final ProjectConfig projectConfig,
-				final KeyValue keyValue) {
+	DEPENDENCY("dependency", "compile", "test", "runtime", "system", "dependencyManagement") {
+		@Override
+		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
 
-			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
-					keyValue, ";", "=", "true");
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 
 			final String[] split = withOptions.getValue().split(":", 3);
 			if (split.length < 3) {
-				throw new RuntimeException("Unsupported dependency value: "
-						+ keyValue);
+				throw new RuntimeException("Unsupported dependency value: " + keyValue);
 			}
-			final Dependency dep = new Dependency(split[0].trim(),
-					split[1].trim(), split[2].trim());
+			final Dependency dep = new Dependency(split[0].trim(), split[1].trim(), split[2].trim());
 			final String depKey = keyValue.getKey();
 			dep.setScope(depKey.equals("dependency") ? "compile" : depKey);
-			dep.setOnlyManagement(depKey.equals("dependencyManagement") ? true
-					: false);
+			dep.setOnlyManagement(depKey.equals("dependencyManagement") ? true : false);
 
 			for (final KeyValue option : withOptions.getOptions()) {
 				final String oKey = option.getKey();
@@ -75,11 +65,9 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				} else if (oKey.equals("exclude")) {
 					final String[] exclude = oValue.split(":");
 					if (exclude.length != 2) {
-						throw new RuntimeException("Unsupported exclude: "
-								+ oValue);
+						throw new RuntimeException("Unsupported exclude: " + oValue);
 					}
-					dep.addToExcludes(new Dependency(exclude[0].trim(),
-							exclude[1].trim(), "0"));
+					dep.addToExcludes(new Dependency(exclude[0].trim(), exclude[1].trim(), "0"));
 				} else if (oKey.equals("systemPath")) {
 					dep.setJarPath(oValue);
 				} else if (oKey.equals("forceversion")) {
@@ -95,12 +83,10 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	PROPERTY("property") {
 		@Override
-		public void read(final ProjectConfig projectConfig,
-				final KeyValue keyValue) {
+		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
 			final String[] split = keyValue.getValue().split("=", 2);
 			if (split.length == 2) {
-				projectConfig.getProperties().put(split[0].trim(),
-						split[1].trim());
+				projectConfig.getProperties().put(split[0].trim(), split[1].trim());
 			} else {
 				projectConfig.getProperties().remove(split[0].trim());
 			}
@@ -109,11 +95,9 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	REPOSITORY("repository", "repo", "pluginrepo", "artifactrepo") {
 		@Override
-		public void read(final ProjectConfig projectConfig,
-				final KeyValue keyValue) {
+		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
 
-			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
-					keyValue, ";", "=", "true");
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 
 			final String url = withOptions.getValue();
 			final Repository repo = new Repository(url);
@@ -135,8 +119,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				} else if (option.getKey().equals("plugins")) {
 					repo.setForPlugins(option.getValue().equals("true"));
 				} else {
-					throw new RuntimeException(
-							"Unsupported repository option: " + option);
+					throw new RuntimeException("Unsupported repository option: " + option);
 				}
 			}
 			projectConfig.getRepositories().add(repo);
@@ -145,20 +128,18 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	MODULE("module") {
 		@Override
-		public void read(final ProjectConfig projectConfig,
-				final KeyValue keyValue) {
+		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
 
-			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
-					keyValue, ";", "=", "true");
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 			final Module module = new Module(withOptions.getValue());
 
 			for (final KeyValue option : withOptions.getOptions()) {
-				if (option.getKey().equals("skipEmvn")) {
-					module.setSkipEmvn(option.getValue().equalsIgnoreCase(
-							"true"));
+				if (option.getKey().equals("skipCmvn")) {
+					module.setSkipEmvn(option.getValue().equalsIgnoreCase("true"));
+				} else if (option.getKey().equals("skipEmvn")) {
+					module.setSkipEmvn(option.getValue().equalsIgnoreCase("true"));
 				} else {
-					throw new RuntimeException("Unsupported module option: "
-							+ option);
+					throw new RuntimeException("Unsupported module option: " + option);
 				}
 			}
 
@@ -168,32 +149,25 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	PLUGIN("plugin") {
 		@Override
-		public void read(final ProjectConfig projectConfig,
-				final KeyValue keyValue) {
-			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
-					keyValue, ";", "=", "true");
+		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 
 			final String[] split = withOptions.getValue().split(":", 3);
 			if (split.length < 3) {
-				throw new RuntimeException("Unsupported plugin specifier: "
-						+ withOptions.getValue());
+				throw new RuntimeException("Unsupported plugin specifier: " + withOptions.getValue());
 			}
-			final Dependency pluginInfo = new Dependency(split[0].trim(),
-					split[1].trim(), split[2].trim());
+			final Dependency pluginInfo = new Dependency(split[0].trim(), split[1].trim(), split[2].trim());
 			final Plugin plugin = new Plugin(pluginInfo);
 
 			for (final KeyValue option : withOptions.getOptions()) {
 				final String oKey = option.getKey();
 				final String oVal = option.getValue();
-				if (oKey.equals("-plugindependency")
-						|| oKey.equals("-pluginDependency")) {
+				if (oKey.equals("-plugindependency") || oKey.equals("-pluginDependency")) {
 					final String[] depSplit = oVal.split(":", 3);
 					if (depSplit.length < 3) {
-						throw new RuntimeException(
-								"Unsupported plugin dependency: " + oVal);
+						throw new RuntimeException("Unsupported plugin dependency: " + oVal);
 					}
-					final Dependency pluginDep = new Dependency(
-							depSplit[0].trim(), depSplit[1].trim(),
+					final Dependency pluginDep = new Dependency(depSplit[0].trim(), depSplit[1].trim(),
 							depSplit[2].trim());
 					plugin.getPluginDependencies().add(pluginDep);
 				} else if (oKey.equals("-extension")) {
@@ -211,12 +185,10 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	BUILD("build") {
 		@Override
-		public void read(final ProjectConfig projectConfig,
-				final KeyValue keyValue) {
+		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
 			// We only have options, so we start the value with an ";"
-			final KeyValueWithOptions withOptions = new KeyValueWithOptions(
-					keyValue.getKey(), ";" + keyValue.getValue(), ";", "=",
-					"true");
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.getKey(), ";"
+					+ keyValue.getValue(), ";", "=", "true");
 			final Build build = new Build();
 			for (final KeyValue option : withOptions.getOptions()) {
 				final String oKey = option.getKey();
@@ -224,8 +196,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				if (oKey.equals("sources")) {
 					build.setSources(oVal);
 				} else {
-					throw new RuntimeException("Unsupported build option: "
-							+ option);
+					throw new RuntimeException("Unsupported build option: " + option);
 				}
 			}
 			projectConfig.setBuild(build);
@@ -234,22 +205,19 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	VARIABLE("-val") {
 		@Override
-		public void read(final ProjectConfig projectConfig,
-				final KeyValue keyValue) {
+		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
 
 			final String[] split = keyValue.getValue().split("=", 2);
 			if (split.length != 2) {
-				throw new RuntimeException(
-						"Invalid varibale format. Must be 'variable=value'. Was: "
-								+ keyValue.getValue());
+				throw new RuntimeException("Invalid varibale format. Must be 'variable=value'. Was: "
+						+ keyValue.getValue());
 			}
 
 			final String key = split[0].trim();
 			final String value = split[1].trim();
 
 			if (projectConfig.getVariables().containsKey(key)) {
-				throw new RuntimeException(
-						"Double declaration of immutable value: " + key);
+				throw new RuntimeException("Double declaration of immutable value: " + key);
 			}
 			projectConfig.getVariables().put(key, value);
 		}

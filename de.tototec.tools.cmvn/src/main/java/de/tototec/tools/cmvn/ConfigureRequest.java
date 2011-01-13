@@ -7,4 +7,5 @@ public class ConfigureRequest {
 	private Boolean force;
 	private Boolean autoReconfigure;
 	private String mavenSettings;
+	private Boolean generateIvy;
 }

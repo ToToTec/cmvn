@@ -1,4 +1,4 @@
-\documentclass[a4paper,11pt,english,oneside,halfparskip]{scrartcl}
+\documentclass[a4paper,12pt,english,oneside,halfparskip]{scrartcl}
 \usepackage[utf8]{inputenc}
 \usepackage{babel}
 \usepackage{xspace}
@@ -8,7 +8,6 @@
 \usepackage{mdwlist}
 \usepackage[svgnames]{xcolor}
 \usepackage{hyperref}
-% \usepackage{verbatim}
 
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
@@ -29,8 +28,9 @@
 % \newenvironment{notes}{\begin{blockquote}}{\end{blockquote}}
 
 %opening
-\title{cmvn - Configured~Maven - User~Manual}
+\title{cmvn - Configured~Maven User~Manual}
 \author{Tobias Roeser}
+\date{Version 0.0.5}
 
 \makeatletter
 \hypersetup{
@@ -111,14 +111,13 @@ A most significant difference between Java-targeted build systems compared to th
 
 A very popular build system for Java is Apache Maven\footnote{\url{http://maven.apache.org}}, currently in version 3. It partially helps the developer with managing her dependencies but fails miserably at producing reliable builds, at least without support of a complex build infrastructure.\footnote{...like a Repository Manager.}
 
-\CMVN{} tries to close this gap by providing a configuration step before the actual build system. Concrete this goal will be reached by generating the build script for the underlying (nativ) build system whenever a configuration has changed and execution the underlying build system with the right (configured) settings.
-To assist the developer but do not stay in his way, \CMVN{} does not want to replace existing build chains. Its main focus is adding another (first) step to the build chain to create more reliable build environments.
+\CMVN{} tries to close this gap by providing a configuration step before the actual build system. Concrete, this goal will be reached by generating the build scripts for the underlying (nativ) build system. Whenever a configuration has changed \cmvn{} will first regenerate the build scripts and after that executes the underlying build system with the right (configured) settings. To assist the developer but do not stay in his way, \CMVN{} does not aim to replace existing build chains. Instead, its main focus is adding another (first) configuration step to the build chain to create more reliable and reproducable build environments.
 
-In its first release \CMVN{} supports Apache Maven 2.0 and above\footnote{Using Apache Maven 3.0 is highly recommended.}. In later releases support for various other build chains will be added, e.g. Apache Ant + Ivy, SBT, JackBuild, or others. Although \CMVN{} generates the build scripts (in Maven case: \pom{} files) is does not can and it want not handle all aspects of the underlying build infrastructure. To leaf the full power to the developer, \CMVN{} supports templates for the underlying build scripts for those settings \CMVN{} can not generate. But for common project setup, this is rarely needed.
+In its first release \CMVN{} supports Apache Maven 2.0 and above\footnote{Using Apache Maven 3.0 is highly recommended.}. In later releases support for various other build chains will be added, e.g. Apache Ant + Ivy, SBT, JackBuild, or others. Although \CMVN{} generates the build scripts (in Maven case: \pom{} files) is does not can and it wants not handle all aspects of the underlying build infrastructure. To leave the full power to the developer, \CMVN{} supports templates for the underlying build scripts for those settings \CMVN{} can not generate. But for common project setup, this is rarely needed.
 
 \section{Execution Modes}
 
-\CMVN{} has different execution modes.
+\CMVN{} can be run in different execution modes:
 
 \begin{itemize}
  \item Configuration
@@ -160,11 +159,11 @@ Configured that way, \cmvn{} will automatically reconfigure the project (and the
 
 \subsubsection{Maven Settings}
 
-By default, \code{cmvn --configure} initally created an new project-local Maven settings file and thus uses a project-local repository. This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) realeased dependencies. This default way enables the developer to easy build branches without fearing of interferences and inconsistencies cause by multiple projects (branches) releasing to the same local repository. 
+By default, \code{cmvn --configure} initally created an new project-local Maven settings file and thus uses a project-local repository. This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) realeased dependencies. This default way enables the developer to easy build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are releasing to the same local repository. 
 
 Of course, the newly created repository and Maven settings file is shared between all sub projects of the one you just configured.
 
-In case, this default behavior is not desired, you can tell \cmvn{} to use an alternative existing Maven Settings file with the option \code{--maven-settings}. In this case, you may will loose the benefits of side-effect free development of multiple project on the same computer. Also this may limit the reproducability of the build process in different environments. 
+In case, this default behavior is not desired, you can tell \cmvn{} to use an alternative existing Maven settings file with the option \code{--maven-settings}. In this case, you may will loose the benefits of side-effect free development of multiple project on the same computer. Also this may limit the reproducability of the build process in different environments. 
 
 \begin{Cmdline}
 shell> cmvn --configure --maven-settings=/home/user/.m2/settings.xml

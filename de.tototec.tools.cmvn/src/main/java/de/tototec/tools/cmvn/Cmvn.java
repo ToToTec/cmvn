@@ -124,13 +124,14 @@ public class Cmvn {
 			} else if (arg.equals("--help") || arg.equals("-h")) {
 				printUsage();
 				return;
-			} else if (arg.equals("-version") || arg.equals("--version")) {
-				System.out.println("emvn 0.0.1-SNAPSHOT");
-				runGenerate = false;
-				runMaven = true;
-				mavenArgs.clear();
-				mavenArgs.add("-version");
-				break;
+			} else if (arg.equals("--version") || arg.equals("-version")) {
+				System.out.println("cmvn 0.1.0 (c) 2010, 2011, Tobias Roeser, ToToTec");
+				return;
+				// runGenerate = false;
+				// runMaven = true;
+				// mavenArgs.clear();
+				// mavenArgs.add("-version");
+				// break;
 			} else if (arg.equals("--build")) {
 				runMaven = true;
 			} else if (arg.equals("--clean")) {

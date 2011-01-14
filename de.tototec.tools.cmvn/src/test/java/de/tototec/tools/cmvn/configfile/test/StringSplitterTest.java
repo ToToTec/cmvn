@@ -55,7 +55,7 @@ public class StringSplitterTest extends Assert {
 	}
 
 	@Test(dataProvider = "splittedStrings")
-	public void testSplt(final String[] expectedResult,
+	public void testSplit(final String[] expectedResult,
 			final String stringToSplit, final String delim,
 			final String delimMask, final int maxCount) {
 

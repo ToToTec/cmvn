@@ -166,11 +166,16 @@ Of course, the newly created repository and Maven settings file is shared betwee
 In case, this default behavior is not desired, you can tell \cmvn{} to use an alternative existing Maven settings file with the option \code{--maven-settings}. In this case, you may will loose the benefits of side-effect free development of multiple project on the same computer. Also this may limit the reproducability of the build process in different environments. 
 
 \begin{Cmdline}
-shell> cmvn --configure --maven-settings=/home/user/.m2/settings.xml
+shell> cmvn --configure --maven-settings /home/user/.m2/settings.xml
 \end{Cmdline}
 
-
 Notice, that if you use an alternative Maven settings file, \cmvn{} will not touch this file and the Local Maven Repository when running in cleanup execution mode.
+
+
+\subsubsection{Using Templates -- \code{pom.xml.cmvn}}
+
+When \cmvn{} detects the presence of a file \code{pom.xml.cmvn} it will use it as template when generating the \pom{} file for Maven. \cmvn{} will first read the template file and afterward extend it with the settings found in \code{cmvn.conf}. You can use this to easily migrate existing Maven projects or if you need complex setups and Maven features (like \code{<profile>}). 
+
 
 \subsection{Build}
 

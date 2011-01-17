@@ -1,0 +1,12 @@
+Errata in cmvn-user-manual 0.1.0:                                                                                                                              
+* 2.1.2 Maven Settings:                                                                                                                                        
+  The commandline option "--maven-settings=/home/user/.m2/settings.xml" must be
+  written as "--maven-settings /home/user/.m2/settings.xml"
+
+* Missing information:
+  2.1.3. Using Templates – pom.xml.cmvn
+  When cmvn detects the presence of a ﬁle pom.xml.cmvn it will use it as template when
+  generating the pom.xml ﬁle for Maven. cmvn will ﬁrst read the template ﬁle and afterward
+  extend it with the settings found in cmvn.conf. You can use this to easily migrate existing
+  Maven projects or if you need complex setups and Maven features (like <profile>).
+

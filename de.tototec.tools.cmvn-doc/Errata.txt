@@ -1,5 +1,6 @@
-Errata in cmvn-user-manual 0.1.0:                                                                                                                              
-* 2.1.2 Maven Settings:                                                                                                                                        
+Errata in cmvn-user-manual 0.1.0:
+
+* 2.1.2 Maven Settings: 
   The commandline option "--maven-settings=/home/user/.m2/settings.xml" must be
   written as "--maven-settings /home/user/.m2/settings.xml"
 
@@ -10,3 +11,4 @@ Errata in cmvn-user-manual 0.1.0:
   extend it with the settings found in cmvn.conf. You can use this to easily migrate existing
   Maven projects or if you need complex setups and Maven features (like <profile>).
 
+* cmvn requires a Java 6 Virtual Machine

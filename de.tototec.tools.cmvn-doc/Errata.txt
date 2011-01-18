@@ -12,3 +12,7 @@ Errata in cmvn-user-manual 0.1.0:
   Maven projects or if you need complex setups and Maven features (like <profile>).
 
 * cmvn requires a Java 6 Virtual Machine
+
+* 2.5.3 dependency:
+  Option systemPath does not accept format TEXT but FILE.
+

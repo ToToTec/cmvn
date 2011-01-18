@@ -352,7 +352,7 @@ Options:
 \begin{tabular}{llp{.65\textwidth}}
 \emph{Option} & \emph{Format} & \emph{Desciption} \\
 \code{scope} & TEXT & The scope of the dependency. One of '\code{compile}', '\code{runtime}', \code{test}', \code{system}' or '\code{provided}'. \\
-\code{systemPath} & TEXT & The local file path to the jar file. Only valid if \code{scope} is \code{system}. In contrast to Maven specification, this path can be also relative. \\
+\code{systemPath} & FILE & The local file path to the jar file. Only valid if \code{scope} is \code{system}. In contrast to Maven specification, this path can be also relative. \\
 \code{classifier} & TEXT & The classifier, e.g. '\code{sources}'. \\
 \code{type} & TEXT &  The type. \\
 \code{optional} & BOOLEAN & An optional dependency is not optional for the current project but will be ignored in a transitive dependency resolution. (In an ideal world any compile type dependency should be optional!) \\

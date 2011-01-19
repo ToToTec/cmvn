@@ -1,0 +1,10 @@
+cmvn-0.1.2:
+
+
+cmvn-0.1.1:
+* Generated files now have correct default XML namespace set
+* Added new directive -configClass to generate Java classes to make
+  configuration information statically available
+
+cmvn-0.1.0:
+* Initial Release

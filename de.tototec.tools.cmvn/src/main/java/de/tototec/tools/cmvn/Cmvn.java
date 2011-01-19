@@ -128,7 +128,7 @@ public class Cmvn {
 				printUsage();
 				return;
 			} else if (arg.equals("--version") || arg.equals("-version")) {
-				System.out.println("cmvn 0.1.0 (c) 2010, 2011, Tobias Roeser, ToToTec");
+				System.out.println("cmvn " + Config.cmvnVersion() + " (c) 2010, 2011, Tobias Roeser, ToToTec");
 				return;
 				// runGenerate = false;
 				// runMaven = true;

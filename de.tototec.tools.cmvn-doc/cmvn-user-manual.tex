@@ -283,7 +283,7 @@ Directives are instructions to \cmvn{} to do something special.
 \begin{tabular}{llp{.72\textwidth}}
 \emph{Directive} & \emph{Format} & \emph{Description} \\
 \code{-include} & FILE & Include the content of the given file. The content will be threated as if it was in the actual file. \\
-\code{-val} & OPTION & Create an immutable variable \emph{key} with content \emph{value}. All occurences of this variable were expanded in the value-part of all succeeding lines. \\
+\code{-val} & OPTION & Create an immutable variable \emph{key} with content \emph{value}. All occurences of this variable were expanded in the value-part of all succeeding lines (except \code{-include}). \\
 \end{tabular}
 
 

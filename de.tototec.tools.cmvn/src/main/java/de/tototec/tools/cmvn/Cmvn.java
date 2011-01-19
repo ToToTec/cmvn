@@ -105,8 +105,11 @@ public class Cmvn {
 		boolean forceGenerate = false;
 		boolean autoReconfigure = false;
 		final String[] mavenSettingsFile = new String[1];
+		final String[] mavenRepoDir = new String[1];
 
+		// Experimental
 		boolean runGenerateIvyFiles = false;
+		boolean forceSystemScope = false;
 
 		NextArgAction nextArgAction = null;
 
@@ -156,11 +159,21 @@ public class Cmvn {
 				runGenerateIvyFiles = true;
 			} else if (arg.equals("--build")) {
 				runMaven = true;
+			} else if (arg.equals("--force-system-scope")) {
+				forceSystemScope = true;
 			} else if (arg.equals("--maven-settings")) {
 				nextArgAction = new NextArgAction() {
 					@Override
 					public NextArgAction processArg(final String arg) {
 						mavenSettingsFile[0] = arg;
+						return null;
+					}
+				};
+			} else if (arg.equals("--maven-repo")) {
+				nextArgAction = new NextArgAction() {
+					@Override
+					public NextArgAction processArg(final String arg) {
+						mavenRepoDir[0] = arg;
 						return null;
 					}
 				};
@@ -201,7 +214,7 @@ public class Cmvn {
 		}
 
 		if (runDistClean) {
-			System.out.println("Cleaning generated files and emvn state...");
+			System.out.println("Cleaning generated files and cmvn state...");
 			project.cleanEmvnStateRecursive();
 		}
 
@@ -210,9 +223,7 @@ public class Cmvn {
 			project.cleanGeneratedFilesRecursive();
 		}
 
-		final boolean generateAllowed = runGenerate || reconfigure;
-
-		if (!upToDate && !generateAllowed && runMaven) {
+		if (!upToDate && runMaven && !runGenerate) {
 			if (project.getMavenConfig() != null && project.getMavenConfig().isAutoReconfigure()) {
 				reconfigure = true;
 			} else {
@@ -233,7 +244,7 @@ public class Cmvn {
 				final String rootProjectFile = mavenConfig.getRootProjectFile();
 				final MavenProject rootProject = new MavenProject(new File(rootProjectFile));
 				// second param is null, we wont change to current state
-				final ConfigureRequest configureRequest = new ConfigureRequest();
+				final ConfigureRequest configureRequest = new ConfigureRequest(true);
 				configureRequest.setForce(forceGenerate);
 				rootProject.generateMavenProjectRecursive(configureRequest);
 			}
@@ -241,7 +252,7 @@ public class Cmvn {
 
 		if (runGenerate) {
 			System.out.println("Generating (if needed)...");
-			final ConfigureRequest configureRequest = new ConfigureRequest();
+			final ConfigureRequest configureRequest = new ConfigureRequest(false);
 			configureRequest.setForce(true);
 			configureRequest.setAutoReconfigure(autoReconfigure);
 			configureRequest.setGenerateIvy(runGenerateIvyFiles);
@@ -252,6 +263,14 @@ public class Cmvn {
 				}
 				configureRequest.setMavenSettings(file.getPath());
 			}
+			if (mavenRepoDir[0] != null) {
+				File file = new File(mavenRepoDir[0]);
+				if (!file.isAbsolute()) {
+					file = file.getAbsoluteFile();
+				}
+				configureRequest.setMavenRepo(file.getPath());
+			}
+			configureRequest.setForceSystemScope(forceSystemScope);
 			project.generateMavenProjectRecursive(configureRequest);
 		}
 
@@ -325,8 +344,10 @@ public class Cmvn {
 		help += "   --distclean   Enables DISTCLEAN mode\n";
 		help += "\n";
 		help += "Options for CONFIGURE mode:\n";
-		help += "   --auto-reconfigure  Enable automatic reconfiguration for out-of-date files\n";
-		help += "   --force             Configure and generate all files\n";
+		help += "   --auto-reconfigure     Enable automatic reconfiguration for out-of-date files\n";
+		help += "   --force                Configure and generate all files\n";
+		help += "   --maven-repo DIR       Use the given (existing) directory DIR as local Maven repository\n";
+		help += "   --maven-settings FILE  Use the following Maven settings file (may result in unrepeatable builds)\n";
 		help += "\n";
 		help += "Options for BUILD mode:\n";
 		help += "   --reconfigure   Automatically reconfigure if some source files are out-of-date\n";

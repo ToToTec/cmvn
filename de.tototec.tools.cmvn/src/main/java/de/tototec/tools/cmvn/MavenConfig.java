@@ -4,8 +4,11 @@ import lombok.Data;
 
 @Data
 public class MavenConfig {
-	// private String localRepository;
+	private boolean controlSettingsFile;
+	private boolean controlRepoDir;
+	private String localRepository;
 	private String settingsFile;
 	private String rootProjectFile;
 	private boolean autoReconfigure;
+	private boolean forceSystemScope;
 }

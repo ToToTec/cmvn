@@ -1,9 +1,13 @@
 package de.tototec.tools.cmvn;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import lombok.Getter;
 import de.tototec.tools.cmvn.configfile.KeyValue;
 import de.tototec.tools.cmvn.configfile.KeyValueWithOptions;
 import de.tototec.tools.cmvn.model.Build;
+import de.tototec.tools.cmvn.model.ConfigClassGenerator;
 import de.tototec.tools.cmvn.model.Dependency;
 import de.tototec.tools.cmvn.model.Module;
 import de.tototec.tools.cmvn.model.Plugin;
@@ -220,6 +224,37 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				throw new RuntimeException("Double declaration of immutable value: " + key);
 			}
 			projectConfig.getVariables().put(key, value);
+		}
+	},
+
+	CONFIG_CLASS("-configClass") {
+		@Override
+		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+			// We only have options, so we start the value with an ";"
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.getKey(), ";"
+					+ keyValue.getValue(), ";", "=", "true");
+
+			String dir = null;
+			String className = null;
+			final Map<String, String> methods = new LinkedHashMap<String, String>();
+
+			for (final KeyValue option : withOptions.getOptions()) {
+				final String oKey = option.getKey();
+				final String oVal = option.getValue();
+				if (oKey.equals("dir")) {
+					dir = oVal;
+				} else if (oKey.equals("className")) {
+					className = oVal;
+				} else {
+					methods.put(oKey, oVal);
+				}
+			}
+
+			if (dir == null || className == null) {
+				throw new RuntimeException("Missing options for -configClass. required options are: dir, className");
+			}
+
+			projectConfig.getConfigClasses().add(new ConfigClassGenerator(dir, className, methods));
 		}
 	}
 

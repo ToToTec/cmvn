@@ -20,4 +20,5 @@ public class ProjectConfig {
 	private final List<Plugin> plugins = new LinkedList<Plugin>();
 	private Build build;
 	private final Map<String,String> variables = new LinkedHashMap<String, String>();
+	private final List<ConfigClassGenerator> configClasses = new LinkedList<ConfigClassGenerator>();
 }

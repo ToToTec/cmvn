@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 import lombok.Setter;
 import de.tototec.tools.cmvn.configfile.ConfigFileReader;

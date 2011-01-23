@@ -279,11 +279,14 @@ public class Cmvn {
 			final LinkedList<String> mvnArgs = new LinkedList<String>(mavenArgs);
 			mvnArgs.add(0, "mvn");
 			mvnArgs.add(1, "-s");
-			mvnArgs.add(2, project.getMavenSettingsFile());
+			final MavenConfig usedMavenConfig = project.getMavenConfig();
+			mvnArgs.add(2, usedMavenConfig.getSettingsFile());
 			final ProcessBuilder pB = new ProcessBuilder(mvnArgs);
 			Process process = null;
 			Thread outThread = null;
 			try {
+				System.out.println("Using Maven settings file: " + usedMavenConfig.getSettingsFile());
+				System.out.println("Using local Maven repository: " + usedMavenConfig.getLocalRepository());
 				System.out.println("Executing " + mvnArgs + "...");
 				process = pB.start();
 				copyInBackgroundThread(process.getErrorStream(), System.err);

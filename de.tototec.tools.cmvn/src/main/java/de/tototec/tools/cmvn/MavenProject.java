@@ -351,18 +351,22 @@ public class MavenProject {
 
 		ProjectDocument pom;
 		final XmlOptions xmlOptions = createXmlOptions();
-		try {
-			pom = ProjectDocument.Factory.parse(
-					new File(projectFile.getParent(), projectConfig.getPomTemplateFileName()), xmlOptions);
-		} catch (final Exception e) {
+		final File templateFile = new File(projectFile.getParent(), projectConfig.getPomTemplateFileName());
+		if (templateFile.exists()) {
+			try {
+				pom = ProjectDocument.Factory.parse(templateFile, xmlOptions);
+			} catch (final Exception e) {
+				throw new RuntimeException("Could not load or parse template fil: " + templateFile, e);
+			}
+		} else {
 			final String xmlAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 					+ "<project xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\" "
 					+ "xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
 					+ "\t<modelVersion>4.0.0</modelVersion>\n</project>\n";
 			try {
 				pom = ProjectDocument.Factory.parse(xmlAsString, createXmlOptions());
-			} catch (final XmlException e1) {
-				throw new RuntimeException(e1);
+			} catch (final XmlException e) {
+				throw new RuntimeException("Internal Error: Could not initialize internal XML project document.", e);
 			}
 		}
 

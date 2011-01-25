@@ -1,5 +1,6 @@
 cmvn-0.1.2:
-
+* Fixed: Errors while parsing pom.xml.cmvn are silently dropped and
+  all content of template file is ignored further
 
 cmvn-0.1.1:
 * Generated files now have correct default XML namespace set

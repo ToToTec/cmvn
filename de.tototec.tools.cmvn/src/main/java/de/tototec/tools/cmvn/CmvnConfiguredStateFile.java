@@ -8,20 +8,20 @@ import java.util.Date;
 import de.tototec.tools.cmvn.configfile.KeyValue;
 import de.tototec.tools.cmvn.configfile.bndlike.ConfigFileReaderImpl;
 
-public class MavenConfigFile {
+public class CmvnConfiguredStateFile {
 
 	private final File file;
 
-	public MavenConfigFile(final File file) {
+	public CmvnConfiguredStateFile(final File file) {
 		this.file = file;
 	}
 
-	public MavenConfig read() throws FileNotFoundException {
+	public CmvnConfiguredState read() throws FileNotFoundException {
 		if (!file.exists()) {
 			throw new FileNotFoundException("Could not found maven config file: " + file);
 		}
 
-		final MavenConfig config = new MavenConfig();
+		final CmvnConfiguredState config = new CmvnConfiguredState();
 
 		final ConfigFileReaderImpl reader = new ConfigFileReaderImpl();
 
@@ -46,6 +46,8 @@ public class MavenConfigFile {
 				config.setForceSystemScope(value.equals("true"));
 			} else if (key.equals("mavenExecutable")) {
 				config.setMavenExecutable(value);
+			} else if (key.equals("generateIvy")) {
+				config.setGenerateIvy(value.equals("true"));
 			} else {
 				System.out.println("Unknown config option found: " + keyValue);
 			}
@@ -54,25 +56,30 @@ public class MavenConfigFile {
 		return config;
 	}
 
-	public void write(final MavenConfig mavenConfig) throws FileNotFoundException {
+	public void write(final CmvnConfiguredState cmvnConfiguredState) throws FileNotFoundException {
 		PrintWriter configWriter;
 		configWriter = new PrintWriter(file);
 
 		configWriter.append("# cmvn Maven configuration file. Generated on ").append(new Date().toString())
 				.append("\n");
-		configWriter.append("settingsFile: ").append(mavenConfig.getSettingsFile()).append("\n");
-		configWriter.append("localRepository: ").append(mavenConfig.getLocalRepository()).append("\n");
-		configWriter.append("rootProjectFile: ").append(mavenConfig.getRootProjectFile()).append("\n");
-		configWriter.append("autoReconfigure: ").append(mavenConfig.isAutoReconfigure() ? "true" : "false")
-				.append("\n");
-		configWriter.append("controlSettingsFile: ").append(mavenConfig.isControlSettingsFile() ? "true" : "false")
-				.append("\n");
-		configWriter.append("controlRepoDir: ").append(mavenConfig.isControlRepoDir() ? "true" : "false").append("\n");
-		configWriter.append("forceSystemScope: ").append(mavenConfig.isForceSystemScope() ? "true" : "false")
-				.append("\n");
-		if (mavenConfig.getMavenExecutable() != null) {
-			configWriter.append("mavenExecutable: ").append(mavenConfig.getMavenExecutable()).append("\n");
+		configWriter.append("settingsFile: ").append(cmvnConfiguredState.getSettingsFile()).append("\n");
+		if (cmvnConfiguredState.getLocalRepository() != null) {
+			configWriter.append("localRepository: ").append(cmvnConfiguredState.getLocalRepository()).append("\n");
 		}
+		configWriter.append("rootProjectFile: ").append(cmvnConfiguredState.getRootProjectFile()).append("\n");
+		configWriter.append("autoReconfigure: ").append(cmvnConfiguredState.isAutoReconfigure() ? "true" : "false")
+				.append("\n");
+		configWriter.append("controlSettingsFile: ")
+				.append(cmvnConfiguredState.isControlSettingsFile() ? "true" : "false").append("\n");
+		configWriter.append("controlRepoDir: ").append(cmvnConfiguredState.isControlRepoDir() ? "true" : "false")
+				.append("\n");
+		configWriter.append("forceSystemScope: ").append(cmvnConfiguredState.isForceSystemScope() ? "true" : "false")
+				.append("\n");
+		if (cmvnConfiguredState.getMavenExecutable() != null) {
+			configWriter.append("mavenExecutable: ").append(cmvnConfiguredState.getMavenExecutable()).append("\n");
+		}
+		configWriter.append("generateIvy: ").append(cmvnConfiguredState.isGenerateIvy() ? "true" : "false")
+				.append("\n");
 
 		configWriter.close();
 	}

@@ -11,14 +11,14 @@ import de.tototec.tools.cmvn.model.ConfigClassGenerator;
 import de.tototec.tools.cmvn.model.Dependency;
 import de.tototec.tools.cmvn.model.Module;
 import de.tototec.tools.cmvn.model.Plugin;
-import de.tototec.tools.cmvn.model.ProjectConfig;
+import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 import de.tototec.tools.cmvn.model.Repository;
 
 public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	PROJECT("project") {
 		@Override
-		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 			final String[] split = withOptions.getValue().split(":", 3);
 			if (split.length < 3) {
@@ -41,7 +41,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	DEPENDENCY("dependency", "compile", "test", "runtime", "system", "dependencyManagement") {
 		@Override
-		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 
@@ -87,7 +87,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	PROPERTY("property") {
 		@Override
-		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			final String[] split = keyValue.getValue().split("=", 2);
 			if (split.length == 2) {
 				projectConfig.getProperties().put(split[0].trim(), split[1].trim());
@@ -99,7 +99,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	REPOSITORY("repository", "repo", "pluginrepo", "artifactrepo") {
 		@Override
-		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 
@@ -132,7 +132,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	MODULE("module") {
 		@Override
-		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 			final Module module = new Module(withOptions.getValue());
@@ -153,7 +153,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	PLUGIN("plugin") {
 		@Override
-		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
 
 			final String[] split = withOptions.getValue().split(":", 3);
@@ -189,7 +189,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	BUILD("build") {
 		@Override
-		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			// We only have options, so we start the value with an ";"
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.getKey(), ";"
 					+ keyValue.getValue(), ";", "=", "true");
@@ -209,7 +209,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	VARIABLE("-val") {
 		@Override
-		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 
 			final String[] split = keyValue.getValue().split("=", 2);
 			if (split.length != 2) {
@@ -229,7 +229,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	CONFIG_CLASS("-configClass") {
 		@Override
-		public void read(final ProjectConfig projectConfig, final KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			// We only have options, so we start the value with an ";"
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.getKey(), ";"
 					+ keyValue.getValue(), ";", "=", "true");

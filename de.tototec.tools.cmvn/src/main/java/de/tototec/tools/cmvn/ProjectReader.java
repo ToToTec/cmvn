@@ -2,10 +2,10 @@ package de.tototec.tools.cmvn;
 
 import java.io.File;
 
-import de.tototec.tools.cmvn.model.ProjectConfig;
+import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 
 public interface ProjectReader {
 
-	ProjectConfig readConfigFile(File file);
+	CmvnProjectConfig readConfigFile(File file);
 
 }

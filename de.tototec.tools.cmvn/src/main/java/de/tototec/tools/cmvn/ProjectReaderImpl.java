@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import lombok.Setter;
 import de.tototec.tools.cmvn.configfile.ConfigFileReader;
 import de.tototec.tools.cmvn.configfile.KeyValue;
-import de.tototec.tools.cmvn.model.ProjectConfig;
+import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 
 public class ProjectReaderImpl implements ProjectReader {
 
@@ -19,7 +19,7 @@ public class ProjectReaderImpl implements ProjectReader {
 	private ConfigFileReader configFileReader;
 
 	@Override
-	public ProjectConfig readConfigFile(final File file) {
+	public CmvnProjectConfig readConfigFile(final File file) {
 		try {
 			final ConfigFileReader reader = configFileReader;
 			final List<KeyValue> readKeyValues = reader.readKeyValues(file);
@@ -29,7 +29,7 @@ public class ProjectReaderImpl implements ProjectReader {
 				throw new RuntimeException("No ProjectConfigKeyValueReader registered.");
 			}
 
-			final ProjectConfig projectConfig = new ProjectConfig();
+			final CmvnProjectConfig projectConfig = new CmvnProjectConfig();
 
 			for (final KeyValue keyValue : readKeyValues) {
 				if (supportedKeys.containsKey(keyValue.getKey())) {

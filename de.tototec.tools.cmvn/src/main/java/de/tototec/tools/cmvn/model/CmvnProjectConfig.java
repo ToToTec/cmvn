@@ -8,7 +8,7 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class ProjectConfig {
+public class CmvnProjectConfig {
 	private Dependency project;
 	private final List<Dependency> dependencies = new LinkedList<Dependency>();
 	private final Map<String, String> properties = new LinkedHashMap<String, String>();

@@ -1,10 +1,10 @@
 package de.tototec.tools.cmvn;
 
 import de.tototec.tools.cmvn.configfile.KeyValue;
-import de.tototec.tools.cmvn.model.ProjectConfig;
+import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 
 public interface ProjectConfigKeyValueReader {
 	
-	void read(ProjectConfig projectConfig, KeyValue keyValue);
+	void read(CmvnProjectConfig projectConfig, KeyValue keyValue);
 	
 }

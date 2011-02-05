@@ -3,7 +3,7 @@ package de.tototec.tools.cmvn;
 import lombok.Data;
 
 @Data
-public class MavenConfig {
+public class CmvnConfiguredState {
 	private boolean controlSettingsFile;
 	private boolean controlRepoDir;
 	private String localRepository;
@@ -12,4 +12,5 @@ public class MavenConfig {
 	private boolean autoReconfigure;
 	private boolean forceSystemScope;
 	private String mavenExecutable;
+	private boolean generateIvy;
 }

@@ -11,4 +11,5 @@ public class ConfigureRequest {
 	private String mavenRepo;
 	private Boolean generateIvy;
 	private Boolean forceSystemScope;
+	private String mavenExecutable;
 }

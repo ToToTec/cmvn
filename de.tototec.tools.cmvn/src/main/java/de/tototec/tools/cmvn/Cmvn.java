@@ -106,6 +106,7 @@ public class Cmvn {
 		boolean autoReconfigure = false;
 		final String[] mavenSettingsFile = new String[1];
 		final String[] mavenRepoDir = new String[1];
+		final String[] mavenBin = new String[1];
 
 		// Experimental
 		boolean runGenerateIvyFiles = false;
@@ -151,9 +152,9 @@ public class Cmvn {
 				runGenerate = true;
 				forceGenerate = true;
 				runMaven = false;
-			} else if (arg.equals("--auto-reconfigure")) {
+			} else if (arg.equals("--auto-regenerate") || arg.equals("--auto-reconfigure")) {
 				autoReconfigure = true;
-			} else if (arg.equals("--reconfigure")) {
+			} else if (arg.equals("--regenerate") || arg.equals("--reconfigure")) {
 				reconfigure = true;
 			} else if (arg.equals("--generate-ivy")) {
 				runGenerateIvyFiles = true;
@@ -161,6 +162,14 @@ public class Cmvn {
 				runMaven = true;
 			} else if (arg.equals("--force-system-scope")) {
 				forceSystemScope = true;
+			} else if (arg.equals("--maven-bin")) {
+				nextArgAction = new NextArgAction() {
+					@Override
+					public NextArgAction processArg(final String arg) {
+						mavenBin[0] = arg;
+						return null;
+					}
+				};
 			} else if (arg.equals("--maven-settings")) {
 				nextArgAction = new NextArgAction() {
 					@Override
@@ -270,16 +279,27 @@ public class Cmvn {
 				}
 				configureRequest.setMavenRepo(file.getPath());
 			}
+			if (mavenBin[0] != null) {
+				File file = new File(mavenBin[0]);
+				if (!file.isAbsolute()) {
+					file = file.getAbsoluteFile();
+				}
+				configureRequest.setMavenExecutable(file.getPath());
+			}
 			configureRequest.setForceSystemScope(forceSystemScope);
 			project.generateMavenProjectRecursive(configureRequest);
 		}
 
 		if (runMaven) {
 			System.out.println("Running Maven...");
-			final LinkedList<String> mvnArgs = new LinkedList<String>(mavenArgs);
-			mvnArgs.add(0, "mvn");
-			mvnArgs.add(1, "-s");
 			final MavenConfig usedMavenConfig = project.getMavenConfig();
+			final LinkedList<String> mvnArgs = new LinkedList<String>(mavenArgs);
+			if (usedMavenConfig.getMavenExecutable() != null) {
+				mvnArgs.add(0, usedMavenConfig.getMavenExecutable());
+			} else {
+				mvnArgs.add(0, "mvn");
+			}
+			mvnArgs.add(1, "-s");
 			mvnArgs.add(2, usedMavenConfig.getSettingsFile());
 			final ProcessBuilder pB = new ProcessBuilder(mvnArgs);
 			Process process = null;
@@ -351,6 +371,9 @@ public class Cmvn {
 		help += "   --force                Configure and generate all files\n";
 		help += "   --maven-repo DIR       Use the given (existing) directory DIR as local Maven repository\n";
 		help += "   --maven-settings FILE  Use the following Maven settings file (may result in unrepeatable builds)\n";
+		help += "   --maven-bin FILE       Use the given Maven executable (instead of 'mvn')\n";
+		help += "   --generate-ivy         Generate ivy.xml and ivysettings.xml\n";
+		help += "   --force-system-scope   Forces all dependencies to be of system scope (in pom.xml)\n";
 		help += "\n";
 		help += "Options for BUILD mode:\n";
 		help += "   --reconfigure   Automatically reconfigure if some source files are out-of-date\n";

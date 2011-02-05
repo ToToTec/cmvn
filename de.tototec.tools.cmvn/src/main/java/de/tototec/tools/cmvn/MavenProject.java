@@ -338,6 +338,9 @@ public class MavenProject {
 		}
 		createMavenConfig(configureRequest.getMavenSettings(), configureRequest.getMavenRepo());
 
+		if (configureRequest.getMavenExecutable() != null) {
+			mavenConfig.setMavenExecutable(configureRequest.getMavenExecutable());
+		}
 		if (configureRequest.getMavenSettings() != null) {
 			mavenConfig.setSettingsFile(configureRequest.getMavenSettings());
 		}
@@ -427,42 +430,78 @@ public class MavenProject {
 	}
 
 	protected void generateIvy() {
-		final File ivyFile = new File(pomFile.getParentFile(), "ivy.xml");
-		System.out.println("Generating " + ivyFile);
+		{
+			final File ivySettingsFile = new File(pomFile.getParentFile(), "ivysettings.xml");
+			System.out.println("Generating " + ivySettingsFile);
 
-		final StringBuilder ivy = new StringBuilder();
+			final StringBuilder ivy = new StringBuilder();
 
-		ivy.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
-		ivy.append("<ivy-module version=\"2.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://incubator.apache.org/ivy/schemas/ivy.xsd\">\n");
+			ivy.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+			ivy.append("<ivysettings>\n");
+			ivy.append("\t<settings defaultResolver=\"cmvnMavenRepos\" />\n");
+			ivy.append("\t<property name=\"ivy.dir.repo.local\" value=\"").append(mavenConfig.getLocalRepository())
+					.append("\" />\n");
+			ivy.append("\t<resolvers>\n");
+			ivy.append("\t\t<chain name=\"cmvnMavenRepos\">\n");
 
-		final Dependency project = projectConfig.getProject();
-		ivy.append("  <info organization=\"").append(project.getGroupId()).append("\" module=\"")
-				.append(project.getArtifactId()).append("\" revision=\"").append(project.getVersion()).append("\"/>\n");
-
-		ivy.append("  <dependencies>\n");
-		for (final Dependency dep : projectConfig.getDependencies()) {
-			ivy.append("    <dependency org=\"").append(dep.getGroupId()).append("\" name=\"")
-					.append(dep.getArtifactId()).append("\" rev=\"").append(dep.getVersion()).append("\">\n");
-			if (dep.getExcludes() != null) {
-				for (final Dependency ex : dep.getExcludes()) {
-					ivy.append("      <exclude org=\"").append(ex.getGroupId()).append("\" name=\"")
-							.append(ex.getArtifactId()).append("\"/>\n");
+			for (final Repository repo : projectConfig.getRepositories()) {
+				if (repo.isForArtifacts()) {
+					ivy.append("\t\t\t<ibiblio name=\"").append(repo.getId())
+							.append("\" m2compatible=\"true\" root=\"").append(repo.getUrl()).append("\" />\n");
 				}
 			}
-			ivy.append("    </dependency>\n");
+
+			ivy.append("\t\t</chain>\n");
+			ivy.append("\t</resolvers>\n");
+			ivy.append("</ivysettings>\n");
+
+			try {
+				final FileWriter writer = new FileWriter(ivySettingsFile);
+				writer.write(ivy.toString());
+				writer.close();
+			} catch (final IOException e) {
+				throw new RuntimeException("Cannot write ivy file: " + ivySettingsFile, e);
+			}
 		}
-		ivy.append("  </dependencies>\n");
+		{
+			final File ivyFile = new File(pomFile.getParentFile(), "ivy.xml");
+			System.out.println("Generating " + ivyFile);
 
-		ivy.append("</ivy-module>\n");
+			final StringBuilder ivy = new StringBuilder();
 
-		try {
-			final FileWriter writer = new FileWriter(ivyFile);
-			writer.write(ivy.toString());
-			writer.close();
-		} catch (final IOException e) {
-			throw new RuntimeException("Cannot write ivy file: " + ivyFile, e);
+			ivy.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+			ivy.append("<ivy-module version=\"2.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://incubator.apache.org/ivy/schemas/ivy.xsd\">\n");
+
+			final Dependency project = projectConfig.getProject();
+			ivy.append("  <info organisation=\"").append(project.getGroupId()).append("\" module=\"")
+					.append(project.getArtifactId()).append("\" revision=\"").append(project.getVersion())
+					.append("\"/>\n");
+
+			ivy.append("  <dependencies>\n");
+			for (final Dependency dep : projectConfig.getDependencies()) {
+				ivy.append("    <dependency org=\"").append(dep.getGroupId()).append("\" name=\"")
+						.append(dep.getArtifactId()).append("\" rev=\"").append(dep.getVersion())
+						.append("\" transitive=\"false\">\n");
+				if (dep.getExcludes() != null) {
+					for (final Dependency ex : dep.getExcludes()) {
+						ivy.append("      <exclude org=\"").append(ex.getGroupId()).append("\" name=\"")
+								.append(ex.getArtifactId()).append("\"/>\n");
+					}
+				}
+				ivy.append("    </dependency>\n");
+			}
+			ivy.append("  </dependencies>\n");
+
+			ivy.append("</ivy-module>\n");
+
+			try {
+				final FileWriter writer = new FileWriter(ivyFile);
+				writer.write(ivy.toString());
+				writer.close();
+			} catch (final IOException e) {
+				throw new RuntimeException("Cannot write ivy file: " + ivyFile, e);
+			}
 		}
-
 	}
 
 	private void generateBuild(final Model mvn) {
@@ -712,8 +751,12 @@ public class MavenProject {
 				org.apache.maven.pom.x400.Dependency mvnMgmtDep = null;
 
 				for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnMgmtDeps.getDependencyArray()) {
-					final boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
+					boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
 							&& dep.getArtifactId().equals(mvnDepExist.getArtifactId());
+					if (exists) {
+						exists = dep.getClassifier() != null && dep.getClassifier().equals(mvnDepExist.getClassifier())
+								|| dep.getClassifier() == null && mvnDepExist.getClassifier() == null;
+					}
 					if (exists) {
 						mvnMgmtDep = mvnDepExist;
 						break;
@@ -727,6 +770,9 @@ public class MavenProject {
 				mvnMgmtDep.setGroupId(dep.getGroupId());
 				mvnMgmtDep.setArtifactId(dep.getArtifactId());
 				mvnMgmtDep.setVersion(dep.getVersion());
+				if (dep.getClassifier() != null) {
+					mvnMgmtDep.setClassifier(dep.getClassifier());
+				}
 			}
 		}
 	}
@@ -746,8 +792,12 @@ public class MavenProject {
 			org.apache.maven.pom.x400.Dependency mvnDep = null;
 
 			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps.getDependencyArray()) {
-				final boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
+				boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
 						&& dep.getArtifactId().equals(mvnDepExist.getArtifactId());
+				if (exists) {
+					exists = dep.getClassifier() != null && dep.getClassifier().equals(mvnDepExist.getClassifier())
+							|| dep.getClassifier() == null && mvnDepExist.getClassifier() == null;
+				}
 				if (exists) {
 					mvnDep = mvnDepExist;
 					break;

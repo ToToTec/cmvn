@@ -44,6 +44,8 @@ public class MavenConfigFile {
 				config.setControlRepoDir(value.equals("true"));
 			} else if (key.equals("forceSystemScope")) {
 				config.setForceSystemScope(value.equals("true"));
+			} else if (key.equals("mavenExecutable")) {
+				config.setMavenExecutable(value);
 			} else {
 				System.out.println("Unknown config option found: " + keyValue);
 			}
@@ -68,6 +70,9 @@ public class MavenConfigFile {
 		configWriter.append("controlRepoDir: ").append(mavenConfig.isControlRepoDir() ? "true" : "false").append("\n");
 		configWriter.append("forceSystemScope: ").append(mavenConfig.isForceSystemScope() ? "true" : "false")
 				.append("\n");
+		if (mavenConfig.getMavenExecutable() != null) {
+			configWriter.append("mavenExecutable: ").append(mavenConfig.getMavenExecutable()).append("\n");
+		}
 
 		configWriter.close();
 	}

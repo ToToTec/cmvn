@@ -11,4 +11,5 @@ public class MavenConfig {
 	private String rootProjectFile;
 	private boolean autoReconfigure;
 	private boolean forceSystemScope;
+	private String mavenExecutable;
 }

@@ -13,6 +13,7 @@ import lombok.ToString;
 import de.tototec.tools.cmvn.configfile.KeyValue;
 import de.tototec.tools.cmvn.configfile.bndlike.ConfigFileReaderImpl;
 import de.tototec.tools.cmvn.model.ConfigClassGenerator;
+import de.tototec.tools.cmvn.model.Dependency;
 import de.tototec.tools.cmvn.model.Module;
 import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 
@@ -304,32 +305,52 @@ public class CmvnProject {
 			if (configureRequest.getGenerateIvy() != null) {
 				configuredState.setGenerateIvy(configureRequest.getGenerateIvy().booleanValue());
 			}
+			if (configureRequest.getSystemScopeForLocalProjects() != null) {
+				configuredState.setReferenceLocalArtifactsAsSystemScope(configureRequest
+						.getSystemScopeForLocalProjects().booleanValue());
+			}
 		}
 
 		if (configuredState == null) {
 			throw new RuntimeException("Internal Error: No configured state");
 		}
 
+		persistCmvnState(configuredState);
+
+		// now generate files
+		generateProject(false);
+	}
+
+	private void persistCmvnState(final CmvnConfiguredState configuredState) {
 		// Persisting configured state
 		try {
 			new CmvnConfiguredStateFile(mavenConfigFile).write(configuredState);
+			this.configuredState = configuredState;
 		} catch (final FileNotFoundException e) {
 			throw new RuntimeException("Could not write maven config file: " + mavenConfigFile, e);
 		}
-
-		this.configuredState = configuredState;
-
-		generateProject(false);
 	}
 
 	protected void generateProject(final boolean onlyIfChanged) {
 		// we need an already persisted config
 
-		final CmvnConfiguredState cmvnConfig = getConfiguredState();
+		CmvnConfiguredState cmvnConfig = getConfiguredState();
 		if (cmvnConfig == null) {
-			throw new RuntimeException(
-					"The project is not configured. Please configure it first (cmvn --configure). Project: "
-							+ projectFile);
+			if (rootProject != null && rootProject.getConfiguredState() != null) {
+				// special case, the root project is not up-to-date because a
+				// new
+				// submodule was added. In this case we want it to beconfigured
+				// exactly as the root project
+				System.out.println("Configuring new project: " + projectFile);
+
+				cmvnConfig = rootProject.getConfiguredState();
+				persistCmvnState(cmvnConfig);
+			} else {
+
+				throw new RuntimeException(
+						"The project is not configured. Please configure it first (cmvn --configure). Project: "
+								+ projectFile);
+			}
 		}
 
 		if (onlyIfChanged && isUpToDate()) {
@@ -344,6 +365,21 @@ public class CmvnProject {
 
 		// Generate Maven POM
 		final MavenPomGenerator mavenPomGenerator = new MavenPomGenerator(pomFile, cmvnConfig, projectConfig);
+		if (cmvnConfig.isReferenceLocalArtifactsAsSystemScope()) {
+			System.out.println("Converting local artifacts to system scope...");
+			final List<Dependency> localArtifacts = new LinkedList<Dependency>();
+			final List<CmvnProject> localProjects = rootProject != null ? rootProject.getMultiProjects()
+					: getMultiProjects();
+			for (final CmvnProject project : localProjects) {
+				final CmvnProjectConfig locProj = project.getProjectConfig();
+				final Dependency locArtifact = new Dependency(locProj.getProject().getGroupId(), locProj.getProject()
+						.getArtifactId(), locProj.getProject().getVersion());
+				locArtifact.setJarPath(new File(new File(locProj.getBaseDir(), "target"), locArtifact.getArtifactId()
+						+ "-" + locArtifact.getVersion() + ".jar").getAbsolutePath());
+				localArtifacts.add(locArtifact);
+			}
+			mavenPomGenerator.setLocalArtifacts(localArtifacts);
+		}
 		mavenPomGenerator.generate();
 
 		// Generate Ivy

@@ -103,7 +103,7 @@ public class CmvnApp {
 		// Configure mode
 		boolean runConfigure = false;
 		boolean forceGenerate = false;
-		boolean autoReconfigure = false;
+		boolean autoReconfigure = true;
 		final String[] mavenSettingsFile = new String[1];
 		final String[] mavenRepoDir = new String[1];
 		final String[] mavenBin = new String[1];
@@ -111,6 +111,8 @@ public class CmvnApp {
 		// Experimental
 		boolean generateIvyFiles = false;
 		boolean forceSystemScope = false;
+		boolean localArtifactsAsSystemScope = false;
+		boolean buildFromRootProject = false;
 
 		NextArgAction nextArgAction = null;
 
@@ -162,6 +164,10 @@ public class CmvnApp {
 				runMaven = true;
 			} else if (arg.equals("--force-system-scope")) {
 				forceSystemScope = true;
+			} else if (arg.equals("--local-artifacts-as-system-scope")) {
+				localArtifactsAsSystemScope = true;
+			} else if (arg.equals("--build-from-root")) {
+				buildFromRootProject = true;
 			} else if (arg.equals("--maven-bin")) {
 				nextArgAction = new NextArgAction() {
 					@Override
@@ -205,7 +211,23 @@ public class CmvnApp {
 			throw new RuntimeException("Invalid arguments in --configure mode: " + mavenArgs);
 		}
 
-		final CmvnProject project = new CmvnProject(new File(System.getProperty("user.dir")));
+		final File currentProjectDir = new File(System.getProperty("user.dir"));
+		CmvnProject projectCandidate = new CmvnProject(currentProjectDir);
+		File mvnExecDir = null;
+		String subDir = null;
+		if (buildFromRootProject) {
+			final String rootProjectFilePath = projectCandidate.getConfiguredState().getRootProjectFile();
+			final File rootProjectFile = new File(rootProjectFilePath);
+			if (currentProjectDir.getAbsolutePath().startsWith(rootProjectFile.getParentFile().getAbsolutePath())) {
+				final int index = rootProjectFile.getParentFile().getAbsolutePath().length();
+				subDir = currentProjectDir.getAbsolutePath().substring(index);
+			}
+			if (subDir != null && subDir.length() > 0) {
+				mvnExecDir = rootProjectFile.getParentFile();
+				projectCandidate = new CmvnProject(rootProjectFile);
+			}
+		}
+		final CmvnProject project = projectCandidate;
 
 		final boolean upToDate = project.isUpToDateRecursive();
 		System.out.println("Project up-to-date: " + upToDate);
@@ -243,6 +265,7 @@ public class CmvnApp {
 		}
 
 		if (regenerate) {
+
 			if (!upToDate || forceGenerate) {
 				System.out.println("Reconfiguring...");
 
@@ -290,6 +313,8 @@ public class CmvnApp {
 				configureRequest.setMavenExecutable(file.getPath());
 			}
 			configureRequest.setForceSystemScope(forceSystemScope);
+			configureRequest.setSystemScopeForLocalProjects(localArtifactsAsSystemScope);
+
 			project.configureProjectRecursive(configureRequest);
 		}
 
@@ -313,6 +338,11 @@ public class CmvnApp {
 			// }
 
 			final ProcessBuilder pB = new ProcessBuilder(mvnArgs);
+			if (buildFromRootProject && mvnExecDir != null && subDir != null) {
+				pB.directory(mvnExecDir);
+				mvnArgs.add(3, "-pl");
+				mvnArgs.add(4, subDir);
+			}
 			Process process = null;
 			Thread outThread = null;
 			try {
@@ -377,6 +407,7 @@ public class CmvnApp {
 		help += "Mode:\n";
 		help += "   --build       Enables BUILD mode\n";
 		help += "   --configure   Enables CONFIGURE mode\n";
+		help += "   --regenerate  Enables REGENERATE mode. Regenerate all files with same config\n";
 		help += "   --clean       Enables CLEAN mode\n";
 		help += "   --distclean   Enables DISTCLEAN mode\n";
 		help += "\n";
@@ -384,15 +415,17 @@ public class CmvnApp {
 		help += "   --auto-regenerate      (Deprecated) Same as --auto-reconfigure\n";
 		help += "   --auto-reconfigure     Enable automatic reconfiguration for out-of-date files\n";
 		help += "   --force                Configure and generate all files\n";
+		help += "   --generate-ivy         (Experimental) Generate ivy.xml and ivysettings.xml\n";
 		help += "   --maven-repo DIR       Use the given (existing) directory DIR as local Maven repository\n";
 		help += "   --maven-settings FILE  Use the following Maven settings file (may result in unrepeatable builds)\n";
 		help += "   --maven-bin FILE       Use the given Maven executable (instead of 'mvn')\n";
-		help += "   --generate-ivy         Generate ivy.xml and ivysettings.xml\n";
-		help += "   --force-system-scope   Forces all dependencies to be of system scope (in pom.xml)\n";
+		help += "   --force-system-scope   (Experimental) Forces all dependencies to be of system scope (in pom.xml)\n";
+		help += "   --local-artifacts-as-system-scope  (Experimental) Convert dependencies to local artifact to system-scope dependenies\n";
 		help += "\n";
 		help += "Options for BUILD mode:\n";
-		help += "   --regenerate    Automatically reconfigure if some source files are out-of-date\n";
-		help += "   --reconfigure   (Deprecated) Same as --regenerate\n";
+		help += "   --build-from-root  Run Maven from root project with additional '-pl <current-project>'\n";
+		help += "   --regenerate       Automatically reconfigure if some source files are out-of-date\n";
+		help += "   --reconfigure      (Deprecated) Same as --regenerate\n";
 		help += "\n";
 		System.out.println(help);
 	}

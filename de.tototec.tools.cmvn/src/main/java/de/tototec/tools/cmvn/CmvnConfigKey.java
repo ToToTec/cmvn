@@ -7,11 +7,11 @@ import lombok.Getter;
 import de.tototec.tools.cmvn.configfile.KeyValue;
 import de.tototec.tools.cmvn.configfile.KeyValueWithOptions;
 import de.tototec.tools.cmvn.model.Build;
+import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 import de.tototec.tools.cmvn.model.ConfigClassGenerator;
 import de.tototec.tools.cmvn.model.Dependency;
 import de.tototec.tools.cmvn.model.Module;
 import de.tototec.tools.cmvn.model.Plugin;
-import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 import de.tototec.tools.cmvn.model.Repository;
 
 public enum CmvnConfigKey implements ProjectConfigKeyValueReader {

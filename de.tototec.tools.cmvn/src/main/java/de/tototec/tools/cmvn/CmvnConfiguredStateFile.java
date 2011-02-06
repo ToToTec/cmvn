@@ -48,6 +48,8 @@ public class CmvnConfiguredStateFile {
 				config.setMavenExecutable(value);
 			} else if (key.equals("generateIvy")) {
 				config.setGenerateIvy(value.equals("true"));
+			} else if (key.equals("referenceLocalArtifactsAsSystemScope")) {
+				config.setReferenceLocalArtifactsAsSystemScope(value.equals("true"));
 			} else {
 				System.out.println("Unknown config option found: " + keyValue);
 			}
@@ -80,6 +82,8 @@ public class CmvnConfiguredStateFile {
 		}
 		configWriter.append("generateIvy: ").append(cmvnConfiguredState.isGenerateIvy() ? "true" : "false")
 				.append("\n");
+		configWriter.append("referenceLocalArtifactsAsSystemScope: ")
+				.append(cmvnConfiguredState.isReferenceLocalArtifactsAsSystemScope() ? "true" : "false").append("\n");
 
 		configWriter.close();
 	}

@@ -29,7 +29,7 @@ public class ProjectReaderImpl implements ProjectReader {
 				throw new RuntimeException("No ProjectConfigKeyValueReader registered.");
 			}
 
-			final CmvnProjectConfig projectConfig = new CmvnProjectConfig();
+			final CmvnProjectConfig projectConfig = new CmvnProjectConfig(file.getParentFile().getAbsolutePath());
 
 			for (final KeyValue keyValue : readKeyValues) {
 				if (supportedKeys.containsKey(keyValue.getKey())) {

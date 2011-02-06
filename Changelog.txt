@@ -1,13 +1,21 @@
 cmvn-0.1.2:
-* Fixed: Errors while parsing pom.xml.cmvn are silently dropped and
-  all content of template file is ignored further
+* Fixed: Errors while parsing pom.xml.cmvn are silently dropped and all
+  content of template file is ignored further
 * Let user specifiy Maven executable (--maven-bin)
 * cmvn-0.1.1 looses configured state in some situations
-* Also respect classifier when (distinct) comparing dependencies so
-  that it is possible to include same GA with different classifier in
-  dependency list (e.g. a normal jar and the tests-jar)
+* Also respect classifier when (distinct) comparing dependencies so that it is
+  possible to include same GA with different classifier in dependency list
+  (e.g. a normal jar and the tests-jar)
 * Improved ivy.xml and ivysettings.xml generation
 * Experimental support for forced system-scope dependencies
+* Experimental support for systen-scoped dependency to local available
+  artifacts, thus making the 'install' goal of maven unneccessary (using the
+  'package' goal is now equal and better)
+* New default: --auto-regenerate
+* Regenerating a sub-module does not change state outside of this 
+  module/directory
+* Added new build option --build-from-root to start Maven always from root
+  project with the complete reactor (alowing to use -am and -amd options)
 
 cmvn-0.1.1:
 * Generated files now have correct default XML namespace set

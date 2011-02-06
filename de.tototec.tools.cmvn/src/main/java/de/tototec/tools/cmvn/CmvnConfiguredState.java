@@ -13,4 +13,5 @@ public class CmvnConfiguredState {
 	private boolean forceSystemScope;
 	private String mavenExecutable;
 	private boolean generateIvy;
+	private boolean referenceLocalArtifactsAsSystemScope;
 }

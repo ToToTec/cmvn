@@ -9,6 +9,7 @@ import lombok.Data;
 
 @Data
 public class CmvnProjectConfig {
+	private final String baseDir;
 	private Dependency project;
 	private final List<Dependency> dependencies = new LinkedList<Dependency>();
 	private final Map<String, String> properties = new LinkedHashMap<String, String>();

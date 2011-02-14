@@ -182,12 +182,12 @@ public class CmvnProject {
 
 	public CmvnConfiguredState getConfiguredState() {
 		if (configuredState == null) {
-			configuredState = readMavenConfig();
+			configuredState = readConfiguredState();
 		}
 		return configuredState;
 	}
 
-	protected CmvnConfiguredState readMavenConfig() {
+	protected CmvnConfiguredState readConfiguredState() {
 		if (mavenConfigFile.exists()) {
 			try {
 				return new CmvnConfiguredStateFile(mavenConfigFile).read();

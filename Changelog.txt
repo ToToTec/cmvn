@@ -16,6 +16,7 @@ cmvn-0.1.2:
   module/directory
 * Added new build option --build-from-root to start Maven always from root
   project with the complete reactor (alowing to use -am and -amd options)
+* Added support for finalName and targetDir in build-block
 
 cmvn-0.1.1:
 * Generated files now have correct default XML namespace set

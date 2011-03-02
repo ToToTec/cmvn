@@ -199,6 +199,10 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				final String oVal = option.getValue();
 				if (oKey.equals("sources")) {
 					build.setSources(oVal);
+				} else if (oKey.equals("finalName")) {
+					build.setFinalName(oVal);
+				} else if (oKey.equals("targetDir")) {
+					build.setFinalName(oVal);
 				} else {
 					throw new RuntimeException("Unsupported build option: " + option);
 				}

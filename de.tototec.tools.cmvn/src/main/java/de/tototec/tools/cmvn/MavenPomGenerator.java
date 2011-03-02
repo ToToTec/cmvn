@@ -152,6 +152,13 @@ public class MavenPomGenerator {
 		if (build.getSources() != null) {
 			mvnBuild.setSourceDirectory(build.getSources());
 		}
+		if(build.getFinalName() != null) {
+			mvnBuild.setFinalName(build.getFinalName());
+		}
+		if(build.getTargetDir() != null) {
+			mvnBuild.setDirectory(build.getTargetDir());
+		}
+		
 	}
 
 	protected void generatePlugins(final Model mvn, final boolean forceSystemScope) {

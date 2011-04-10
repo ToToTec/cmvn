@@ -16,7 +16,7 @@
 % \newcommand{\CMVN}{\fontseries{sbc}\selectfont{}\texttt{cmvn}\fontseries{sf}\selectfont}
 \newcommand{\CMVN}{\texttt{cmvn}}
 \newcommand{\cmvn}{\texttt{cmvn}}
-\newcommand{\VERSION}{0.1.0}
+\newcommand{\VERSION}{0.1.3}
 
 \definecolor{listgray}{rgb}{0.88,0.88,0.88} 
 
@@ -24,6 +24,7 @@
 \newcommand{\GG}{\par\vspace{-\parskip}\hspace{1.4em}\ensuremath{\triangleright}~}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\pom}{\code{pom.xml}}
+\newcommand{\cmdoption}[1]{\code{-{}-#1}}
 
 % \newenvironment{notes}{\begin{blockquote}}{\end{blockquote}}
 
@@ -143,13 +144,13 @@ For Maven this generates a \pom{} and a Maven settings file \code{.cmvn/settings
 
 \subsubsection{Automatic re-configuration}
 
-To reconfigure an already configured project, e.g. because the \cmvn{} config file has changed or a generated file is missing, one can use the option \code{--reconfigure} which does exactly the same as \code{--configure} except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration. 
+To reconfigure an already configured project, e.g. because the \cmvn{} config file has changed or a generated file is missing, one can use the option \cmdoption{reconfigure} which does exactly the same as \cmdoption{configure} except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration. 
 
 \begin{Cmdline}
 shell> cmvn --reconfigure
 \end{Cmdline}
 
-If \cmvn{} detects, that the current project is not up-to-date, it must be used with \code{--reconfigure}. To avoid the burden of beeing forced to run a \code{cmvn --reconfigure} after each change of the project (or sub project) configuration, the option \code{--auto-reconfigure} can be used together with \code{--configure}. 
+If \cmvn{} detects, that the current project is not up-to-date, it must be used with \cmdoption{reconfigure}. To avoid the burden of beeing forced to run a \code{cmvn -{}-reconfigure} after each change of the project (or sub project) configuration, the option \cmdoption{auto-reconfigure} can be used together with \cmdoption{configure}. 
 
 \begin{Cmdline}
 shell> cmvn --configure --auto-reconfigure
@@ -157,13 +158,15 @@ shell> cmvn --configure --auto-reconfigure
 
 Configured that way, \cmvn{} will automatically reconfigure the project (and the whole project tree) before a build, if needed.
 
+Since \cmvn{}-0.1.2 \cmdoption{autoreconfigure} is the default.
+
 \subsubsection{Maven Settings}
 
-By default, \code{cmvn --configure} initally created an new project-local Maven settings file and thus uses a project-local repository. This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) realeased dependencies. This default way enables the developer to easy build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are releasing to the same local repository. 
+By default, \code{cmvn -{}-configure} initally created an new project-local Maven settings file and thus uses a project-local repository. This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) realeased dependencies. This default way enables the developer to easy build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are releasing to the same local repository. 
 
 Of course, the newly created repository and Maven settings file is shared between all sub projects of the one you just configured.
 
-In case, this default behavior is not desired, you can tell \cmvn{} to use an alternative existing Maven settings file with the option \code{--maven-settings}. In this case, you may will loose the benefits of side-effect free development of multiple project on the same computer. Also this may limit the reproducability of the build process in different environments. 
+In case, this default behavior is not desired, you can tell \cmvn{} to use an alternative existing Maven settings file with the option \cmdoption{maven-settings}. In this case, you may will loose the benefits of side-effect free development of multiple project on the same computer. Also this may limit the reproducability of the build process in different environments. 
 
 \begin{Cmdline}
 shell> cmvn --configure --maven-settings /home/user/.m2/settings.xml
@@ -191,13 +194,13 @@ The build execution mode is automatically enabled if no other mode was requested
 shell> cmvn clean install
 \end{Cmdline}
 
-If \cmvn{} is run without any option and parameter but the project was configured with the \code{reconfigure}-option, all necessary project files will be regenerated automatically if needed.\footnote{Without the \code{auto-reconfigure} setting the same behavior can be achieved by running \code{cmvn --reconfigure}.}
+If \cmvn{} is run without any option and parameter but the project was configured with the \code{reconfigure}-option, all necessary project files will be regenerated automatically if needed.\footnote{Without the \code{auto-reconfigure} setting the same behavior can be achieved by running \code{cmvn -{}-reconfigure}.}
 
 
 
 \subsection{Cleanup}
 
-The execution mode cleanup is used to remove all generated files and the configuration data. Currently there are two variants to enable the cleanup mode: one version enabled with \code{--clean} removes only the generated native build scripts, the other variant \code{--distclean} cleans also the configuration state and any other generated environment setup, e.g. a hidden project local Maven repository.
+The execution mode cleanup is used to remove all generated files and the configuration data. Currently there are two variants to enable the cleanup mode: one version enabled with \cmdoption{clean} removes only the generated native build scripts, the other variant \cmdoption{distclean} cleans also the configuration state and any other generated environment setup, e.g. a hidden project local Maven repository.
 
 \begin{Cmdline}
 shell> cmvn --clean
@@ -289,7 +292,7 @@ Directives are instructions to \cmvn{} to do something special.
 
 \subsection{Settings}
 
-Settings are used to generate the underlying (native) build scripts. Currently the only supported buildsystem is Maven 2.
+Settings are used to generate the underlying (native) build scripts. Currently the only supported buildsystem is Maven 2 or greater.
 
 {\small
 \begin{tabular}{llp{.50\linewidth}}
@@ -326,6 +329,11 @@ Options:
 \code{packaging} & TEXT & The packaging of the project, if ommitted, than '\code{jar}'
 \end{tabular}
 
+Example:
+\begin{Cmdline}
+# using maven-bundle-plugin
+project: org.example:org.example.osgibundle:1.0.0;packaging=bundle
+\end{Cmdline}
 
 \subsubsection{\code{module}}
 
@@ -340,6 +348,14 @@ Options:
 \code{skipCmvn} & BOOLEAN & This sub project is a pure Maven project. Do not try to find a \code{cmvn.conf} file. \\
 \code{skipEmvn} & BOOLEAN & Alias for \code{skipCmvn} (for compatibility). \\
 \end{tabular}
+
+
+Example:
+\begin{Cmdline}
+module: org.example.domain
+module: org.example.service
+module: org.example.service.impl.legacy;skipCmvn
+\end{Cmdline}
 
 \subsubsection{\code{dependency}}
 
@@ -370,6 +386,12 @@ Aliases:
 \code{\small dependencyManagement} &  A managed dependency only in \code{dependencyManagement}-block. \\
 \end{tabular}
 
+Example:
+\begin{Cmdline}
+compile: org.slf4j:slf4j-api:1.6.1;optional
+compile: org.slf4j:jcl-over-slf4j:1.6.1;optional;forceversion
+test: org.testng:testng:6.0.1
+\end{Cmdline}
 
 
 \subsubsection{\code{property}}
@@ -377,6 +399,15 @@ Aliases:
 Define a property in a \code{<properties>}-block.
 
 Format: OPTION
+
+Example:
+\begin{Cmdline}
+property: maven.compiler.source=1.6
+property: maven.compiler.target=1.6
+property: project.build.sourceEncoding=UTF-8
+\end{Cmdline}
+
+
 
 \subsubsection{\code{repository}}
 
@@ -421,6 +452,17 @@ Directives:
 \code{-xml:}\emph{anyOption} & XML & Can be used if the option-value is XML and not text. \\
 \end{tabular}
 
+Example:
+\begin{Cmdline}
+plugin: org.apache.maven.plugins:maven-assembly-plugin:2.2-beta-5; \
+ appendAssemblyId=false; \
+ -xml:descriptorRefs= \
+    <descriptorRef>jar-with-dependencies</descriptorRef>; \
+ -xml:archive= \
+    <manifest> \
+      <mainClass>org.example.Main</mainClass> \
+    </manifest>
+\end{Cmdline}
 
 
 \subsubsection{\code{build}}
@@ -434,16 +476,19 @@ Options:
 \begin{tabular}{llp{.7\textwidth}}
 \emph{Option} & \emph{Format} & \emph{Desciption} \\
 \code{sources} &  DIR & The directory containing the source files. \\
+\code{testSources} &  DIR & The directory containing the test source files. \\
+\code{finalName} &  FILE & The name of the final build JAR file. \\
+\code{targetDir} & DIR & The directory containing the build output files (e.g. \code{target}).
 \end{tabular}
 
 
-\section{Discussion}
-
-\subsection{What Maven problems were solved with this solution}
-
-\G Single point of variable declaration and consistence usage between all project without letting them slim into the repository
-\G Quick swich to alternative repositories
-
+% \section{Discussion}
+% 
+% \subsection{What Maven problems were solved with this solution}
+% 
+% \G Single point of variable declaration and consistence usage between all project without letting them slim into the repository
+% \G Quick swich to alternative repositories
+% 
 
 
 \section{Terms of Use (License)}
@@ -464,7 +509,7 @@ For convenience, you may want to create a simple shell script \code{cmvn} as an 
 \begin{Cmdline}[caption={Shell wrapper: \code{mvu}}]
 #!/bin/sh
 # pass all arguments to cmvn with $@
-exec java -jar cmvn-executable-0.1.0.jar $@
+exec java -jar cmvn-executable-0.1.3.jar $@
 \end{Cmdline}
 
 \section{Command Shell Wrapper (Windows)}

@@ -562,7 +562,7 @@ public class MavenPomGenerator implements Generator {
 		if (jarPath != null) {
 			if (!new File(jarPath).isAbsolute()) {
 				if (!jarPath.startsWith("${basedir}")) {
-					jarPath = pomFile.getParent() + jarPath;
+					jarPath = pomFile.getParent() + "/" + jarPath;
 				}
 			}
 			mvnDep.setSystemPath(jarPath);

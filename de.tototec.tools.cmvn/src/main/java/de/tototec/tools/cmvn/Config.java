@@ -4,7 +4,7 @@ package de.tototec.tools.cmvn;
 public abstract class Config {
 
 	public static String cmvnVersion() {
-		return "0.1.3-SNAPSHOT";
+		return "0.1.3";
 	}
 
 }

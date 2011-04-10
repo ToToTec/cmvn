@@ -207,7 +207,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				} else if (oKey.equals("finalName")) {
 					build.setFinalName(oVal);
 				} else if (oKey.equals("targetDir")) {
-					build.setFinalName(oVal);
+					build.setTargetDir(oVal);
 				} else {
 					throw new RuntimeException("Unsupported build option: " + option);
 				}

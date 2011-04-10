@@ -23,14 +23,14 @@ public class Dependency {
 	private boolean onlyManagement = false;
 	private boolean forceVerison = false;
 
-	public void addToExcludes(final Dependency dependency) {
+	private synchronized void initExcludes() {
 		if (excludes == null) {
-			synchronized (this) {
-				if (excludes == null) {
-					excludes = new LinkedList<Dependency>();
-				}
-			}
+			excludes = new LinkedList<Dependency>();
 		}
+	}
+	
+	public void addToExcludes(final Dependency dependency) {
+		initExcludes();
 		excludes.add(dependency);
 	}
 

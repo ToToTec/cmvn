@@ -193,12 +193,17 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			// We only have options, so we start the value with an ";"
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.getKey(), ";"
 					+ keyValue.getValue(), ";", "=", "true");
+			withOptions.setFile(keyValue.getFile());
+			withOptions.setLine(keyValue.getLine());
+
 			final Build build = new Build();
 			for (final KeyValue option : withOptions.getOptions()) {
 				final String oKey = option.getKey();
 				final String oVal = option.getValue();
 				if (oKey.equals("sources")) {
 					build.setSources(oVal);
+				} else if (oKey.equals("testSources")) {
+					build.setTestSources(oVal);
 				} else if (oKey.equals("finalName")) {
 					build.setFinalName(oVal);
 				} else if (oKey.equals("targetDir")) {
@@ -237,6 +242,8 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			// We only have options, so we start the value with an ";"
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.getKey(), ";"
 					+ keyValue.getValue(), ";", "=", "true");
+			withOptions.setFile(keyValue.getFile());
+			withOptions.setLine(keyValue.getLine());
 
 			String dir = null;
 			String className = null;

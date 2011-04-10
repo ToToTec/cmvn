@@ -19,18 +19,10 @@ import de.tobiasroeser.cmdoption.GroupConstraints;
 
 public class CmvnApp {
 
-	/**
-	 * Single argument processor that can provide its successor (for the next
-	 * argument).
-	 */
-	interface NextArgAction {
-		NextArgAction processArg(String arg);
-	}
-
 	@ToString
 	@GroupConstraints({ @GroupConstraint(groups = "mode-switch", type = GroupConstraintType.EXACT_ONE_OPTION_OF_GROUPS) })
 	public static class CmdlineOptions {
-		@CmdOption(description = "Configure mode.", group = "mode-switch")
+		@CmdOption(description = "Configure mode", group = "mode-switch")
 		public boolean configure;
 		@CmdOption
 		public boolean autoReconfigure;
@@ -40,7 +32,7 @@ public class CmvnApp {
 		public boolean distclean;
 		@CmdOption
 		public boolean reconfigure;
-		@CmdOption(description = "Show program commandline usage information and exit.")
+		@CmdOption(description = "Show program commandline usage information and exit")
 		public boolean help;
 		@CmdOption
 		public boolean force;
@@ -197,14 +189,21 @@ public class CmvnApp {
 			}
 		}
 
-		int modeCount = 0;
+		int concurrentModeCount = 0;
 		for (final boolean flag : new Boolean[] { runConfigure, regenerate, runMaven }) {
+			if (flag) {
+				++concurrentModeCount;
+			}
+		}
+		if (concurrentModeCount > 1) {
+			throw new RuntimeException("Only one mode can be selected.");
+		}
+
+		int modeCount = 0;
+		for (final boolean flag : new Boolean[] { runConfigure, regenerate, runMaven, runClean, runDistClean }) {
 			if (flag) {
 				++modeCount;
 			}
-		}
-		if (modeCount > 1) {
-			throw new RuntimeException("Only one mode can be selected.");
 		}
 
 		if (runConfigure && !mavenArgs.isEmpty()) {
@@ -325,8 +324,10 @@ public class CmvnApp {
 				throw new RuntimeException("Could not access configured cmvn state.");
 			}
 			final LinkedList<String> mvnArgs = new LinkedList<String>(mavenArgs);
-			if (configuredState.getMavenExecutable() != null) {
+			if (configuredState.getMavenExecutable() != null && configuredState.getMavenExecutable().trim().length() > 0) {
 				mvnArgs.add(0, configuredState.getMavenExecutable());
+			} else if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+				mvnArgs.add(0, "mvn.bat");
 			} else {
 				mvnArgs.add(0, "mvn");
 			}
@@ -353,8 +354,8 @@ public class CmvnApp {
 				// }
 				System.out.println("Executing " + mvnArgs + "...");
 				process = pB.start();
-				copyInBackgroundThread(process.getErrorStream(), System.err);
-				copyInBackgroundThread(process.getInputStream(), System.out);
+				copyInBackgroundThread(process.getErrorStream(), new LinePrefixFilterOutputStream(System.err, "[INFO] "));
+				copyInBackgroundThread(process.getInputStream(), new LinePrefixFilterOutputStream(System.out, "[INFO] "));
 
 				final InputStream in = System.in;
 				final OutputStream out = process.getOutputStream();

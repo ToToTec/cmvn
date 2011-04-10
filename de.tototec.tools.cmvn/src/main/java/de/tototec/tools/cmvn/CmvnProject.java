@@ -2,6 +2,7 @@ package de.tototec.tools.cmvn;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -12,10 +13,11 @@ import lombok.Getter;
 import lombok.ToString;
 import de.tototec.tools.cmvn.configfile.KeyValue;
 import de.tototec.tools.cmvn.configfile.bndlike.ConfigFileReaderImpl;
+import de.tototec.tools.cmvn.configfile.bndlike.ConfigFileReaderImpl.IncludeFileLine;
+import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 import de.tototec.tools.cmvn.model.ConfigClassGenerator;
 import de.tototec.tools.cmvn.model.Dependency;
 import de.tototec.tools.cmvn.model.Module;
-import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 
 @ToString(exclude = { "scannedProjects" })
 public class CmvnProject {
@@ -27,7 +29,7 @@ public class CmvnProject {
 	private final File projectFile;
 	private final File pomFile;
 	private final File pomTemplateFile;
-	private final File mavenConfigFile;
+	private final File cmvnStateFile;
 	@Getter
 	private final CmvnProjectConfig projectConfig;
 	private final CmvnProject rootProject;
@@ -65,8 +67,9 @@ public class CmvnProject {
 			reader.setProjectConfigKeyValueReader(supportedKeys);
 
 			final ConfigFileReaderImpl configFileReader = new ConfigFileReaderImpl();
-			configFileReader.setIncludeFileLine("-include:", "");
-			configFileReader.setAddIncludeLinesToResult("-include");
+			final IncludeFileLine includeFileLine = new ConfigFileReaderImpl.IncludeFileLine("-include");
+			includeFileLine.setAddToResult(true);
+			configFileReader.setIncludeFileLine(includeFileLine);
 			reader.setConfigFileReader(configFileReader);
 		}
 
@@ -75,7 +78,7 @@ public class CmvnProject {
 		final String parentDir = projectFile.getParent();
 		this.pomFile = new File(parentDir, projectConfig.getPomFileName());
 		this.pomTemplateFile = new File(parentDir, projectConfig.getPomTemplateFileName());
-		this.mavenConfigFile = new File(parentDir, DEFAULT_PROJECT_STATE_FILE_NAME);
+		this.cmvnStateFile = new File(parentDir, DEFAULT_PROJECT_STATE_FILE_NAME);
 	}
 
 	protected List<CmvnProject> scanForProjects() {
@@ -107,15 +110,20 @@ public class CmvnProject {
 		return true;
 	}
 
+	protected boolean isConfigured() {
+		return cmvnStateFile != null && cmvnStateFile.exists();
+	}
+
 	protected boolean isUpToDate() {
-		if (!mavenConfigFile.exists()) {
+		// configured
+		if (!isConfigured()) {
 			return false;
 		}
 		if (!pomFile.exists()) {
 			return false;
 		}
 
-		final long lastGenerated = Math.min(mavenConfigFile.lastModified(), pomFile.lastModified());
+		final long lastGenerated = Math.min(cmvnStateFile.lastModified(), pomFile.lastModified());
 
 		if (projectFile.lastModified() > lastGenerated) {
 			return false;
@@ -160,9 +168,9 @@ public class CmvnProject {
 			delete(hiddenCmvnSubDir);
 		}
 
-		if (mavenConfigFile.exists()) {
-			System.out.println("Deleting " + mavenConfigFile + "...");
-			mavenConfigFile.delete();
+		if (cmvnStateFile.exists()) {
+			System.out.println("Deleting " + cmvnStateFile + "...");
+			cmvnStateFile.delete();
 		}
 	}
 
@@ -188,11 +196,13 @@ public class CmvnProject {
 	}
 
 	protected CmvnConfiguredState readConfiguredState() {
-		if (mavenConfigFile.exists()) {
+		if (cmvnStateFile.exists()) {
 			try {
-				return new CmvnConfiguredStateFile(mavenConfigFile).read();
-			} catch (final FileNotFoundException e) {
-				throw new RuntimeException("Could not read maven config file: " + mavenConfigFile, e);
+				final CmvnConfiguredState readState = new CmvnConfiguredState();
+				readState.fromYamlFile(cmvnStateFile);
+				return readState;
+			} catch (final IOException e) {
+				throw new RuntimeException("Could not read configured state file: " + cmvnStateFile, e);
 			}
 		} else {
 			return null;
@@ -229,15 +239,14 @@ public class CmvnProject {
 		// create a new config and set it
 		System.out.println("Configuring " + projectFile);
 
-		CmvnConfiguredState configuredState = null;
+		final CmvnConfiguredState configuredState = new CmvnConfiguredState();
 
 		if (rootProject != null) {
-			// take configured state from root project
-			configuredState = rootProject.getConfiguredState();
+			// take a copy of configured state from root project
+			configuredState.copy(rootProject.getConfiguredState());
 		} else {
 			// I am the root project
 			// need to create a config
-			configuredState = new CmvnConfiguredState();
 
 			// Save root project file
 			configuredState.setRootProjectFile(projectFile.getAbsolutePath());
@@ -311,10 +320,6 @@ public class CmvnProject {
 			}
 		}
 
-		if (configuredState == null) {
-			throw new RuntimeException("Internal Error: No configured state");
-		}
-
 		persistCmvnState(configuredState);
 
 		// now generate files
@@ -324,29 +329,31 @@ public class CmvnProject {
 	private void persistCmvnState(final CmvnConfiguredState configuredState) {
 		// Persisting configured state
 		try {
-			new CmvnConfiguredStateFile(mavenConfigFile).write(configuredState);
-			this.configuredState = configuredState;
-		} catch (final FileNotFoundException e) {
-			throw new RuntimeException("Could not write maven config file: " + mavenConfigFile, e);
+			configuredState.toYamlFile(cmvnStateFile);
+		} catch (final IOException e) {
+			throw new RuntimeException("Could not write configured state file: " + cmvnStateFile, e);
 		}
+		this.configuredState = configuredState;
 	}
 
 	protected void generateProject(final boolean onlyIfChanged) {
 		// we need an already persisted config
 
+		final GeneratorResult generatorResult = new GeneratorResult();
+
 		CmvnConfiguredState cmvnConfig = getConfiguredState();
 		if (cmvnConfig == null) {
+
 			if (rootProject != null && rootProject.getConfiguredState() != null) {
 				// special case, the root project is not up-to-date because a
-				// new
-				// submodule was added. In this case we want it to beconfigured
-				// exactly as the root project
+				// new submodule was added. In this case we want it to
+				// be configured exactly as the root project
 				System.out.println("Configuring new project: " + projectFile);
 
-				cmvnConfig = rootProject.getConfiguredState();
+				cmvnConfig = new CmvnConfiguredState(rootProject.getConfiguredState());
 				persistCmvnState(cmvnConfig);
-			} else {
 
+			} else {
 				throw new RuntimeException(
 						"The project is not configured. Please configure it first (cmvn --configure). Project: "
 								+ projectFile);
@@ -380,12 +387,12 @@ public class CmvnProject {
 			}
 			mavenPomGenerator.setLocalArtifacts(localArtifacts);
 		}
-		mavenPomGenerator.generate();
+		generatorResult.merge(mavenPomGenerator.generate());
 
 		// Generate Ivy
 		if (cmvnConfig.isGenerateIvy()) {
 			new IvyGenerator(projectFile.getParentFile(), configuredState, projectConfig);
-			generateIvy();
+			generatorResult.merge(generateIvy());
 		}
 
 	}
@@ -401,9 +408,9 @@ public class CmvnProject {
 		}
 	}
 
-	protected void generateIvy() {
+	protected GeneratorResult generateIvy() {
 		final IvyGenerator ivyGenerator = new IvyGenerator(projectFile.getParentFile(), configuredState, projectConfig);
-		ivyGenerator.generate();
+		return ivyGenerator.generate();
 	}
 
 }

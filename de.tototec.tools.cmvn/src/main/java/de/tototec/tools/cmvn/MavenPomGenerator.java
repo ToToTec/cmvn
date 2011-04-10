@@ -26,6 +26,7 @@ import org.apache.maven.pom.x400.Plugin.Configuration;
 import org.apache.maven.pom.x400.Plugin.Executions;
 import org.apache.maven.pom.x400.ProjectDocument;
 import org.apache.xmlbeans.XmlCursor;
+import org.apache.xmlbeans.XmlCursor.XmlBookmark;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
@@ -37,7 +38,7 @@ import de.tototec.tools.cmvn.model.Module;
 import de.tototec.tools.cmvn.model.Plugin;
 import de.tototec.tools.cmvn.model.Repository;
 
-public class MavenPomGenerator {
+public class MavenPomGenerator implements Generator {
 
 	private final CmvnConfiguredState cmvnConfig;
 	private final CmvnProjectConfig projectConfig;
@@ -53,13 +54,18 @@ public class MavenPomGenerator {
 
 	}
 
-	public void generate() {
+	@Override
+	public GeneratorResult generate() {
 		System.out.println("Generating " + pomFile);
+
+		final GeneratorResult generatorResult = new GeneratorResult();
+		generatorResult.getOutputFiles().add(pomFile.getAbsolutePath());
 
 		ProjectDocument pom;
 		final XmlOptions xmlOptions = createXmlOptions();
 		final File templateFile = new File(pomFile.getParent(), projectConfig.getPomTemplateFileName());
 		if (templateFile.exists()) {
+			generatorResult.getInputFiles().add(templateFile.getAbsolutePath());
 			try {
 				pom = ProjectDocument.Factory.parse(templateFile, xmlOptions);
 			} catch (final Exception e) {
@@ -113,6 +119,7 @@ public class MavenPomGenerator {
 			throw new RuntimeException("Cannot write pom file: " + pomFile, e);
 		}
 
+		return generatorResult;
 	}
 
 	public XmlOptions createXmlOptions() {
@@ -152,13 +159,16 @@ public class MavenPomGenerator {
 		if (build.getSources() != null) {
 			mvnBuild.setSourceDirectory(build.getSources());
 		}
-		if(build.getFinalName() != null) {
+		if (build.getTestSources() != null) {
+			mvnBuild.setTestSourceDirectory(build.getTestSources());
+		}
+		if (build.getFinalName() != null) {
 			mvnBuild.setFinalName(build.getFinalName());
 		}
-		if(build.getTargetDir() != null) {
+		if (build.getTargetDir() != null) {
 			mvnBuild.setDirectory(build.getTargetDir());
 		}
-		
+
 	}
 
 	protected void generatePlugins(final Model mvn, final boolean forceSystemScope) {
@@ -331,8 +341,14 @@ public class MavenPomGenerator {
 		final XmlCursor cursor = mvnProperties.newCursor();
 		cursor.toEndToken();
 
+		final XmlBookmark propBookmark = new XmlBookmark() {
+		};
+		cursor.setBookmark(propBookmark);
+		
 		for (final Entry<String, String> entry : properties.entrySet()) {
 
+			cursor.toBookmark(propBookmark);
+			
 			if (rawXmlPrefix != null && entry.getKey().startsWith(rawXmlPrefix)) {
 
 				final String xmlTag = entry.getKey().substring(rawXmlPrefix.length());
@@ -342,7 +358,7 @@ public class MavenPomGenerator {
 				cursor.beginElement(entry.getKey());
 				cursor.insertChars(entry.getValue());
 			}
-			cursor.toNextToken();
+			//cursor.toNextToken();
 		}
 
 		cursor.dispose();
@@ -493,7 +509,7 @@ public class MavenPomGenerator {
 			repoPath = new File(repoPath, dep.getVersion());
 
 			final String classifier = dep.getClassifier() == null ? "" : "-" + dep.getClassifier();
-			final String fileName = dep.getArtifactId() + classifier + "-" + dep.getVersion() + ".jar";
+			final String fileName = dep.getArtifactId() + "-" + dep.getVersion() + classifier + ".jar";
 
 			jarPath = new File(repoPath, fileName).getAbsolutePath();
 		}
@@ -545,7 +561,9 @@ public class MavenPomGenerator {
 
 		if (jarPath != null) {
 			if (!new File(jarPath).isAbsolute()) {
-				jarPath = "${basedir}/" + jarPath;
+				if (!jarPath.startsWith("${basedir}")) {
+					jarPath = pomFile.getParent() + jarPath;
+				}
 			}
 			mvnDep.setSystemPath(jarPath);
 		}

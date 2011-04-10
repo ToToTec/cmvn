@@ -4,28 +4,34 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import de.tototec.tools.cmvn.model.Dependency;
 import de.tototec.tools.cmvn.model.CmvnProjectConfig;
+import de.tototec.tools.cmvn.model.Dependency;
 import de.tototec.tools.cmvn.model.Repository;
 
-public class IvyGenerator {
+public class IvyGenerator implements Generator {
 
 	private final File projectDir;
 	private final CmvnConfiguredState cmvnConfig;
 	private final CmvnProjectConfig projectConfig;
 
-	public IvyGenerator(final File projectDir, final CmvnConfiguredState cmvnConfig, final CmvnProjectConfig projectConfig) {
+	public IvyGenerator(final File projectDir, final CmvnConfiguredState cmvnConfig,
+			final CmvnProjectConfig projectConfig) {
 		this.projectDir = projectDir;
 		this.cmvnConfig = cmvnConfig;
 		this.projectConfig = projectConfig;
 	}
 
-	public void generate() {
-		generateIvyXml();
-		generateIvySettingsXml();
+	@Override
+	public GeneratorResult generate() {
+		final GeneratorResult generatorResult = new GeneratorResult();
+
+		generatorResult.merge(generateIvySettingsXml());
+		generatorResult.merge(generateIvyXml());
+
+		return generatorResult;
 	}
 
-	public void generateIvyXml() {
+	public GeneratorResult generateIvySettingsXml() {
 		final File ivySettingsFile = new File(projectDir, "ivysettings.xml");
 		System.out.println("Generating " + ivySettingsFile);
 
@@ -58,9 +64,13 @@ public class IvyGenerator {
 		} catch (final IOException e) {
 			throw new RuntimeException("Cannot write ivy file: " + ivySettingsFile, e);
 		}
+
+		final GeneratorResult generatorResult = new GeneratorResult();
+		generatorResult.getOutputFiles().add(ivySettingsFile.getAbsolutePath());
+		return generatorResult;
 	}
 
-	public void generateIvySettingsXml() {
+	public GeneratorResult generateIvyXml() {
 		final File ivyFile = new File(projectDir, "ivy.xml");
 		System.out.println("Generating " + ivyFile);
 
@@ -97,5 +107,10 @@ public class IvyGenerator {
 		} catch (final IOException e) {
 			throw new RuntimeException("Cannot write ivy file: " + ivyFile, e);
 		}
+
+		final GeneratorResult generatorResult = new GeneratorResult();
+		generatorResult.getOutputFiles().add(ivyFile.getAbsolutePath());
+		return generatorResult;
+
 	}
 }

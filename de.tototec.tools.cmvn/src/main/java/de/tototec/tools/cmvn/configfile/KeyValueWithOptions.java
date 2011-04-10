@@ -43,6 +43,8 @@ public class KeyValueWithOptions extends KeyValue {
 			final String defaultValue) {
 		this(keyValue.getKey(), keyValue.getValue(), optionSeparator,
 				keyValueSeparator, defaultValue);
+		setFile(keyValue.getFile());
+		setLine(keyValue.getLine());
 	}
 
 }

@@ -60,7 +60,6 @@ public class ProjectReaderImpl implements ProjectReader {
 				value = value.substring(0, index) + entry.getValue() + value.substring(index + key.length());
 			}
 
-			// value = value.replaceAll(Pattern.quote(key), entry.getValue());
 		}
 
 		int startPattern = value.indexOf(prefix);

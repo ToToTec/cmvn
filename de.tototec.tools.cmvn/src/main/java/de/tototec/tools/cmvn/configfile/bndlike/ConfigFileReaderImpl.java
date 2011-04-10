@@ -8,6 +8,7 @@ import java.io.LineNumberReader;
 import java.util.LinkedList;
 import java.util.List;
 
+import lombok.Data;
 import lombok.Setter;
 import de.tototec.tools.cmvn.configfile.ConfigFileReader;
 import de.tototec.tools.cmvn.configfile.KeyValue;
@@ -15,18 +16,36 @@ import de.tototec.tools.cmvn.configfile.StringSplitter;
 
 public class ConfigFileReaderImpl implements ConfigFileReader {
 
-	private KeyValue includeFileLine;
+	@Data
+	public static class IncludeFileLine {
+		private final String includeKey;
+		private boolean addToResult;
+	}
+
 	@Setter
-	private String addIncludeLinesToResult;
+	private IncludeFileLine includeFileLine;
 
-	public void setIncludeFileLine(final String prefix, final String suffix) {
-		setIncludeFileLine(new KeyValue(prefix, suffix));
+	@Data
+	public static class VariableExpander {
+		private final String variableKey;
+		private final String variablePrefix;
+		private final String variableSuffix;
+		private boolean addToResult;
 	}
+	
+	@Setter
+	private VariableExpander variableExpander;
 
-	public void setIncludeFileLine(final KeyValue includeFileLine) {
-		this.includeFileLine = includeFileLine;
+	@Data
+	public static class ConditionalBlock {
+		private final String startKey;
+		private final String endKey;
+		private boolean addToResult;
 	}
-
+	
+	@Setter
+	private ConditionalBlock conditionalBlock;
+	
 	@Override
 	public List<KeyValue> readKeyValues(final File configFile) {
 		final List<KeyValue> result = new LinkedList<KeyValue>();
@@ -47,8 +66,7 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 			try {
 				line = lineReader.readLine();
 			} catch (final IOException e) {
-				throw new RuntimeException(
-						"Could not read file: " + configFile, e);
+				throw new RuntimeException("Could not read file: " + configFile, e);
 			}
 
 			if (line != null) {
@@ -66,16 +84,14 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 					line = line.substring(0, line.length() - 1);
 					// System.out.println("reduced line: \"" + line + "\"");
 					// continuedLine will now contain the complete content
-					continuedLine = (continuedLine == null ? "" : continuedLine)
-							+ line;
+					continuedLine = (continuedLine == null ? "" : continuedLine) + line;
 					// System.out.println("countinuedLine: \"" + continuedLine
 					// + "\"");
 					// will be processed with next line
 					continue;
 				}
 
-				final String untrimmedLine = continuedLine == null ? line
-						: continuedLine + line;
+				final String untrimmedLine = continuedLine == null ? line : continuedLine + line;
 				final String trimmedLine = untrimmedLine.trim();
 				if (continuedLine != null) {
 					// System.out.println("procesing continued line: \""
@@ -87,44 +103,35 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 					continue;
 				}
 
-				if (includeFileLine != null) {
-					if (untrimmedLine.startsWith(includeFileLine.getKey())
-							&& untrimmedLine.endsWith(includeFileLine
-									.getValue())) {
-						// This is an include
-						final String includeString = untrimmedLine.substring(
-								includeFileLine.getKey().length(),
-								untrimmedLine.length()
-										- includeFileLine.getValue().length())
-								.trim();
-						File includeFile = new File(includeString);
-						if (!includeFile.isAbsolute()) {
-							includeFile = new File(configFile.getParent(),
-									includeString);
-						}
-
-						if (addIncludeLinesToResult != null) {
-							// Add the included file to result
-							result.add(new KeyValue(addIncludeLinesToResult,
-									includeFile.getPath()));
-						}
-
-						// System.out.println("Including file: " + includeFile);
-						final List<KeyValue> includeKeyValues = readKeyValues(includeFile);
-						result.addAll(includeKeyValues);
-						// do not process this line further
-						continue;
-					}
-				}
-
-				final String[] keyVal = splitter.split(trimmedLine, ":", "\\",
-						2);
+				final String[] keyVal = splitter.split(trimmedLine, ":", "\\", 2);
 				if (keyVal.length != 2) {
-					throw new RuntimeException("Invalid line nr "
-							+ lineReader.getLineNumber() + ": " + line);
+					throw new RuntimeException("Invalid line #" + lineReader.getLineNumber() + ": " + line);
 				}
 
-				result.add(new KeyValue(keyVal[0].trim(), keyVal[1].trim()));
+				final String key = keyVal[0].trim();
+				final String val = keyVal[1].trim();
+
+				if (includeFileLine != null && key.equals(includeFileLine.getIncludeKey())) {
+					// This is an include
+					File includeFile = new File(val);
+					if (!includeFile.isAbsolute()) {
+						includeFile = new File(configFile.getParent(), val);
+					}
+
+					if (includeFileLine.isAddToResult()) {
+						// Add the included file to result
+						result.add(new KeyValue(key, includeFile.getPath(), configFile.getAbsolutePath(), lineReader
+								.getLineNumber()));
+					}
+
+					// System.out.println("Including file: " + includeFile);
+					final List<KeyValue> includeKeyValues = readKeyValues(includeFile);
+					result.addAll(includeKeyValues);
+
+				} else {
+					result.add(new KeyValue(key, val, configFile.getAbsolutePath(), lineReader
+							.getLineNumber()));
+				}
 			}
 
 		} while (line != null);

@@ -56,6 +56,11 @@ public class CmvnConfiguredState {
 	}
 
 	public void toYamlFile(final File file) throws IOException {
+		final File parentDir = file.getParentFile();
+		if (parentDir != null && !parentDir.exists()) {
+			parentDir.mkdirs();
+		}
+
 		final FileWriter fileWriter = new FileWriter(file);
 		fileWriter.write("# cmvn configuration state file. Generated on " + new Date().toString() + "\n");
 		final YamlWriter yamlWriter = new YamlWriter(fileWriter);

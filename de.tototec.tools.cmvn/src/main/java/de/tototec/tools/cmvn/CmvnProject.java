@@ -395,6 +395,14 @@ public class CmvnProject {
 			generatorResult.merge(generateIvy());
 		}
 
+		{
+			final File configFile = new File(new File(projectFile.getParentFile(), ".cmvn"), "projectConfig");
+			try {
+				projectConfig.toYamlFile(configFile);
+			} catch (final IOException e) {
+				throw new RuntimeException("Could not write projectConfig to " + configFile, e);
+			}
+		}
 	}
 
 	protected void generateConfigClasses() {

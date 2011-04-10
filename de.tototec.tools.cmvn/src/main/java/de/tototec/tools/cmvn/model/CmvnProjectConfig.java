@@ -1,9 +1,15 @@
 package de.tototec.tools.cmvn.model;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import com.esotericsoftware.yamlbeans.YamlWriter;
 
 import lombok.Data;
 
@@ -20,6 +26,23 @@ public class CmvnProjectConfig {
 	private final List<Module> modules = new LinkedList<Module>();
 	private final List<Plugin> plugins = new LinkedList<Plugin>();
 	private Build build;
-	private final Map<String,String> variables = new LinkedHashMap<String, String>();
+	private final Map<String, String> variables = new LinkedHashMap<String, String>();
 	private final List<ConfigClassGenerator> configClasses = new LinkedList<ConfigClassGenerator>();
+
+	public void toYamlFile(final File file) throws IOException {
+		final File parentDir = file.getParentFile();
+		if (parentDir != null && !parentDir.exists()) {
+			parentDir.mkdirs();
+		}
+
+		final FileWriter fileWriter = new FileWriter(file);
+		fileWriter.write("# cmvn project config file. Generated on " + new Date().toString() + "\n");
+		final YamlWriter yamlWriter = new YamlWriter(fileWriter);
+		yamlWriter.getConfig().setPrivateFields(true);
+		yamlWriter.getConfig().writeConfig.setWriteDefaultValues(true);
+		yamlWriter.getConfig().writeConfig.setWriteRootTags(false);
+		yamlWriter.write(this);
+		yamlWriter.close();
+		fileWriter.close();
+	}
 }

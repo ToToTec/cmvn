@@ -267,19 +267,6 @@ public class CmvnApp {
 
 			if (!upToDate || forceGenerate) {
 				System.out.println("Reconfiguring...");
-
-				// final CmvnConfig mavenConfig = project.getMavenConfig();
-				// if (mavenConfig == null || mavenConfig.getRootProjectFile()
-				// == null) {
-				// throw new
-				// RuntimeException("Cannot reconfigure. Not enough information (unknown root project)");
-				// }
-				//
-				// final String rootProjectFile =
-				// mavenConfig.getRootProjectFile();
-				// final CmvnProject rootProject = new CmvnProject(new
-				// File(rootProjectFile));
-
 				project.generateProjectRecursive(!forceGenerate);
 			}
 		}

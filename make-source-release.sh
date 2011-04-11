@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CMVN_PACK=cmvn-src-0.1.3
+CMVN_PACK=cmvn-src-0.1.4
 RELEASE_DIR=source-release
 CMVN_DIR=${RELEASE_DIR}/${CMVN_PACK}
 

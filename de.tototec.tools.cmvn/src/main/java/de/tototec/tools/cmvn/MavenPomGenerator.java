@@ -107,7 +107,7 @@ public class MavenPomGenerator implements Generator {
 
 		String pomFileText = inMemoryOutputStream.toString();
 		// Remove all empty namespaces like <someTag xmlns="">
-		// FIXME: extend regex to esure that only xml attributes are matched
+		// FIXME: extend regex to ensure that only xml attributes are matched
 		pomFileText = pomFileText.replaceAll(" xmlns=\"\"[>]", ">");
 		pomFileText = pomFileText.replaceAll("xmlns=\"\"[>]", "");
 
@@ -344,11 +344,11 @@ public class MavenPomGenerator implements Generator {
 		final XmlBookmark propBookmark = new XmlBookmark() {
 		};
 		cursor.setBookmark(propBookmark);
-		
+
 		for (final Entry<String, String> entry : properties.entrySet()) {
 
 			cursor.toBookmark(propBookmark);
-			
+
 			if (rawXmlPrefix != null && entry.getKey().startsWith(rawXmlPrefix)) {
 
 				final String xmlTag = entry.getKey().substring(rawXmlPrefix.length());
@@ -358,7 +358,7 @@ public class MavenPomGenerator implements Generator {
 				cursor.beginElement(entry.getKey());
 				cursor.insertChars(entry.getValue());
 			}
-			//cursor.toNextToken();
+			// cursor.toNextToken();
 		}
 
 		cursor.dispose();
@@ -383,7 +383,8 @@ public class MavenPomGenerator implements Generator {
 			if (mvnDeps == null) {
 				mvnDeps = mvn.addNewDependencies();
 			}
-			generateDependenciesBlock(projectConfig.getDependencies(), mvnDeps, forceSystemScope);
+			generateDependenciesBlock(projectConfig.getDependencies(), mvnDeps, forceSystemScope,
+					projectConfig.getExcludes());
 		}
 
 		for (final Dependency dep : projectConfig.getDependencies()) {
@@ -431,7 +432,7 @@ public class MavenPomGenerator implements Generator {
 	}
 
 	protected void generateDependenciesBlock(final List<Dependency> dependencies, final Dependencies mvnDependencies,
-			final boolean forceSystemScope) {
+			final boolean forceSystemScope, final List<Dependency> excludes) {
 
 		for (final Dependency dep : dependencies) {
 			if (dep.isOnlyManagement()) {
@@ -461,7 +462,7 @@ public class MavenPomGenerator implements Generator {
 				mvnDep = mvnDeps.addNewDependency();
 			}
 
-			generateDependencyBlock(dep, mvnDep, forceSystemScope);
+			generateDependencyBlock(dep, mvnDep, forceSystemScope, excludes);
 
 		}
 	}
@@ -487,13 +488,13 @@ public class MavenPomGenerator implements Generator {
 				mvnDep = mvnDeps.addNewDependency();
 			}
 
-			generateDependencyBlock(dep, mvnDep, forceSystemScope);
+			generateDependencyBlock(dep, mvnDep, forceSystemScope, null);
 
 		}
 	}
 
 	protected void generateDependencyBlock(final Dependency dep, final org.apache.maven.pom.x400.Dependency mvnDep,
-			final boolean forceSystemScope) {
+			final boolean forceSystemScope, final List<Dependency> excludes) {
 
 		String scope = dep.getScope();
 		String jarPath = dep.getJarPath();
@@ -547,15 +548,22 @@ public class MavenPomGenerator implements Generator {
 			mvnDep.setType(dep.getType());
 		}
 		mvnDep.setOptional(dep.isOptionalAsTransitive());
-		if (dep.getExcludes() != null) {
+		if (dep.getExcludes() != null || excludes != null) {
 			Exclusions mvnExclusions = mvnDep.getExclusions();
 			if (mvnExclusions == null) {
 				mvnExclusions = mvnDep.addNewExclusions();
 			}
-			for (final Dependency exclude : dep.getExcludes()) {
-				final Exclusion mvnExclusion = mvnExclusions.addNewExclusion();
-				mvnExclusion.setGroupId(exclude.getGroupId());
-				mvnExclusion.setArtifactId(exclude.getArtifactId());
+			if (dep.getExcludes() != null) {
+				for (final Dependency exclude : dep.getExcludes()) {
+					final Exclusion mvnExclusion = mvnExclusions.addNewExclusion();
+					mvnExclusion.setGroupId(exclude.getGroupId());
+					mvnExclusion.setArtifactId(exclude.getArtifactId());
+				}
+				for (final Dependency exclude : excludes) {
+					final Exclusion mvnExclusion = mvnExclusions.addNewExclusion();
+					mvnExclusion.setGroupId(exclude.getGroupId());
+					mvnExclusion.setArtifactId(exclude.getArtifactId());
+				}
 			}
 		}
 

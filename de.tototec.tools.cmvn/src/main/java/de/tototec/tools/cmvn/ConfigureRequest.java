@@ -24,6 +24,7 @@ public class ConfigureRequest {
 	private Boolean forceSystemScope;
 	private Boolean systemScopeForLocalProjects;
 	private String mavenExecutable;
+	private Boolean skipProvisioning;
 	
 	public ConfigureRequest(final ConfigureRequest copy) {
 		copy(copy);
@@ -38,6 +39,7 @@ public class ConfigureRequest {
 		forceSystemScope = copy.forceSystemScope;
 		systemScopeForLocalProjects = copy.systemScopeForLocalProjects;
 		mavenExecutable = copy.mavenExecutable;
+		skipProvisioning = copy.skipProvisioning;
 	}
 	
 	public void fromYamlFile(final File file) throws IOException {

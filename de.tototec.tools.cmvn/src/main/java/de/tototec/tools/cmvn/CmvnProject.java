@@ -318,6 +318,9 @@ public class CmvnProject {
 				configuredState.setReferenceLocalArtifactsAsSystemScope(configureRequest
 						.getSystemScopeForLocalProjects().booleanValue());
 			}
+			// if (configureRequest.getSkipProvisioning() != null) {
+			// configuredState.setProvisioningEnabled(!configureRequest.getSkipProvisioning());
+			// }
 		}
 
 		persistCmvnState(configuredState);
@@ -370,6 +373,10 @@ public class CmvnProject {
 		// Config Class generator
 		generateConfigClasses();
 
+		// if (cmvnConfig.isProvisioningEnabled()) {
+		// provisionDependencies(cmvnConfig);
+		// }
+
 		// Generate Maven POM
 		final MavenPomGenerator mavenPomGenerator = new MavenPomGenerator(pomFile, cmvnConfig, projectConfig);
 		if (cmvnConfig.isReferenceLocalArtifactsAsSystemScope()) {
@@ -395,7 +402,7 @@ public class CmvnProject {
 			generatorResult.merge(generateIvy());
 		}
 
-		{
+		if (false) {
 			final File configFile = new File(new File(projectFile.getParentFile(), ".cmvn"), "projectConfig");
 			try {
 				projectConfig.toYamlFile(configFile);
@@ -404,6 +411,11 @@ public class CmvnProject {
 			}
 		}
 	}
+
+	// protected void provisionDependencies(CmvnConfiguredState cmvnConfig) {
+	// // TODO Install all provision jars into repo, if they do not exist
+	//
+	// }
 
 	protected void generateConfigClasses() {
 		if (projectConfig == null) {

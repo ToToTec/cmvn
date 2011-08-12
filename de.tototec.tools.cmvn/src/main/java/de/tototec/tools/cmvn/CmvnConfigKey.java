@@ -39,7 +39,9 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		}
 	},
 
-	DEPENDENCY("dependency", "compile", "test", "runtime", "system", "dependencyManagement") {
+	DEPENDENCY("dependency", "compile", "test", "runtime", "system", "dependencyManagement"
+	// , "provision"
+	) {
 		@Override
 		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 
@@ -54,34 +56,48 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			dep.setScope(depKey.equals("dependency") ? "compile" : depKey);
 			dep.setOnlyManagement(depKey.equals("dependencyManagement") ? true : false);
 
-			for (final KeyValue option : withOptions.getOptions()) {
-				final String oKey = option.getKey();
-				final String oValue = option.getValue();
+			final String[] opts = keyValue.getValue().split(";", 2);
 
-				if (oKey.equals("scope")) {
-					dep.setScope(oValue);
-				} else if (oKey.equals("classifier")) {
-					dep.setClassifier(oValue);
-				} else if (oKey.equals("type")) {
-					dep.setType(oValue);
-				} else if (oKey.equals("optional")) {
-					dep.setOptionalAsTransitive(oValue.equalsIgnoreCase("true"));
-				} else if (oKey.equals("exclude")) {
-					final String[] exclude = oValue.split(":");
-					if (exclude.length != 2) {
-						throw new RuntimeException("Unsupported exclude: " + oValue);
-					}
-					dep.addToExcludes(new Dependency(exclude[0].trim(), exclude[1].trim(), "0"));
-				} else if (oKey.equals("systemPath")) {
-					dep.setJarPath(oValue);
-				} else if (oKey.equals("forceversion")) {
-					dep.setForceVerison(oValue.equalsIgnoreCase("true"));
-				} else {
-					throw new RuntimeException("Unsupported option: " + option);
-				}
+			if (opts.length == 2) {
+				dep.parseOptions(opts[1].trim());
 			}
 
+			// for (final KeyValue option : withOptions.getOptions()) {
+			// final String oKey = option.getKey();
+			// final String oValue = option.getValue();
+			//
+			// if (oKey.equals("scope")) {
+			// dep.setScope(oValue);
+			// } else if (oKey.equals("classifier")) {
+			// dep.setClassifier(oValue);
+			// } else if (oKey.equals("type")) {
+			// dep.setType(oValue);
+			// } else if (oKey.equals("optional")) {
+			// dep.setOptionalAsTransitive(oValue.equalsIgnoreCase("true"));
+			// } else if (oKey.equals("exclude")) {
+			// final String[] exclude = oValue.split(":");
+			// if (exclude.length != 2) {
+			// throw new RuntimeException("Unsupported exclude: " + oValue);
+			// }
+			// dep.addToExcludes(new Dependency(exclude[0].trim(),
+			// exclude[1].trim(), "0"));
+			// } else if (oKey.equals("systemPath")) {
+			// dep.setJarPath(oValue);
+			// } else if (oKey.equals("forceversion")) {
+			// dep.setForceVerison(oValue.equalsIgnoreCase("true"));
+			// } else {
+			// throw new RuntimeException("Unsupported option: " + option);
+			// }
+			// }
+			//
+
+			// if(depKey.equals("provision")) {
+			// projectConfig.getProvisioningDeps().add(dep);
+			// }
+			// else {
+			// this is a dependency
 			projectConfig.getDependencies().add(dep);
+			// }
 		}
 	},
 
@@ -267,7 +283,23 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 			projectConfig.getConfigClasses().add(new ConfigClassGenerator(dir, className, methods));
 		}
-	}
+	},
+
+	EXCLUDE("exclude") {
+		@Override
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
+
+			final String[] split = keyValue.getValue().split(":", 2);
+			if (split.length != 2) {
+				throw new RuntimeException("Invalid exclude format. Must be 'groupId:artifactId'. Was: "
+						+ keyValue.getValue());
+			}
+
+			final String group = split[0].trim();
+			final String artifact = split[1].trim();
+			projectConfig.getExcludes().add(new Dependency(group, artifact, "0"));
+		}
+	},
 
 	;
 

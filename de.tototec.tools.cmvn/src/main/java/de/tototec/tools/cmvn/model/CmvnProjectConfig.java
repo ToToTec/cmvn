@@ -9,15 +9,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.esotericsoftware.yamlbeans.YamlWriter;
-
 import lombok.Data;
+
+import com.esotericsoftware.yamlbeans.YamlWriter;
 
 @Data
 public class CmvnProjectConfig {
 	private final String baseDir;
 	private Dependency project;
 	private final List<Dependency> dependencies = new LinkedList<Dependency>();
+	// private final List<Dependency> provisioningDeps = new
+	// LinkedList<Dependency>();
+	private final List<Dependency> excludes = new LinkedList<Dependency>();
 	private final Map<String, String> properties = new LinkedHashMap<String, String>();
 	private final List<Repository> repositories = new LinkedList<Repository>();
 	private String pomTemplateFileName = "pom.xml.cmvn";

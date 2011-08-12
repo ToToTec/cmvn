@@ -6,6 +6,8 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
+import de.tototec.tools.cmvn.configfile.KeyValue;
+import de.tototec.tools.cmvn.configfile.StringSplitter;
 
 @Data
 public class Dependency {
@@ -28,10 +30,70 @@ public class Dependency {
 			excludes = new LinkedList<Dependency>();
 		}
 	}
-	
+
 	public void addToExcludes(final Dependency dependency) {
 		initExcludes();
 		excludes.add(dependency);
+	}
+
+	public static Dependency parse(final String formattedDependency) {
+
+		final String[] split = formattedDependency.split(";", 2);
+
+		final String[] gav = split[0].split(":", 3);
+		if (gav.length < 3) {
+			throw new RuntimeException("Unsupported dependency value: " + formattedDependency);
+		}
+		final Dependency dep = new Dependency(gav[0].trim(), gav[1].trim(), gav[2].trim());
+
+		if (split.length == 2) {
+			dep.parseOptions(split[1].trim());
+		}
+
+		return dep;
+	}
+
+	public void parseOptions(final String formattedOptions) {
+
+		final StringSplitter splitter = new StringSplitter();
+
+		final LinkedList<KeyValue> options = new LinkedList<KeyValue>();
+
+		final String[] split = splitter.split(formattedOptions, ";", "\\");
+		if (split.length > 0) {
+			for (int i = 0; i < split.length; ++i) {
+				final String option[] = splitter.split(split[i], "=", "\\", 2);
+				final String oValue = option.length == 1 ? "true" : option[1].trim();
+				options.add(new KeyValue(option[0].trim(), oValue));
+			}
+		}
+
+		for (final KeyValue option : options) {
+			final String oKey = option.getKey();
+			final String oValue = option.getValue();
+
+			if (oKey.equals("scope")) {
+				setScope(oValue);
+			} else if (oKey.equals("classifier")) {
+				setClassifier(oValue);
+			} else if (oKey.equals("type")) {
+				setType(oValue);
+			} else if (oKey.equals("optional")) {
+				setOptionalAsTransitive(oValue.equalsIgnoreCase("true"));
+			} else if (oKey.equals("exclude")) {
+				final String[] exclude = oValue.split(":");
+				if (exclude.length != 2) {
+					throw new RuntimeException("Unsupported exclude: " + oValue);
+				}
+				addToExcludes(new Dependency(exclude[0].trim(), exclude[1].trim(), "0"));
+			} else if (oKey.equals("systemPath")) {
+				setJarPath(oValue);
+			} else if (oKey.equals("forceversion")) {
+				setForceVerison(oValue.equalsIgnoreCase("true"));
+			} else {
+				throw new RuntimeException("Unsupported option: " + option);
+			}
+		}
 	}
 
 }

@@ -27,6 +27,8 @@ public class CmvnConfiguredState {
 	private boolean generateIvy;
 	private boolean referenceLocalArtifactsAsSystemScope;
 
+	// private boolean provisioningEnabled;
+
 	/** Copy constructor. */
 	public CmvnConfiguredState(final CmvnConfiguredState copy) {
 		copy(copy);
@@ -43,6 +45,7 @@ public class CmvnConfiguredState {
 		mavenExecutable = copy.mavenExecutable;
 		generateIvy = copy.generateIvy;
 		referenceLocalArtifactsAsSystemScope = copy.referenceLocalArtifactsAsSystemScope;
+		// provisioningEnabled = copy.provisioningEnabled;
 	}
 
 	public void fromYamlFile(final File file) throws IOException {

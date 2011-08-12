@@ -548,7 +548,7 @@ public class MavenPomGenerator implements Generator {
 			mvnDep.setType(dep.getType());
 		}
 		mvnDep.setOptional(dep.isOptionalAsTransitive());
-		if (dep.getExcludes() != null || excludes != null) {
+		if (dep.getExcludes() != null && !dep.getExcludes().isEmpty() || excludes != null && !excludes.isEmpty()) {
 			Exclusions mvnExclusions = mvnDep.getExclusions();
 			if (mvnExclusions == null) {
 				mvnExclusions = mvnDep.addNewExclusions();
@@ -559,6 +559,9 @@ public class MavenPomGenerator implements Generator {
 					mvnExclusion.setGroupId(exclude.getGroupId());
 					mvnExclusion.setArtifactId(exclude.getArtifactId());
 				}
+
+			}
+			if (excludes != null) {
 				for (final Dependency exclude : excludes) {
 					final Exclusion mvnExclusion = mvnExclusions.addNewExclusion();
 					mvnExclusion.setGroupId(exclude.getGroupId());

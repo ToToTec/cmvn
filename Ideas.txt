@@ -1,0 +1,6 @@
+Scenario 1:
+
+* Multi-Project
+* convert all local artifacts to system-scope dependencies (use --local-artifact-as-system-scope)
+* never install them to the local maven repo (e.g. use mvn clean package)
+* Need to rebuild of local dependencies from subdirs (cmvn --build-from-root -am, -am is an maven option)

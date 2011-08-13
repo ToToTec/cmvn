@@ -123,7 +123,11 @@ public class CmvnProject {
 			return false;
 		}
 
-		final long lastGenerated = Math.min(cmvnStateFile.lastModified(), pomFile.lastModified());
+		// TODO: We should track a list of generated files
+		// TODO: We should track a list of input files
+
+		// TODO: add here other generated files
+		final long lastGenerated = pomFile.lastModified();
 
 		if (projectFile.lastModified() > lastGenerated) {
 			return false;

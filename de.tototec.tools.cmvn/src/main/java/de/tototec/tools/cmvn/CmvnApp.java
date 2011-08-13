@@ -4,48 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import lombok.ToString;
-import de.tobiasroeser.cmdoption.CmdOption;
-import de.tobiasroeser.cmdoption.CmdOptionsParser;
-import de.tobiasroeser.cmdoption.CmdOptionsParser.Result;
-import de.tobiasroeser.cmdoption.CmdParameter;
-import de.tobiasroeser.cmdoption.GroupConstraint;
-import de.tobiasroeser.cmdoption.GroupConstraintType;
-import de.tobiasroeser.cmdoption.GroupConstraints;
-
 public class CmvnApp {
-
-	@ToString
-	@GroupConstraints({ @GroupConstraint(groups = "mode-switch", type = GroupConstraintType.EXACT_ONE_OPTION_OF_GROUPS) })
-	public static class CmdlineOptions {
-		@CmdOption(description = "Configure mode", group = "mode-switch")
-		public boolean configure;
-		@CmdOption
-		public boolean autoReconfigure;
-		@CmdOption
-		public boolean clean;
-		@CmdOption
-		public boolean distclean;
-		@CmdOption
-		public boolean reconfigure;
-		@CmdOption(description = "Show program commandline usage information and exit")
-		public boolean help;
-		@CmdOption
-		public boolean force;
-		@CmdOption(description = "Build mode (default)", group = "mode-switch")
-		public boolean build;
-
-		@CmdOption(description = "Show program version information and exit.")
-		public boolean version;
-
-		@CmdParameter(args = "maven-arg", maxCount = -1)
-		public final Collection<String> params = new LinkedList<String>();
-
-	}
 
 	public static void main(final String[] args) {
 		try {
@@ -55,28 +17,6 @@ public class CmvnApp {
 			e.printStackTrace(System.out);
 			System.exit(1);
 		}
-	}
-
-	public void run2(final String[] args) {
-		final CmdlineOptions options = new CmdlineOptions();
-		final CmdOptionsParser parser = new CmdOptionsParser(CmdlineOptions.class, true, false);
-		final Result result = parser.parseCmdline(args, options);
-
-		System.out.println("Commandline: " + options);
-
-		if (!result.isOk()) {
-			throw new RuntimeException("Invalid Commandline given. " + result.getCause());
-		}
-
-		if (options.help) {
-			System.out.println(parser.formatOptions());
-			return;
-		}
-		if (options.version) {
-			System.out.println("cmvn trunk development version");
-			return;
-		}
-
 	}
 
 	public void run(final String[] args) {

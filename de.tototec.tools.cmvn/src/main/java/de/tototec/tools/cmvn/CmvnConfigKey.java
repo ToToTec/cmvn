@@ -39,7 +39,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		}
 	},
 
-	DEPENDENCY("dependency", "compile", "test", "runtime", "system", "dependencyManagement"
+	DEPENDENCY("dependency", "compile", "test", "runtime", "system", "provided", "dependencyManagement"
 	// , "provision"
 	) {
 		@Override

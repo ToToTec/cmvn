@@ -17,6 +17,7 @@ import de.tototec.tools.cmvn.configfile.bndlike.ConfigFileReaderImpl.IncludeFile
 import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 import de.tototec.tools.cmvn.model.ConfigClassGenerator;
 import de.tototec.tools.cmvn.model.Dependency;
+import de.tototec.tools.cmvn.model.EclipseClasspathGenerator;
 import de.tototec.tools.cmvn.model.Module;
 
 @ToString(exclude = { "scannedProjects" })
@@ -404,6 +405,13 @@ public class CmvnProject {
 		if (cmvnConfig.isGenerateIvy()) {
 			new IvyGenerator(projectFile.getParentFile(), configuredState, projectConfig);
 			generatorResult.merge(generateIvy());
+		}
+
+		// Generate Eclipse Classpath
+		if (projectConfig.getEclipseClasspathGeneratorConfig() != null) {
+			final EclipseClasspathGenerator generator = new EclipseClasspathGenerator(rootProject != null ? rootProject
+					: this, projectConfig);
+			generatorResult.merge(generator.generate());
 		}
 
 		if (false) {

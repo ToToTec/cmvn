@@ -45,7 +45,8 @@ public class CmvnApp {
 		boolean forceSystemScope = false;
 		boolean localArtifactsAsSystemScope = false;
 		boolean buildFromRootProject = false;
-
+		final String[] projectFile = new String[1];
+		
 		NextArgAction nextArgAction = null;
 
 		final List<String> mavenArgs = new LinkedList<String>();
@@ -100,6 +101,14 @@ public class CmvnApp {
 				localArtifactsAsSystemScope = true;
 			} else if (arg.equals("--build-from-root")) {
 				buildFromRootProject = true;
+			} else if (arg.equals("--buildfile")) {
+				nextArgAction = new NextArgAction() {
+					@Override
+					public NextArgAction processArg(final String arg) {
+						projectFile[0] = arg;
+						return null;
+					}
+				};
 			} else if (arg.equals("--maven-bin")) {
 				nextArgAction = new NextArgAction() {
 					@Override
@@ -151,7 +160,16 @@ public class CmvnApp {
 		}
 
 		final File currentProjectDir = new File(System.getProperty("user.dir"));
-		CmvnProject projectCandidate = new CmvnProject(currentProjectDir);
+		CmvnProject projectCandidate = null;
+		if(projectFile[0] == null) {
+			projectCandidate = new CmvnProject(currentProjectDir);
+		} else {
+			File file = new File(projectFile[0]);
+			if(!file.isAbsolute()) {
+				file = new File(currentProjectDir, projectFile[0]);
+			}
+			projectCandidate = new CmvnProject(file);
+		}
 		File mvnExecDir = null;
 		String subDir = null;
 		if (buildFromRootProject) {
@@ -342,6 +360,7 @@ public class CmvnApp {
 		help += "Options for CONFIGURE mode:\n";
 		help += "   --auto-regenerate      (Deprecated) Same as --auto-reconfigure\n";
 		help += "   --auto-reconfigure     Enable automatic reconfiguration for out-of-date files\n";
+		help += "   --buildfile FILE       buildfile (cmvn.conf)";
 		help += "   --force                Configure and generate all files\n";
 		help += "   --generate-ivy         (Experimental) Generate ivy.xml and ivysettings.xml\n";
 		help += "   --maven-repo DIR       Use the given (existing) directory DIR as local Maven repository\n";

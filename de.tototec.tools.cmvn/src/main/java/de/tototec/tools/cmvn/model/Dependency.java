@@ -96,4 +96,34 @@ public class Dependency {
 		}
 	}
 
+	public String mavenJarLocalRepoPath(String repoBaseDir) {
+		// we need to evaluate a system path
+		String repoPath = repoBaseDir;
+		for (final String group : getGroupId().split("\\.")) {
+			repoPath += "/" + group;
+		}
+		repoPath += "/" + getArtifactId();
+		repoPath += "/" + getVersion();
+
+		final String classifier = getClassifier() == null ? "" : "-" + getClassifier();
+		final String fileName = getArtifactId() + "-" + getVersion() + classifier + ".jar";
+
+		return repoPath + "/" + fileName;
+	}
+
+	public String mavenSourceLocalRepoPath(String repoBaseDir) {
+		// we need to evaluate a system path
+		String repoPath = repoBaseDir;
+		for (final String group : getGroupId().split("\\.")) {
+			repoPath += "/" + group;
+		}
+		repoPath += "/" + getArtifactId();
+		repoPath += "/" + getVersion();
+
+		final String classifier = "-sources";
+		final String fileName = getArtifactId() + "-" + getVersion() + classifier + ".jar";
+
+		return repoPath + "/" + fileName;
+	}
+
 }

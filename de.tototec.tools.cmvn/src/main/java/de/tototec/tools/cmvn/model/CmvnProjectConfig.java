@@ -31,7 +31,8 @@ public class CmvnProjectConfig {
 	private Build build;
 	private final Map<String, String> variables = new LinkedHashMap<String, String>();
 	private final List<ConfigClassGenerator> configClasses = new LinkedList<ConfigClassGenerator>();
-
+	private EclipseClasspathGeneratorConfig eclipseClasspathGeneratorConfig;
+	
 	public void toYamlFile(final File file) throws IOException {
 		final File parentDir = file.getParentFile();
 		if (parentDir != null && !parentDir.exists()) {

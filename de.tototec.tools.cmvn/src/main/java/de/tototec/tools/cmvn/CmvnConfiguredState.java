@@ -21,6 +21,7 @@ public class CmvnConfiguredState {
 	private String localRepository;
 	private String settingsFile;
 	private String rootProjectFile;
+	private String projectFile;
 	private boolean autoReconfigure;
 	private boolean forceSystemScope;
 	private String mavenExecutable;
@@ -40,6 +41,7 @@ public class CmvnConfiguredState {
 		localRepository = copy.localRepository;
 		settingsFile = copy.settingsFile;
 		rootProjectFile = copy.rootProjectFile;
+		projectFile = copy.projectFile;
 		autoReconfigure = copy.autoReconfigure;
 		forceSystemScope = copy.forceSystemScope;
 		mavenExecutable = copy.mavenExecutable;

@@ -1,5 +1,6 @@
 package de.tototec.tools.cmvn;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import de.tototec.tools.cmvn.model.Build;
 import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 import de.tototec.tools.cmvn.model.ConfigClassGenerator;
 import de.tototec.tools.cmvn.model.Dependency;
+import de.tototec.tools.cmvn.model.EclipseClasspathGeneratorConfig;
 import de.tototec.tools.cmvn.model.Module;
 import de.tototec.tools.cmvn.model.Plugin;
 import de.tototec.tools.cmvn.model.Repository;
@@ -300,6 +302,51 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			projectConfig.getExcludes().add(new Dependency(group, artifact, "0"));
 		}
 	},
+
+	ECLIPSE_CLASSPATH("eclipseClasspath") {
+		@Override
+		public void read(CmvnProjectConfig projectConfig, KeyValue keyValue) {
+			// We only have options, so we start the value with an ";"
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.getKey(), ";"
+					+ keyValue.getValue(), ";", "=", "true");
+			withOptions.setFile(keyValue.getFile());
+			withOptions.setLine(keyValue.getLine());
+
+			final EclipseClasspathGeneratorConfig cpConfig;
+			if (projectConfig.getEclipseClasspathGeneratorConfig() != null) {
+				cpConfig = projectConfig.getEclipseClasspathGeneratorConfig();
+			} else {
+				cpConfig = new EclipseClasspathGeneratorConfig();
+				projectConfig.setEclipseClasspathGeneratorConfig(cpConfig);
+			}
+
+			LinkedHashMap<String, String> entries = new LinkedHashMap<String, String>();
+
+			for (final KeyValue option : withOptions.getOptions()) {
+				final String oKey = option.getKey();
+				final String oVal = option.getValue();
+				if ("autoGenerate".equals(oKey) || "autogenerate".equals(oKey)) {
+					if ("compile".equals(oVal)) {
+						cpConfig.setAutoGenerateCompile(true);
+					} else if ("test".equals(oVal)) {
+						cpConfig.setAutoGenerateTest(true);
+					} else if ("runtime".equals(oVal)) {
+						cpConfig.setAutoGenerateRuntime(true);
+					} else {
+						throw new RuntimeException("Invalid autoGenerate option: " + oVal + " in line: " + keyValue);
+					}
+				} else if (Arrays.asList("kind", "path", "output", "sourcepath", "src", "combineaccessrules").contains(oKey)) {
+					entries.put(oKey, oVal);
+				} else {
+					throw new RuntimeException("Invalid option found: " + oKey + "=" + oVal + " in line: " + keyValue);
+				}
+			}
+
+			if (!entries.isEmpty()) {
+				cpConfig.getCpEntries().add(entries);
+			}
+		}
+	}
 
 	;
 

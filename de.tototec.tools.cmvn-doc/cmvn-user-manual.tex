@@ -16,7 +16,7 @@
 % \newcommand{\CMVN}{\fontseries{sbc}\selectfont{}\texttt{cmvn}\fontseries{sf}\selectfont}
 \newcommand{\CMVN}{\texttt{cmvn}}
 \newcommand{\cmvn}{\texttt{cmvn}}
-\newcommand{\VERSION}{0.1.3}
+\newcommand{\VERSION}{0.1.5-SNAPSHOT}
 
 \definecolor{listgray}{rgb}{0.88,0.88,0.88} 
 
@@ -285,6 +285,7 @@ Directives are instructions to \cmvn{} to do something special.
 
 \begin{tabular}{llp{.72\textwidth}}
 \emph{Directive} & \emph{Format} & \emph{Description} \\
+\code{-configClass} & LIST[OPTION] & Generate a Java class as source code containing static methods. \\
 \code{-include} & FILE & Include the content of the given file. The content will be threated as if it was in the actual file. \\
 \code{-val} & OPTION & Create an immutable variable \emph{key} with content \emph{value}. All occurences of this variable were expanded in the value-part of all succeeding lines (except \code{-include}). \\
 \end{tabular}
@@ -297,21 +298,23 @@ Settings are used to generate the underlying (native) build scripts. Currently t
 {\small
 \begin{tabular}{llp{.50\linewidth}}
 \emph{Setting} & \emph{Format} & \emph{Description} \\
+\code{artifactrepo} & URL & Alias for \code{repository} with option \code{plugins=false} \\
+\code{build} & LIST[OPTION] & List of options for the \code{<build>}-block \\
+\code{plugin} & GAV & Maven plugin configuration \\
 \code{project} & GAV & Project coordinates \\
-\code{dependency} & GAV & A project/package dependency \\
 \code{compile} & GAV & Alias for \code{dependency} with option \code{scope=compile} \\
-\code{test} & GAV & Alias for \code{dependency} with option \code{scope=test} \\
+\code{dependency} & GAV & A project/package dependency \\
+\code{eclispeClasspath} & LIST[OPTION] & List of options to generate a \code{.classpath} file used by Eclipse \\
+\code{\small dependencyManagement} & GAV & Managed dependency in \code{dependencyManagement}-block \\
+\code{exclude} & GA & Exclude the given dependency in transitive dependencies. Will generate exclusion-blocks in any dependency-block. \\
+\code{module} & DIR & The path of a sub project \\
+\code{pluginrepo} & URL & Alias for \code{repository} with option \code{artifacts=false} \\
+\code{property} & OPTION & Definition of property \emph{key} with value \emph{value} \\
+\code{repo} & URL & Alias for \code{repository} \\
+\code{repository} & URL & Maven Repository \\
 \code{runtime} & GAV & Alias for \code{dependency} with option \code{scope=runtime} \\
 \code{system} & GAV & alias for \code{dependency} with option \code{scope=system} \\
-\code{\small dependencyManagement} & GAV & Managed dependency in \code{dependencyManagement}-block \\
-\code{property} & OPTION & Definition of property \emph{key} with value \emph{value} \\
-\code{repository} & URL & Maven Repository \\
-\code{repo} & URL & Alias for \code{repository} \\
-\code{pluginrepo} & URL & Alias for \code{repository} with option \code{artifacts=false} \\
-\code{artifactrepo} & URL & Alias for \code{repository} with option \code{plugins=false} \\
-\code{module} & DIR & The path of a sub project \\
-\code{plugin} & GAV & Maven plugin configuration \\
-\code{build} & LIST[OPTION] & List of options for the \code{<build>}-block
+\code{test} & GAV & Alias for \code{dependency} with option \code{scope=test} \\
 \end{tabular}
 }
 
@@ -480,6 +483,39 @@ Options:
 \code{finalName} &  FILE & The name of the final build JAR file. \\
 \code{targetDir} & DIR & The directory containing the build output files (e.g. \code{target}).
 \end{tabular}
+
+
+\subsubsection{\code{eclipseClasspath}}
+
+Generate a .classpath file which can be used by Eclipse to generate the project classpath container.
+
+Format: LIST[OPTION]
+
+Options:
+
+\begin{tabular}{llp{.65\textwidth}}
+\emph{Option} & \emph{Format} & \emph{Desciption} \\
+\code{autoGenerate} &  TEXT & Auto-generate lib-entries for project dependencies of the given scope. Supported scopes are: compile (includes provided and system), test, runtime. \\
+\code{optional} & BOOLEAN & Generate an optional-marker for the actual entry. \\
+\emph{key} &  TEXT & A free «key» added as attribute in the classpathentry-element. Known supported attributes are, e.g.: kind, path, output, sourcepath, ... \\
+\end{tabular}
+
+Example:
+
+Multiple given eclipseClasspath settings to configure a Java 6 project with tests.
+
+\begin{Cmdline}
+eclipseClasspath: kind=src;path=src/main/java
+eclipseClasspath: kind=src;path=src/main/resources
+eclipseClasspath: kind=output;path=target/classes
+eclipseClasspath: kind=src;output=target/test-classes;path=src/test/java
+eclipseClasspath: kind=con;path=org.eclipse.jdt.launching.JRE_CONTAINER/\\
+org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6
+eclipseClasspath: autoGenerate=compile
+eclipseClasspath: autoGenerate=test
+\end{Cmdline}
+
+
 
 
 % \section{Discussion}

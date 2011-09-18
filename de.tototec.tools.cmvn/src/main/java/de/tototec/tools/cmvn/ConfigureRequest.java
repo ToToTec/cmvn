@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -66,5 +68,13 @@ public class ConfigureRequest {
 		yamlWriter.write(this);
 		yamlWriter.close();
 		fileWriter.close();
+	}
+	
+	public List<String> validate() {
+		LinkedList<String> msgs = new LinkedList<String>();
+		if(getMavenRepo() != null && getMavenSettings() != null) {
+			msgs.add("Requesting a maven repository and a maven settings file at the same time is not supported.");
+		}
+		return msgs;
 	}
 }

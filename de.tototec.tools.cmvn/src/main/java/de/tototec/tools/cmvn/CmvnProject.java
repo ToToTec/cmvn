@@ -259,6 +259,10 @@ public class CmvnProject {
 			{
 				final String settingsFileOrNull = configureRequest.getMavenSettings();
 				final String repoDirOrNull = configureRequest.getMavenRepo();
+				if (settingsFileOrNull != null && repoDirOrNull != null) {
+					throw new IllegalStateException(
+							"Cannot configure with overridden Maven settings file and a overridden repository path at the same time.");
+				}
 
 				final boolean manageSettingsFile = settingsFileOrNull == null;
 				configuredState.setControlSettingsFile(manageSettingsFile);
@@ -272,6 +276,10 @@ public class CmvnProject {
 					final File repoDir = new File(defaultSettingsDir, "repository");
 					System.out.println("Creating local repository dir " + repoDir);
 					repoDir.mkdirs();
+					configuredState.setLocalRepository(repoDir.getAbsolutePath());
+				} else if (repoDirOrNull != null) {
+					final File repoDir = new File(repoDirOrNull);
+					System.out.println("Using local repository dir " + repoDir);
 					configuredState.setLocalRepository(repoDir.getAbsolutePath());
 				}
 

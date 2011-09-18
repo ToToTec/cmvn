@@ -46,7 +46,7 @@ public class CmvnApp {
 		boolean localArtifactsAsSystemScope = false;
 		boolean buildFromRootProject = false;
 		final String[] projectFile = new String[1];
-		
+
 		NextArgAction nextArgAction = null;
 
 		final List<String> mavenArgs = new LinkedList<String>();
@@ -161,11 +161,11 @@ public class CmvnApp {
 
 		final File currentProjectDir = new File(System.getProperty("user.dir"));
 		CmvnProject projectCandidate = null;
-		if(projectFile[0] == null) {
+		if (projectFile[0] == null) {
 			projectCandidate = new CmvnProject(currentProjectDir);
 		} else {
 			File file = new File(projectFile[0]);
-			if(!file.isAbsolute()) {
+			if (!file.isAbsolute()) {
 				file = new File(currentProjectDir, projectFile[0]);
 			}
 			projectCandidate = new CmvnProject(file);
@@ -259,6 +259,10 @@ public class CmvnApp {
 			configureRequest.setForceSystemScope(forceSystemScope);
 			configureRequest.setSystemScopeForLocalProjects(localArtifactsAsSystemScope);
 
+			List<String> validateMsgs = configureRequest.validate();
+			if (!validateMsgs.isEmpty()) {
+				throw new RuntimeException("Configuration inconsistencies detected: " + validateMsgs.toString());
+			}
 			project.configureProjectRecursive(configureRequest);
 		}
 
@@ -269,7 +273,8 @@ public class CmvnApp {
 				throw new RuntimeException("Could not access configured cmvn state.");
 			}
 			final LinkedList<String> mvnArgs = new LinkedList<String>(mavenArgs);
-			if (configuredState.getMavenExecutable() != null && configuredState.getMavenExecutable().trim().length() > 0) {
+			if (configuredState.getMavenExecutable() != null
+					&& configuredState.getMavenExecutable().trim().length() > 0) {
 				mvnArgs.add(0, configuredState.getMavenExecutable());
 			} else if (System.getProperty("os.name").toLowerCase().contains("windows")) {
 				mvnArgs.add(0, "mvn.bat");
@@ -299,8 +304,10 @@ public class CmvnApp {
 				// }
 				System.out.println("Executing " + mvnArgs + "...");
 				process = pB.start();
-				copyInBackgroundThread(process.getErrorStream(), new LinePrefixFilterOutputStream(System.err, "[INFO] "));
-				copyInBackgroundThread(process.getInputStream(), new LinePrefixFilterOutputStream(System.out, "[INFO] "));
+				copyInBackgroundThread(process.getErrorStream(),
+						new LinePrefixFilterOutputStream(System.err, "[INFO] "));
+				copyInBackgroundThread(process.getInputStream(),
+						new LinePrefixFilterOutputStream(System.out, "[INFO] "));
 
 				final InputStream in = System.in;
 				final OutputStream out = process.getOutputStream();

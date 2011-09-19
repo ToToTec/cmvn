@@ -52,7 +52,7 @@ public class EclipseClasspathGenerator implements Generator {
 				continue;
 			}
 			seenDeps.add(dep);
-			
+
 			boolean include = cpConfig.isAutoGenerateCompile()
 					&& Arrays.asList("compile", "provided", "system").contains(dep.getScope());
 			include |= cpConfig.isAutoGenerateTest() && "test".equals(dep.getScope());
@@ -94,6 +94,7 @@ public class EclipseClasspathGenerator implements Generator {
 							LinkedHashMap<String, String> entry = new LinkedHashMap<String, String>();
 							entry.put("kind", "lib");
 							entry.put("path", jarPath);
+							entry.put("sourcepath", "/" + localDep.getArtifactId());
 							cpEntries.add(entry);
 						}
 

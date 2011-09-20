@@ -1,4 +1,4 @@
-package de.tototec.tools.cmvn.configfile.test;
+package de.tototec.tools.cmvn.configfile;
 
 import java.util.Iterator;
 import java.util.LinkedList;

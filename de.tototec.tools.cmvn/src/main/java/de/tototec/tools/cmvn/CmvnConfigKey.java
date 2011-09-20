@@ -17,6 +17,14 @@ import de.tototec.tools.cmvn.model.Repository;
 
 public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
+	REQUIRE_CMVN("requireCmvn") {
+		@Override
+		public void read(CmvnProjectConfig projectConfig, KeyValue keyValue) {
+			assertVersion(keyValue.getValue(), Config.cmvnOsgiVersion(), Config.cmvnCompatibleOsgiVersion());
+		}
+
+	},
+
 	PROJECT("project") {
 		@Override
 		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
@@ -354,4 +362,22 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		this.key = key;
 	}
 
+	public static void assertVersion(String requiredVersionString, String currentCmvnVersionString,
+			String compatibleCmvnVersionString) {
+		OSGiVersion requiredVersion = new OSGiVersion(requiredVersionString);
+		OSGiVersion currentVersion = new OSGiVersion(currentCmvnVersionString);
+		OSGiVersion supportedVersion = new OSGiVersion(compatibleCmvnVersionString);
+
+		if (currentVersion.compareTo(requiredVersion) < 0) {
+			throw new RuntimeException("At least cmvn version " + requiredVersionString
+					+ " is required to configure this project.\nYour current verion of cmvn is "
+					+ currentCmvnVersionString);
+		}
+
+		if (requiredVersion.compareTo(supportedVersion) < 0) {
+			throw new RuntimeException("Your current used cmvn version " + currentVersion
+					+ " is not compatible to the required version " + requiredVersionString);
+		}
+
+	}
 }

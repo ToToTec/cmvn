@@ -104,12 +104,12 @@ public class EclipseClasspathGenerator implements Generator {
 
 				if (!isLocal) {
 					LinkedHashMap<String, String> entry = new LinkedHashMap<String, String>();
+					entry.put("kind", "lib");
 					String jarPath = dep.getJarPath();
 					if (jarPath == null) {
 						String localRepoPathPrefix = rootProject.getConfiguredState().getLocalRepository();
 						if (localRepoPathPrefix != null && !localRepoPathPrefix.equals("")) {
 							localRepoPathPrefix = new File(localRepoPathPrefix).getAbsolutePath();
-							entry.put("kind", "lib");
 						} else {
 							localRepoPathPrefix = "M2_REPO";
 							entry.put("kind", "var");

@@ -72,6 +72,6 @@ public class ProjectReaderImpl implements ProjectReader {
 			}
 		}
 
-		return new KeyValue(keyValue.getKey(), value);
+		return new KeyValue(keyValue.getKey(), value, keyValue.getFile(), keyValue.getLine());
 	}
 }

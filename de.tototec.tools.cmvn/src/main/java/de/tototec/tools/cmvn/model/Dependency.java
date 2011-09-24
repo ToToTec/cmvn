@@ -53,21 +53,7 @@ public class Dependency {
 		return dep;
 	}
 
-	public void parseOptions(final String formattedOptions) {
-
-		final StringSplitter splitter = new StringSplitter();
-
-		final LinkedList<KeyValue> options = new LinkedList<KeyValue>();
-
-		final String[] split = splitter.split(formattedOptions, ";", "\\");
-		if (split.length > 0) {
-			for (int i = 0; i < split.length; ++i) {
-				final String option[] = splitter.split(split[i], "=", "\\", 2);
-				final String oValue = option.length == 1 ? "true" : option[1].trim();
-				options.add(new KeyValue(option[0].trim(), oValue));
-			}
-		}
-
+	public void parseOptions(final List<KeyValue> options) {
 		for (final KeyValue option : options) {
 			final String oKey = option.getKey();
 			final String oValue = option.getValue();
@@ -83,7 +69,7 @@ public class Dependency {
 			} else if (oKey.equals("exclude")) {
 				final String[] exclude = oValue.split(":");
 				if (exclude.length != 2) {
-					throw new RuntimeException("Unsupported exclude: " + oValue);
+					throw new RuntimeException("Unsupported exclude: " + option);
 				}
 				addToExcludes(new Dependency(exclude[0].trim(), exclude[1].trim(), "0"));
 			} else if (oKey.equals("systemPath")) {
@@ -94,6 +80,24 @@ public class Dependency {
 				throw new RuntimeException("Unsupported option: " + option);
 			}
 		}
+	}
+
+	public void parseOptions(final String formattedOptions) {
+
+		final StringSplitter splitter = new StringSplitter();
+
+		final LinkedList<KeyValue> options = new LinkedList<KeyValue>();
+
+		final String[] split = splitter.split(formattedOptions, ";", "\\");
+		if (split.length > 0) {
+			for (int i = 0; i < split.length; ++i) {
+				final String option[] = splitter.split(split[i], "=", "\\", 2);
+				final String oValue = option.length == 1 ? "true" : option[1].trim();
+				options.add(new KeyValue(option[0].trim(), oValue));
+			}
+		}
+
+		parseOptions(options);
 	}
 
 	public String mavenJarLocalRepoPath(String repoBaseDir) {

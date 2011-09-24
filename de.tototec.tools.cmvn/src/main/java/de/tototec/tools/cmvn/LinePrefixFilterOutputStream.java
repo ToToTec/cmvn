@@ -14,6 +14,8 @@ public class LinePrefixFilterOutputStream extends FilterOutputStream {
 	private int curPos = 0;
 	private boolean isFirst = true;
 	private List<Byte> bytesBuffered = new ArrayList<Byte>();
+	
+	private boolean delayedFlush = false;
 
 	public LinePrefixFilterOutputStream(final OutputStream out, final String... filter) {
 		super(out);
@@ -34,9 +36,14 @@ public class LinePrefixFilterOutputStream extends FilterOutputStream {
 		if ((off | len | (b.length - (len + off)) | (off + len)) < 0)
 			throw new IndexOutOfBoundsException();
 
+		delayedFlush = true;
+		
 		for (int i = 0; i < len; i++) {
-			write(b[off + i]);
+			int byteAsInt = b[off + i];
+			write(byteAsInt);
 		}
+		
+		delayedFlush = false;
 	}
 
 	@Override
@@ -65,7 +72,7 @@ public class LinePrefixFilterOutputStream extends FilterOutputStream {
 			for (Iterator<Integer> it = curFilter.iterator(); it.hasNext();) {
 				byte[] filter = filters.get(it.next());
 				if (filter.length > curPos && filter[curPos] == (byte) b) {
-					// current byte matches
+					// current byte matches for the given filter
 					match = true;
 					if (filter.length == curPos + 1) {
 						// exact match (filter-pattern ended here), we can clean
@@ -93,6 +100,7 @@ public class LinePrefixFilterOutputStream extends FilterOutputStream {
 		}
 
 		if (!match) {
+			// no filter matched
 			if (!bytesBuffered.isEmpty()) {
 				// buffer not empty, print it out
 				for (final Byte buf : bytesBuffered) {
@@ -101,6 +109,10 @@ public class LinePrefixFilterOutputStream extends FilterOutputStream {
 				bytesBuffered.clear();
 			}
 			out.write(b);
+		}
+
+		if(!delayedFlush) {
+			out.flush();
 		}
 	}
 

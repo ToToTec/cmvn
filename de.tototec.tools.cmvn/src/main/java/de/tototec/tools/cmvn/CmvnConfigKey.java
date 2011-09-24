@@ -22,7 +22,6 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		public void read(CmvnProjectConfig projectConfig, KeyValue keyValue) {
 			assertVersion(keyValue.getValue(), Config.cmvnOsgiVersion(), Config.cmvnCompatibleOsgiVersion());
 		}
-
 	},
 
 	PROJECT("project") {
@@ -65,11 +64,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			dep.setScope(depKey.equals("dependency") ? "compile" : depKey);
 			dep.setOnlyManagement(depKey.equals("dependencyManagement") ? true : false);
 
-			final String[] opts = keyValue.getValue().split(";", 2);
-
-			if (opts.length == 2) {
-				dep.parseOptions(opts[1].trim());
-			}
+			dep.parseOptions(withOptions.getOptions());
 
 			// for (final KeyValue option : withOptions.getOptions()) {
 			// final String oKey = option.getKey();

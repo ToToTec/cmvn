@@ -395,10 +395,18 @@ public class CmvnApp {
 
 	protected static void copy(final InputStream in, final OutputStream out) {
 		try {
-			final byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
+			boolean withBuffer = false;
+			if (withBuffer) {
+				final byte[] buf = new byte[8096];
+				int len;
+				while ((len = in.read(buf)) > 0) {
+					out.write(buf, 0, len);
+				}
+			} else {
+				int readByte;
+				while ((readByte = in.read()) != -1) {
+					out.write(readByte);
+				}
 			}
 		} catch (final Exception e) {
 			throw new RuntimeException("Streams copy error: " + e, e);

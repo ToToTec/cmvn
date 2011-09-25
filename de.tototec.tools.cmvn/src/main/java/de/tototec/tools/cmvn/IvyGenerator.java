@@ -3,6 +3,7 @@ package de.tototec.tools.cmvn;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 
 import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 import de.tototec.tools.cmvn.model.Dependency;
@@ -80,18 +81,18 @@ public class IvyGenerator implements Generator {
 		ivy.append("<ivy-module version=\"2.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://incubator.apache.org/ivy/schemas/ivy.xsd\">\n");
 
 		final Dependency project = projectConfig.getProject();
-		ivy.append("  <info organisation=\"").append(project.getGroupId()).append("\" module=\"")
-				.append(project.getArtifactId()).append("\" revision=\"").append(project.getVersion()).append("\"/>\n");
+		ivy.append("  <info organisation=\"").append(project.groupId()).append("\" module=\"")
+				.append(project.artifactId()).append("\" revision=\"").append(project.version()).append("\"/>\n");
 
 		ivy.append("  <dependencies>\n");
 		for (final Dependency dep : projectConfig.getDependencies()) {
-			ivy.append("    <dependency org=\"").append(dep.getGroupId()).append("\" name=\"")
-					.append(dep.getArtifactId()).append("\" rev=\"").append(dep.getVersion())
+			ivy.append("    <dependency org=\"").append(dep.groupId()).append("\" name=\"")
+					.append(dep.artifactId()).append("\" rev=\"").append(dep.version())
 					.append("\" transitive=\"false\">\n");
-			if (dep.getExcludes() != null) {
-				for (final Dependency ex : dep.getExcludes()) {
-					ivy.append("      <exclude org=\"").append(ex.getGroupId()).append("\" name=\"")
-							.append(ex.getArtifactId()).append("\"/>\n");
+			if (dep.excludes() != null) {
+				for (final Dependency ex : (List<Dependency>) dep.excludes()) {
+					ivy.append("      <exclude org=\"").append(ex.groupId()).append("\" name=\"")
+							.append(ex.artifactId()).append("\"/>\n");
 				}
 			}
 			ivy.append("    </dependency>\n");

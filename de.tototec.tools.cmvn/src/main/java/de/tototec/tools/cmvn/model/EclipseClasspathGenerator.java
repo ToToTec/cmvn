@@ -54,9 +54,9 @@ public class EclipseClasspathGenerator implements Generator {
 			seenDeps.add(dep);
 
 			boolean include = cpConfig.isAutoGenerateCompile()
-					&& Arrays.asList("compile", "provided", "system").contains(dep.getScope());
-			include |= cpConfig.isAutoGenerateTest() && "test".equals(dep.getScope());
-			include |= cpConfig.isAutoGenerateRuntime() && "runtime".equals(dep.getScope());
+					&& Arrays.asList("compile", "provided", "system").contains(dep.scope());
+			include |= cpConfig.isAutoGenerateTest() && "test".equals(dep.scope());
+			include |= cpConfig.isAutoGenerateRuntime() && "runtime".equals(dep.scope());
 			if (include) {
 				boolean isLocal = false;
 
@@ -67,11 +67,11 @@ public class EclipseClasspathGenerator implements Generator {
 				// check and add if local
 				for (CmvnProject localProj : localProjects) {
 					Dependency localDep = localProj.getProjectConfig().getProject();
-					if (dep.getGroupId().equals(localDep.getGroupId())
-							&& dep.getArtifactId().equals(localDep.getArtifactId())
-							&& dep.getVersion().equals(localDep.getVersion())
-							&& (dep.getClassifier() != null && dep.getClassifier().equals(localDep.getClassifier()) || dep
-									.getClassifier() == null && localDep.getClassifier() == null)) {
+					if (dep.groupId().equals(localDep.groupId())
+							&& dep.artifactId().equals(localDep.artifactId())
+							&& dep.version().equals(localDep.version())
+							&& (dep.classifier() != null && dep.classifier().equals(localDep.classifier()) || dep
+									.classifier() == null && localDep.classifier() == null)) {
 						// TODO: should we force concrete versions? Actually
 						// we do.
 
@@ -84,7 +84,7 @@ public class EclipseClasspathGenerator implements Generator {
 							LinkedHashMap<String, String> entry = new LinkedHashMap<String, String>();
 							entry.put("kind", "src");
 							entry.put("combineaccessrules", "false");
-							entry.put("path", "/" + localDep.getArtifactId());
+							entry.put("path", "/" + localDep.artifactId());
 							entry.put("optional", "true");
 							cpEntries.add(entry);
 						}
@@ -94,7 +94,7 @@ public class EclipseClasspathGenerator implements Generator {
 							LinkedHashMap<String, String> entry = new LinkedHashMap<String, String>();
 							entry.put("kind", "lib");
 							entry.put("path", jarPath);
-							entry.put("sourcepath", "/" + localDep.getArtifactId());
+							entry.put("sourcepath", "/" + localDep.artifactId());
 							cpEntries.add(entry);
 						}
 
@@ -105,7 +105,7 @@ public class EclipseClasspathGenerator implements Generator {
 				if (!isLocal) {
 					LinkedHashMap<String, String> entry = new LinkedHashMap<String, String>();
 					entry.put("kind", "lib");
-					String jarPath = dep.getJarPath();
+					String jarPath = dep.jarPath();
 					if (jarPath == null) {
 						String localRepoPathPrefix = rootProject.getConfiguredState().getLocalRepository();
 						if (localRepoPathPrefix != null && !localRepoPathPrefix.equals("")) {

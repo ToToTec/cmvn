@@ -399,10 +399,10 @@ public class CmvnProject {
 					: getMultiProjects();
 			for (final CmvnProject project : localProjects) {
 				final CmvnProjectConfig locProj = project.getProjectConfig();
-				final Dependency locArtifact = new Dependency(locProj.getProject().getGroupId(), locProj.getProject()
-						.getArtifactId(), locProj.getProject().getVersion());
-				locArtifact.setJarPath(new File(new File(locProj.getBaseDir(), "target"), locArtifact.getArtifactId()
-						+ "-" + locArtifact.getVersion() + ".jar").getAbsolutePath());
+				final Dependency locArtifact = new Dependency(locProj.getProject().groupId(), locProj.getProject()
+						.artifactId(), locProj.getProject().version());
+				locArtifact.jarPath_$eq(new File(new File(locProj.getBaseDir(), "target"), locArtifact.artifactId()
+						+ "-" + locArtifact.version() + ".jar").getAbsolutePath());
 				localArtifacts.add(locArtifact);
 			}
 			mavenPomGenerator.setLocalArtifacts(localArtifacts);

@@ -355,9 +355,9 @@ public class CmvnApp {
 
 	private void printUsage() {
 		String help = "";
-		help += "Usage: cmvn [Mode] [Options] [--] [Maven-Args]\n";
+		help += "Usage: cmvn [Action] [Options] [--] [Maven-Args]\n";
 		help += "\n";
-		help += "Mode:\n";
+		help += "Action:\n";
 		help += "   --build       Enables BUILD mode\n";
 		help += "   --configure   Enables CONFIGURE mode\n";
 		help += "   --regenerate  Enables REGENERATE mode. Regenerate all files with same config\n";
@@ -376,7 +376,7 @@ public class CmvnApp {
 		help += "   --force-system-scope   (Experimental) Forces all dependencies to be of system scope (in pom.xml)\n";
 		help += "   --local-artifacts-as-system-scope  (Experimental) Convert dependencies to local artifact to system-scope dependenies\n";
 		help += "\n";
-		help += "Options for BUILD mode:\n";
+		help += "Options for BUILD action:\n";
 		help += "   --build-from-root  Run Maven from root project with additional '-pl <current-project>'\n";
 		help += "   --regenerate       Automatically reconfigure if some source files are out-of-date\n";
 		help += "   --reconfigure      (Deprecated) Same as --regenerate\n";

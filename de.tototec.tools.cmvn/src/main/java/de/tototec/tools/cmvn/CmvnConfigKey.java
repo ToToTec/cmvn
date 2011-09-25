@@ -61,8 +61,8 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			}
 			final Dependency dep = new Dependency(split[0].trim(), split[1].trim(), split[2].trim());
 			final String depKey = keyValue.getKey();
-			dep.setScope(depKey.equals("dependency") ? "compile" : depKey);
-			dep.setOnlyManagement(depKey.equals("dependencyManagement") ? true : false);
+			dep.scope_$eq(depKey.equals("dependency") ? "compile" : depKey);
+			dep.onlyManagement_$eq(depKey.equals("dependencyManagement") ? true : false);
 
 			dep.parseOptions(withOptions.getOptions());
 
@@ -221,13 +221,13 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				final String oKey = option.getKey();
 				final String oVal = option.getValue();
 				if (oKey.equals("sources")) {
-					build.setSources(oVal);
+					build.sources_$eq(oVal);
 				} else if (oKey.equals("testSources")) {
-					build.setTestSources(oVal);
+					build.testSources_$eq(oVal);
 				} else if (oKey.equals("finalName")) {
-					build.setFinalName(oVal);
+					build.finalName_$eq(oVal);
 				} else if (oKey.equals("targetDir")) {
-					build.setTargetDir(oVal);
+					build.targetDir_$eq(oVal);
 				} else {
 					throw new RuntimeException("Unsupported build option: " + option);
 				}

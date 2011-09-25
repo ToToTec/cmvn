@@ -156,17 +156,17 @@ public class MavenPomGenerator implements Generator {
 			mvnBuild = mvn.addNewBuild();
 		}
 
-		if (build.getSources() != null) {
-			mvnBuild.setSourceDirectory(build.getSources());
+		if (build.sources() != null) {
+			mvnBuild.setSourceDirectory(build.sources());
 		}
-		if (build.getTestSources() != null) {
-			mvnBuild.setTestSourceDirectory(build.getTestSources());
+		if (build.testSources() != null) {
+			mvnBuild.setTestSourceDirectory(build.testSources());
 		}
-		if (build.getFinalName() != null) {
-			mvnBuild.setFinalName(build.getFinalName());
+		if (build.finalName() != null) {
+			mvnBuild.setFinalName(build.finalName());
 		}
-		if (build.getTargetDir() != null) {
-			mvnBuild.setDirectory(build.getTargetDir());
+		if (build.targetDir() != null) {
+			mvnBuild.setDirectory(build.targetDir());
 		}
 
 	}
@@ -192,8 +192,8 @@ public class MavenPomGenerator implements Generator {
 			org.apache.maven.pom.x400.Plugin mvnPlugin = null;
 
 			for (final org.apache.maven.pom.x400.Plugin mvnExistingPlugin : mvnPlugins.getPluginArray()) {
-				if (pluginInfo.getGroupId().equals(mvnExistingPlugin.getGroupId())
-						&& pluginInfo.getArtifactId().equals(mvnExistingPlugin.getArtifactId())) {
+				if (pluginInfo.groupId().equals(mvnExistingPlugin.getGroupId())
+						&& pluginInfo.artifactId().equals(mvnExistingPlugin.getArtifactId())) {
 					mvnPlugin = mvnExistingPlugin;
 					break;
 				}
@@ -201,11 +201,11 @@ public class MavenPomGenerator implements Generator {
 
 			if (mvnPlugin == null) {
 				mvnPlugin = mvnPlugins.addNewPlugin();
-				mvnPlugin.setGroupId(pluginInfo.getGroupId());
-				mvnPlugin.setArtifactId(pluginInfo.getArtifactId());
+				mvnPlugin.setGroupId(pluginInfo.groupId());
+				mvnPlugin.setArtifactId(pluginInfo.artifactId());
 			}
 
-			mvnPlugin.setVersion(pluginInfo.getVersion());
+			mvnPlugin.setVersion(pluginInfo.version());
 			if (plugin.isExtension()) {
 				mvnPlugin.setExtensions(true);
 			}
@@ -367,9 +367,9 @@ public class MavenPomGenerator implements Generator {
 	protected void generateProjectInfo(final Model mvn) {
 		final Dependency project = projectConfig.getProject();
 		if (project != null) {
-			mvn.setGroupId(project.getGroupId());
-			mvn.setArtifactId(project.getArtifactId());
-			mvn.setVersion(project.getVersion());
+			mvn.setGroupId(project.groupId());
+			mvn.setArtifactId(project.artifactId());
+			mvn.setVersion(project.version());
 		}
 		final String packaging = projectConfig.getPackaging();
 		if (packaging != null) {
@@ -390,7 +390,7 @@ public class MavenPomGenerator implements Generator {
 		for (final Dependency dep : projectConfig.getDependencies()) {
 
 			// dependency management
-			if (dep.isForceVerison()) {
+			if (dep.forceVersion()) {
 
 				DependencyManagement mvnMgmt = mvn.getDependencyManagement();
 				if (mvnMgmt == null) {
@@ -405,11 +405,11 @@ public class MavenPomGenerator implements Generator {
 				org.apache.maven.pom.x400.Dependency mvnMgmtDep = null;
 
 				for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnMgmtDeps.getDependencyArray()) {
-					boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
-							&& dep.getArtifactId().equals(mvnDepExist.getArtifactId());
+					boolean exists = dep.groupId().equals(mvnDepExist.getGroupId())
+							&& dep.artifactId().equals(mvnDepExist.getArtifactId());
 					if (exists) {
-						exists = dep.getClassifier() != null && dep.getClassifier().equals(mvnDepExist.getClassifier())
-								|| dep.getClassifier() == null && mvnDepExist.getClassifier() == null;
+						exists = dep.classifier() != null && dep.classifier().equals(mvnDepExist.getClassifier())
+								|| dep.classifier() == null && mvnDepExist.getClassifier() == null;
 					}
 					if (exists) {
 						mvnMgmtDep = mvnDepExist;
@@ -421,11 +421,11 @@ public class MavenPomGenerator implements Generator {
 					mvnMgmtDep = mvnMgmtDeps.addNewDependency();
 				}
 
-				mvnMgmtDep.setGroupId(dep.getGroupId());
-				mvnMgmtDep.setArtifactId(dep.getArtifactId());
-				mvnMgmtDep.setVersion(dep.getVersion());
-				if (dep.getClassifier() != null) {
-					mvnMgmtDep.setClassifier(dep.getClassifier());
+				mvnMgmtDep.setGroupId(dep.groupId());
+				mvnMgmtDep.setArtifactId(dep.artifactId());
+				mvnMgmtDep.setVersion(dep.version());
+				if (dep.classifier() != null) {
+					mvnMgmtDep.setClassifier(dep.classifier());
 				}
 			}
 		}
@@ -435,7 +435,7 @@ public class MavenPomGenerator implements Generator {
 			final boolean forceSystemScope, final List<Dependency> excludes) {
 
 		for (final Dependency dep : dependencies) {
-			if (dep.isOnlyManagement()) {
+			if (dep.onlyManagement()) {
 				// skip this dependency, it is only for dependencyManagement
 				// blocks
 				continue;
@@ -446,11 +446,11 @@ public class MavenPomGenerator implements Generator {
 			org.apache.maven.pom.x400.Dependency mvnDep = null;
 
 			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps.getDependencyArray()) {
-				boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
-						&& dep.getArtifactId().equals(mvnDepExist.getArtifactId());
+				boolean exists = dep.groupId().equals(mvnDepExist.getGroupId())
+						&& dep.artifactId().equals(mvnDepExist.getArtifactId());
 				if (exists) {
-					exists = dep.getClassifier() != null && dep.getClassifier().equals(mvnDepExist.getClassifier())
-							|| dep.getClassifier() == null && mvnDepExist.getClassifier() == null;
+					exists = dep.classifier() != null && dep.classifier().equals(mvnDepExist.getClassifier())
+							|| dep.classifier() == null && mvnDepExist.getClassifier() == null;
 				}
 				if (exists) {
 					mvnDep = mvnDepExist;
@@ -476,8 +476,8 @@ public class MavenPomGenerator implements Generator {
 			org.apache.maven.pom.x400.Dependency mvnDep = null;
 
 			for (final org.apache.maven.pom.x400.Dependency mvnDepExist : mvnDeps.getDependencyArray()) {
-				final boolean exists = dep.getGroupId().equals(mvnDepExist.getGroupId())
-						&& dep.getArtifactId().equals(mvnDepExist.getArtifactId());
+				final boolean exists = dep.groupId().equals(mvnDepExist.getGroupId())
+						&& dep.artifactId().equals(mvnDepExist.getArtifactId());
 				if (exists) {
 					mvnDep = mvnDepExist;
 					break;
@@ -496,76 +496,75 @@ public class MavenPomGenerator implements Generator {
 	protected void generateDependencyBlock(final Dependency dep, final org.apache.maven.pom.x400.Dependency mvnDep,
 			final boolean forceSystemScope, final List<Dependency> excludes) {
 
-		String scope = dep.getScope();
-		String jarPath = dep.getJarPath();
+		String scope = dep.scope();
+		String jarPath = dep.jarPath();
 
-		if (forceSystemScope && !dep.getScope().equals("system")) {
+		if (forceSystemScope && !dep.scope().equals("system")) {
 			scope = "system";
 			// we need to evaluate a system path
 			File repoPath = new File(cmvnConfig.getLocalRepository());
-			for (final String group : dep.getGroupId().split("\\.")) {
+			for (final String group : dep.groupId().split("\\.")) {
 				repoPath = new File(repoPath, group);
 			}
-			repoPath = new File(repoPath, dep.getArtifactId());
-			repoPath = new File(repoPath, dep.getVersion());
+			repoPath = new File(repoPath, dep.artifactId());
+			repoPath = new File(repoPath, dep.version());
 
-			final String classifier = dep.getClassifier() == null ? "" : "-" + dep.getClassifier();
-			final String fileName = dep.getArtifactId() + "-" + dep.getVersion() + classifier + ".jar";
+			final String classifier = dep.classifier() == null ? "" : "-" + dep.classifier();
+			final String fileName = dep.artifactId() + "-" + dep.version() + classifier + ".jar";
 
 			jarPath = new File(repoPath, fileName).getAbsolutePath();
 		}
 
 		if (cmvnConfig.isReferenceLocalArtifactsAsSystemScope() && localArtifacts != null
-				&& !dep.getScope().equals("system")) {
+				&& !dep.scope().equals("system")) {
 			// check if dep is local
 			for (final Dependency localDep : localArtifacts) {
-				if (dep.getGroupId().equals(localDep.getGroupId())
-						&& dep.getArtifactId().equals(localDep.getArtifactId())
-						&& dep.getVersion().equals(localDep.getVersion())
-						&& (dep.getClassifier() != null && dep.getClassifier().equals(localDep.getClassifier()) || dep
-								.getClassifier() == null && localDep.getClassifier() == null)
-						&& localDep.getJarPath() != null) {
+				if (dep.groupId().equals(localDep.groupId())
+						&& dep.artifactId().equals(localDep.artifactId())
+						&& dep.version().equals(localDep.version())
+						&& (dep.classifier() != null && dep.classifier().equals(localDep.classifier()) || dep
+								.classifier() == null && localDep.classifier() == null) && localDep.jarPath() != null) {
 
 					// TODO: should we force conrete versions? Actually we do.
 
 					scope = "system";
-					jarPath = localDep.getJarPath();
+					jarPath = localDep.jarPath();
 					break;
 				}
 			}
 		}
 
-		mvnDep.setGroupId(dep.getGroupId());
-		mvnDep.setArtifactId(dep.getArtifactId());
-		mvnDep.setVersion(dep.getVersion());
+		mvnDep.setGroupId(dep.groupId());
+		mvnDep.setArtifactId(dep.artifactId());
+		mvnDep.setVersion(dep.version());
 		if (scope != null) {
 			mvnDep.setScope(scope);
 		}
-		if (dep.getClassifier() != null) {
-			mvnDep.setClassifier(dep.getClassifier());
+		if (dep.classifier() != null) {
+			mvnDep.setClassifier(dep.classifier());
 		}
-		if (dep.getType() != null) {
-			mvnDep.setType(dep.getType());
+		if (dep.depType() != null) {
+			mvnDep.setType(dep.depType());
 		}
-		mvnDep.setOptional(dep.isOptionalAsTransitive());
-		if (dep.getExcludes() != null && !dep.getExcludes().isEmpty() || excludes != null && !excludes.isEmpty()) {
+		mvnDep.setOptional(dep.optionalAsTransitive());
+		if (dep.excludes() != null && !dep.excludes().isEmpty() || excludes != null && !excludes.isEmpty()) {
 			Exclusions mvnExclusions = mvnDep.getExclusions();
 			if (mvnExclusions == null) {
 				mvnExclusions = mvnDep.addNewExclusions();
 			}
-			if (dep.getExcludes() != null) {
-				for (final Dependency exclude : dep.getExcludes()) {
+			if (dep.excludes() != null) {
+				for (final Dependency exclude : (List<Dependency>) dep.excludes()) {
 					final Exclusion mvnExclusion = mvnExclusions.addNewExclusion();
-					mvnExclusion.setGroupId(exclude.getGroupId());
-					mvnExclusion.setArtifactId(exclude.getArtifactId());
+					mvnExclusion.setGroupId(exclude.groupId());
+					mvnExclusion.setArtifactId(exclude.artifactId());
 				}
 
 			}
 			if (excludes != null) {
 				for (final Dependency exclude : excludes) {
 					final Exclusion mvnExclusion = mvnExclusions.addNewExclusion();
-					mvnExclusion.setGroupId(exclude.getGroupId());
-					mvnExclusion.setArtifactId(exclude.getArtifactId());
+					mvnExclusion.setGroupId(exclude.groupId());
+					mvnExclusion.setArtifactId(exclude.artifactId());
 				}
 			}
 		}

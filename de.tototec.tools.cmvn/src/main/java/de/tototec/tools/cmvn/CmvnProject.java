@@ -238,7 +238,7 @@ public class CmvnProject {
 		// TODO: decide if all projects should keep the same information or if
 		// only the root project should contain the configuration state and all
 		// other should reference the root project. This way the configuration
-		// cannot get inconsisten. Currently, each project contains the full
+		// cannot get inconsistent. Currently, each project contains the full
 		// configuration state.
 
 		// create a new config and set it
@@ -330,6 +330,9 @@ public class CmvnProject {
 			if (configureRequest.getSystemScopeForLocalProjects() != null) {
 				configuredState.setReferenceLocalArtifactsAsSystemScope(configureRequest
 						.getSystemScopeForLocalProjects().booleanValue());
+			}
+			if(configureRequest.getEclipseForceLocalWorkspaceRefs() != null) {
+				configuredState.setEclipseForceLocalWorkspaceRefs(configureRequest.getEclipseForceLocalWorkspaceRefs().booleanValue());
 			}
 			// if (configureRequest.getSkipProvisioning() != null) {
 			// configuredState.setProvisioningEnabled(!configureRequest.getSkipProvisioning());

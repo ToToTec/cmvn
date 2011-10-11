@@ -27,6 +27,7 @@ public class ConfigureRequest {
 	private Boolean systemScopeForLocalProjects;
 	private String mavenExecutable;
 	private Boolean skipProvisioning;
+	private Boolean eclipseForceLocalWorkspaceRefs;
 	
 	public ConfigureRequest(final ConfigureRequest copy) {
 		copy(copy);
@@ -42,6 +43,7 @@ public class ConfigureRequest {
 		systemScopeForLocalProjects = copy.systemScopeForLocalProjects;
 		mavenExecutable = copy.mavenExecutable;
 		skipProvisioning = copy.skipProvisioning;
+		eclipseForceLocalWorkspaceRefs = copy.eclipseForceLocalWorkspaceRefs;
 	}
 	
 	public void fromYamlFile(final File file) throws IOException {

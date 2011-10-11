@@ -27,6 +27,7 @@ public class CmvnConfiguredState {
 	private String mavenExecutable;
 	private boolean generateIvy;
 	private boolean referenceLocalArtifactsAsSystemScope;
+	private boolean eclipseForceLocalWorkspaceRefs;
 
 	// private boolean provisioningEnabled;
 
@@ -47,6 +48,7 @@ public class CmvnConfiguredState {
 		mavenExecutable = copy.mavenExecutable;
 		generateIvy = copy.generateIvy;
 		referenceLocalArtifactsAsSystemScope = copy.referenceLocalArtifactsAsSystemScope;
+		eclipseForceLocalWorkspaceRefs = copy.eclipseForceLocalWorkspaceRefs;
 		// provisioningEnabled = copy.provisioningEnabled;
 	}
 

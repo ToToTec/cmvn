@@ -90,7 +90,7 @@ public class EclipseClasspathGenerator implements Generator {
 						}
 
 						// Add this for cases the project in not open
-						{
+						if (!rootProject.getConfiguredState().isEclipseForceLocalWorkspaceRefs()) {
 							LinkedHashMap<String, String> entry = new LinkedHashMap<String, String>();
 							entry.put("kind", "lib");
 							entry.put("path", jarPath);

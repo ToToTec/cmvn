@@ -46,6 +46,7 @@ public class CmvnApp {
 		boolean localArtifactsAsSystemScope = false;
 		boolean buildFromRootProject = false;
 		final String[] projectFile = new String[1];
+		boolean eclipseForceLocalWorkspaceRefs = false;
 
 		NextArgAction nextArgAction = null;
 
@@ -133,6 +134,8 @@ public class CmvnApp {
 						return null;
 					}
 				};
+			} else if (arg.equals("--eclipse-force-local-workspace-refs")) {
+				eclipseForceLocalWorkspaceRefs = true;
 			} else {
 				mavenArgs.add(arg);
 			}
@@ -258,6 +261,7 @@ public class CmvnApp {
 			}
 			configureRequest.setForceSystemScope(forceSystemScope);
 			configureRequest.setSystemScopeForLocalProjects(localArtifactsAsSystemScope);
+			configureRequest.setEclipseForceLocalWorkspaceRefs(eclipseForceLocalWorkspaceRefs);
 
 			List<String> validateMsgs = configureRequest.validate();
 			if (!validateMsgs.isEmpty()) {
@@ -375,6 +379,7 @@ public class CmvnApp {
 		help += "   --maven-bin FILE       Use the given Maven executable (instead of 'mvn')\n";
 		help += "   --force-system-scope   (Experimental) Forces all dependencies to be of system scope (in pom.xml)\n";
 		help += "   --local-artifacts-as-system-scope  (Experimental) Convert dependencies to local artifact to system-scope dependenies\n";
+		help += "   --eclipse-force-local-workspace-refs  (Experimental) When generating .classpath files, force local project to be generated as Worspace references\n";
 		help += "\n";
 		help += "Options for BUILD action:\n";
 		help += "   --build-from-root  Run Maven from root project with additional '-pl <current-project>'\n";

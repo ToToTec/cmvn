@@ -1,6 +1,7 @@
 package de.tototec.tools.cmvn;
 
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -9,6 +10,7 @@ import lombok.Setter;
 import de.tototec.tools.cmvn.configfile.ConfigFileReader;
 import de.tototec.tools.cmvn.configfile.KeyValue;
 import de.tototec.tools.cmvn.model.CmvnProjectConfig;
+import de.tototec.tools.cmvn.model.Dependency;
 
 public class ProjectReaderImpl implements ProjectReader {
 
@@ -33,7 +35,22 @@ public class ProjectReaderImpl implements ProjectReader {
 
 			for (final KeyValue keyValue : readKeyValues) {
 				if (supportedKeys.containsKey(keyValue.getKey())) {
-					final Map<String, String> values = projectConfig.getVariables();
+					final Map<String, String> values = new LinkedHashMap<String, String>();
+					Dependency project = projectConfig.getProject();
+					if (project != null) {
+						values.put("PN", project.artifactId());
+						values.put("PV", project.version());
+						values.put("P", project.artifactId() + " -" + project.version());
+						values.put("PG", project.groupId());
+					}
+					for (Entry<String, String> var : projectConfig.getVariables().entrySet()) {
+						String put = values.put(var.getKey(), var.getValue());
+						if (put != null) {
+							if (projectConfig.getVariables().containsKey(var.getKey())) {
+								throw new RuntimeException("Refefinition of immutable value: " + var.getKey());
+							}
+						}
+					}
 					final KeyValue enhancedKeyValue = enhanceKeyValue(keyValue, values, "$${", "}");
 					supportedKeys.get(keyValue.getKey()).read(projectConfig, enhancedKeyValue);
 				} else {

@@ -11,8 +11,20 @@ import de.tototec.tools.cmvn.CmvnProject
 import collection.JavaConversions._
 import org.eclipse.core.runtime.Path
 import de.tototec.tools.cmvn.model.CmvnProjectConfig
+import org.eclipse.core.runtime.CoreException
 
-class CmvnClasspathContainer(path: IPath, project: IJavaProject, initialClasspathEntries: Array[IClasspathEntry] = null) extends IClasspathContainer {
+object CmvnClasspathContainer {
+  val ImplicitUpdates = true
+}
+
+class CmvnClasspathContainer(path: IPath, private val project: IJavaProject) extends IClasspathContainer {
+
+  def this(copy: CmvnClasspathContainer) {
+    this(copy.getPath, copy.project)
+    debug("Creating new CmvnClasspathContainer from old one for project " + project)
+    this._cmvnProject = copy._cmvnProject
+    this._cmvnFileTimestamp = copy._cmvnFileTimestamp
+  }
 
   override val getKind = IClasspathContainer.K_APPLICATION
   override val getDescription = "Cmvn Libraries"
@@ -36,14 +48,12 @@ class CmvnClasspathContainer(path: IPath, project: IJavaProject, initialClasspat
     Console.println(msg)
   }
 
-  private var classpathEntries: Array[IClasspathEntry] = initialClasspathEntries
-
   protected def computeClasspathEntries(cmvn: CmvnProject): Array[IClasspathEntry] = {
-    val projConfig = cmvn.getProjectConfig
+    debug("computeClasspathEntries(cmvn=" + (if (cmvn != null) "..." else "null") + ") for project=" + project + " and containerPath=" + path)
 
     val workspaceProjects = JavaCore.create(project.getProject.getWorkspace.getRoot).getJavaProjects
 
-    def workspaceDep(dep: Dependency): Option[IJavaProject] = {
+    def isWorkspaceDep(dep: Dependency): Option[IJavaProject] = {
       workspaceProjects.find(p => {
         val depPath = p.getPath
         //        debug("Checking workspace project " + p + " with path " + depPath)
@@ -51,16 +61,18 @@ class CmvnClasspathContainer(path: IPath, project: IJavaProject, initialClasspat
       })
     }
 
-    projConfig.getDependencies.distinct.filter(dep => scope match {
+    cmvn.getProjectConfig.getDependencies.distinct.filter(dep => scope match {
       case "compile" => Array("compile", "provided", "system").contains(dep.scope)
       case "runtime" => Array("compile", "provided", "system", "runtime").contains(dep.scope)
       case "test" => Array("compile", "provided", "system", "runtime", "test").contains(dep.scope)
       case _ => false
     }).map(dep => {
-      workspaceDep(dep) match {
+      isWorkspaceDep(dep) match {
         case Some(workspaceProject) if workspaceResolution =>
           JavaCore.newProjectEntry(workspaceProject.getPath)
         case _ => {
+          var needM2Var = false
+
           // Create reference to maven repo
           val jarPath = dep.jarPath match {
             case p: String => p
@@ -70,6 +82,7 @@ class CmvnClasspathContainer(path: IPath, project: IJavaProject, initialClasspat
                 localRepoPathPrefix = new File(localRepoPathPrefix).getAbsolutePath
               } else {
                 localRepoPathPrefix = "M2_REPO"
+                needM2Var = true
               }
               dep.mavenJarLocalRepoPath(localRepoPathPrefix)
             }
@@ -79,23 +92,56 @@ class CmvnClasspathContainer(path: IPath, project: IJavaProject, initialClasspat
             new Path(jarPath.substring(0, jarPath.length() - 4) + "-sources.jar")
           else null
 
-          JavaCore.newLibraryEntry(new Path(jarPath), sourcePath, null)
+          if (needM2Var) {
+            JavaCore.newVariableEntry(new Path(jarPath), sourcePath, null)
+          } else {
+            JavaCore.newLibraryEntry(new Path(jarPath), sourcePath, null)
+          }
         }
       }
     }).toArray
   }
 
   private val cmvnFile = new File(projectRootFile, "cmvn.conf")
+  private var _cmvnFileTimestamp: Long = 0L
   private var _cmvnProject: CmvnProject = _
-  private var _cmvnTimestamp = 0L
   protected def cmvnProject = {
-    if (_cmvnProject == null || cmvnFile.lastModified > _cmvnTimestamp) {
-      _cmvnProject = new CmvnProject(new File(projectRootFile, "cmvn.conf"))
-      _cmvnTimestamp = cmvnFile.lastModified
+    if (cmvnFile.exists) {
+      if (_cmvnProject == null || cmvnFile.lastModified > _cmvnFileTimestamp) {
+        debug((if (_cmvnProject != null) "Reloading" else "Loading") + " CmvnProject from " + cmvnFile)
+        _cmvnFileTimestamp = cmvnFile.lastModified
+        _cmvnProject = new CmvnProject(cmvnFile)
+      }
+      _cmvnProject
+    } else {
+      debug("Could not found CmvnProject at " + cmvnFile)
+      _cmvnProject = null
+      null
     }
-    _cmvnProject
   }
 
-  override def getClasspathEntries: Array[IClasspathEntry] = computeClasspathEntries(cmvnProject)
+  private var classpathEntries: Array[IClasspathEntry] = _
 
+  override def getClasspathEntries: Array[IClasspathEntry] = {
+    cmvnProject match {
+      case null => {
+        debug("No CmvnProject found for project " + project)
+        Array()
+      }
+      case cmvnProject => CmvnClasspathContainer.ImplicitUpdates match {
+        case true =>
+          // Always use up-to-date list
+          computeClasspathEntries(cmvnProject)
+
+        case false => {
+          // Only retrieve list once, then reuse it until somebody explicitly requests an update
+          if (classpathEntries == null)
+            classpathEntries = computeClasspathEntries(cmvnProject)
+          classpathEntries
+        }
+      }
+    }
+  }
+
+  def updateContainer = classpathEntries = null
 }

@@ -14,7 +14,17 @@ import de.tototec.tools.cmvn.model.CmvnProjectConfig
 import org.eclipse.core.runtime.CoreException
 
 object CmvnClasspathContainer {
+  val ContainerPath = """de.tototec.tools.cmvn.CMVN_DEPENDENCIES"""
   val ImplicitUpdates = true
+
+  def readOptionsFromPath(path: IPath): Map[String, String] = if (path.segmentCount() > 1) {
+    path.lastSegment.split(",").map(_.split("=", 2) match {
+      case Array(key, value) => (key, value)
+      case Array(key) => (key, true.toString)
+    }).toMap
+  } else {
+    Map()
+  }
 }
 
 class CmvnClasspathContainer(path: IPath, private val project: IJavaProject) extends IClasspathContainer {
@@ -32,14 +42,7 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject) ext
 
   protected val projectRootFile: File = project.getProject.getLocation.makeAbsolute.toFile
 
-  protected val options: Map[String, String] = if (path.segmentCount() > 1) {
-    path.lastSegment.split(",").map(_.split("=", 2) match {
-      case Array(key, value) => (key, value)
-      case Array(key) => (key, true.toString)
-    }).toMap
-  } else {
-    Map()
-  }
+  protected val options: Map[String, String] = CmvnClasspathContainer.readOptionsFromPath(path)
 
   protected val scope = options.getOrElse("scope", "compile")
   protected val workspaceResolution = options.getOrElse("workspaceResolution", "true").toBoolean

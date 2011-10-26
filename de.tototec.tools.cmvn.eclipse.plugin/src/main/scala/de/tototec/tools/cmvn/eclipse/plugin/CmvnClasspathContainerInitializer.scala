@@ -14,28 +14,24 @@ class CmvnClasspathContainerInitializer extends ClasspathContainerInitializer {
     Console.println(msg)
   }
 
-  override def initialize(containerPath: IPath, project: IJavaProject): Unit = {
-    debug("intialize(containerPath=" + containerPath + ", project=" + project + ")")
+  def setCmvnClasspathContainer(containerPath: IPath, project: IJavaProject) {
     val container = new CmvnClasspathContainer(containerPath, project)
     debug("New container is: " + container)
     JavaCore.setClasspathContainer(containerPath, Array(project), Array(container), null)
+
   }
 
-  override def canUpdateClasspathContainer(containerPath: IPath, project: IJavaProject): Boolean = {
-    val canUpdate = !CmvnClasspathContainer.ImplicitUpdates
-    debug("canUpdateClasspathContainer(containerPath=" + containerPath + ", project=" + project + ") = " + canUpdate)
-    canUpdate
+  override def initialize(containerPath: IPath, project: IJavaProject): Unit = {
+    debug("intialize(containerPath=" + containerPath + ", project=" + project + ")")
+    setCmvnClasspathContainer(containerPath, project)
   }
+
+  override def canUpdateClasspathContainer(containerPath: IPath, project: IJavaProject): Boolean = true
 
   override def requestClasspathContainerUpdate(containerPath: IPath, project: IJavaProject,
     containerSuggestion: IClasspathContainer) {
     debug("requestClasspathContainerUpdate(containerPath=" + containerPath + ", project=" + project + ")")
-    val container = containerSuggestion match {
-      case c: CmvnClasspathContainer => new CmvnClasspathContainer(c)
-      case _ => new CmvnClasspathContainer(containerPath, project)
-    }
-    debug("New container is: " + container)
-    JavaCore.setClasspathContainer(containerPath, Array(project), Array(container), null)
+    setCmvnClasspathContainer(containerPath, project)
   }
 
   override def getComparisonID(containerPath: IPath, project: IJavaProject) =

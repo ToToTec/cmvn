@@ -7,4 +7,11 @@
           id="de.tototec.tools.cmvn.CMVN_DEPENDENCIES"
           class="de.tototec.tools.cmvn.eclipse.plugin.CmvnClasspathContainerInitializer"/>
    </extension>
+   <extension 
+       point="org.eclipse.jdt.ui.classpathContainerPage">
+      <classpathContainerPage
+         	id="de.tototec.tools.cmvn.CMVN_DEPENDENCIES"
+         	name="Cmvn Classpath Container"
+         	class="de.tototec.tools.cmvn.eclipse.plugin.CmvnClasspathContainerPage" />
+   </extension>
 </plugin>

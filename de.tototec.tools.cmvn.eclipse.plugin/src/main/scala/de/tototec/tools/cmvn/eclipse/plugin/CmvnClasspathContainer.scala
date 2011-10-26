@@ -78,7 +78,10 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject) ext
 
           // Create reference to maven repo
           val jarPath = dep.jarPath match {
-            case p: String => p
+            case p: String => new File(p).isAbsolute match {
+              case true => p
+              case false => project.getProject.getRawLocation.toFile.getPath + File.separator + p
+            }
             case _ => {
               var localRepoPathPrefix = cmvn.getConfiguredState.getLocalRepository
               if (localRepoPathPrefix != null && localRepoPathPrefix != "") {

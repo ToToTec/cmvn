@@ -1,28 +1,23 @@
 package de.tototec.tools.cmvn.eclipse.plugin
 
+import org.eclipse.core.runtime.Path
+import org.eclipse.jdt.core.IClasspathEntry
+import org.eclipse.jdt.core.IJavaProject
+import org.eclipse.jdt.core.JavaCore
 import org.eclipse.jdt.ui.wizards.IClasspathContainerPage
 import org.eclipse.jdt.ui.wizards.IClasspathContainerPageExtension
-import org.eclipse.jdt.core.IJavaProject
-import org.eclipse.jdt.core.IClasspathEntry
-import org.eclipse.jdt.core.JavaCore
-import org.eclipse.core.runtime.Path
+import org.eclipse.jface.viewers.ArrayContentProvider
+import org.eclipse.jface.viewers.ComboViewer
+import org.eclipse.jface.viewers.ISelectionChangedListener
+import org.eclipse.jface.viewers.LabelProvider
+import org.eclipse.jface.viewers.SelectionChangedEvent
+import org.eclipse.jface.viewers.StructuredSelection
 import org.eclipse.jface.wizard.WizardPage
+import org.eclipse.swt.layout.GridData
+import org.eclipse.swt.layout.GridLayout
 import org.eclipse.swt.widgets.Composite
 import org.eclipse.swt.widgets.Label
-import org.eclipse.swt.widgets.Text
 import org.eclipse.swt.SWT
-import org.eclipse.swt.layout.GridData
-import org.eclipse.swt.events.ModifyListener
-import org.eclipse.swt.events.ModifyEvent
-import org.eclipse.swt.layout.GridLayout
-import org.eclipse.swt.widgets.Combo
-import org.eclipse.jface.viewers.ComboViewer
-import org.eclipse.jface.viewers.LabelProvider
-import org.eclipse.jface.viewers.ArrayContentProvider
-import org.eclipse.jface.viewers.StructuredSelection
-import org.eclipse.jface.viewers.ISelectionChangedListener
-import org.eclipse.jface.viewers.SelectionChangedEvent
-import org.eclipse.jface.viewers.IStructuredSelection
 
 class CmvnClasspathContainerPage extends WizardPage("Cmvn Libraries") with IClasspathContainerPage with IClasspathContainerPageExtension {
 

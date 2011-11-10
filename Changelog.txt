@@ -1,26 +1,31 @@
-cmvn-HEAD:
-* Improved intractive experience with output-filter (that component, that cuts
-  the noise [INFO] prefixes from the Maven output, e.g. when using an OSGi 
-  console from within a Maven plugin
+cmvn-0.1.8 - 2011-11-10:
+* Improved interactive experience with output-filter (that component, that cuts
+  the noise [INFO] prefixes from the Maven output), e.g. when using an OSGi 
+  console from within a Maven plugin, you will now see the osgi> prompt
+  instantly
 * Use scala code again
 * Fixed dependency option parsing and added source file and line number to 
   error messages
 * Added requireCmvn-tag to force a compatible cmvn version
 * Removed version in comment from generated config class file so that storing
   it in version control (although generate) does not produce uneccessary noise
+* Support more built-in variables: P, PN, PV, PG as GAV accessors to provide a
+  replacement to Mavens varibles, e.g. ${project.artifactId} 
+* Created a Eclipse Plugin that provides a Cmvn Classpath Container - say goodby
+  to slow and resource hungry Maven Plugin
 
-cmvn-0.1.6:
+cmvn-0.1.6 - 2011-09-19:
 * Added Eclipse .classpath file generator
 * Updated manual
 * Added support for provided-scoped dependencies
 * Fixed up-to-date check problems
 * Added support for project-global dependency exclusion (exclude:)
 
-cmvn-0.1.4:
+cmvn-0.1.4 - 2011-04-11:
 * Fixed generated systemPath for system-dependencies with relative jar path
 * Added Windows-Executable (build with Launch4J)
 
-cmvn-0.1.3:
+cmvn-0.1.3 - 2011-04-10:
 * Better error output: config file and line number of bad key-value pair
 * Use mvn.bat as default maven executable under windows
 * changed impl of config file reader to support variables in includes and
@@ -31,7 +36,7 @@ cmvn-0.1.3:
   added into the wrong position in xml tree
 * configure testSources in build-section
 
-cmvn-0.1.2:
+cmvn-0.1.2 - 2011-03-02:
 * Fixed: Errors while parsing pom.xml.cmvn are silently dropped and all
   content of template file is ignored further
 * Let user specifiy Maven executable (--maven-bin)
@@ -51,11 +56,11 @@ cmvn-0.1.2:
   project with the complete reactor (alowing to use -am and -amd options)
 * Added support for finalName and targetDir in build-block
 
-cmvn-0.1.1:
+cmvn-0.1.1 - 2011-01-19:
 * Generated files now have correct default XML namespace set
 * Added new directive -configClass to generate Java classes to make
   configuration information statically available
 * Experimental support for generating ivy.xml files
 
-cmvn-0.1.0:
+cmvn-0.1.0 - 2010-12-16:
 * Initial Release

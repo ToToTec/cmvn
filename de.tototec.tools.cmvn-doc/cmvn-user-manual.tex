@@ -16,7 +16,7 @@
 % \newcommand{\CMVN}{\fontseries{sbc}\selectfont{}\texttt{cmvn}\fontseries{sf}\selectfont}
 \newcommand{\CMVN}{\texttt{cmvn}}
 \newcommand{\cmvn}{\texttt{cmvn}}
-\newcommand{\VERSION}{0.1.6}
+\newcommand{\VERSION}{0.1.7-SNAPSHOT}
 
 \definecolor{listgray}{rgb}{0.88,0.88,0.88} 
 
@@ -486,6 +486,7 @@ Options:
 
 
 \subsubsection{\code{eclipseClasspath}}
+\label{secSettingEclipseClasspath}
 
 Generate a .classpath file which can be used by Eclipse to generate the project classpath container.
 
@@ -526,6 +527,27 @@ eclipseClasspath: autoGenerate=test
 % \G Quick swich to alternative repositories
 % 
 
+\section{Eclipse Classpath Container}
+
+Since \cmvn{}-0.1.8 there is a Eclipse Cmvn Plugin that provides a classpath container, thus making the use of other classpath container like the Maven classpath container unnecessary.
+
+Features:
+\begin{itemize}
+ \item Provides classpath dependencies instantly
+ \item non-transitive classpath, only add explicit listed dependencies to classpath
+ \item different resolution scopes configurable (compile, runtime, test)
+ \item very fast (especially a lot faster than Maven and Ivy classpath containers)
+ \item Workspace resolution for dependencies (configurable)
+ \item uses project-local configuration (uses exact same repositories and dependencies as the command line tool)
+ \item supports attached sources and javadoc
+\end{itemize}
+
+Restrictions:
+\begin{itemize}
+ \item If cmvn was configured with \cmdoption{maven-settings} the Cmvn classpath container will fall back to a \code{M2\_REPO} variable, which must be defined in Eclipse. In most cases you should prefer the \cmdoption{maven-repo} commandline switch to specify external local Maven repositories.
+\end{itemize}
+
+Notice: If you use the Eclipse Cmvn classpath container, you usually do not want to use the \code{eclipseClasspath}  \code{autoGenerate} setting (see section \ref{secSettingEclipseClasspath}).
 
 \section{Terms of Use (License)}
 
@@ -533,10 +555,12 @@ eclipseClasspath: autoGenerate=test
 
 \url{http://www.apache.org/licenses/LICENSE-2.0}
 
-\clearpage
-\appendix
+% \clearpage
+% \appendix
 
-\section{Shell Wrapper}
+\section{Installation}
+
+\subsection{Unix/Linux/MacOSX: Shell Wrapper}
 
 \cmvn{} is distributed as executable jar including all its required dependencies. 
 
@@ -548,7 +572,13 @@ For convenience, you may want to create a simple shell script \code{cmvn} as an 
 exec java -jar cmvn-executable-0.1.3.jar $@
 \end{Cmdline}
 
-\section{Command Shell Wrapper (Windows)}
+\subsection{Windows: Using the binary}
+
+Since \cmvn{}-0.1.4 there is also a released Windows binary version \code{cmvn-0.1.4.exe}. As long as this executable exists on the search path (\code{PATH}-variable), no command shell wrapper is needed.
+
+\subsection{Windows: Command Shell Wrapper}
+
+If you can not or want not use the executable binary version of \cmvn{} for windows, you can alternatively use a command shell wrapper like this one:
 
 \begin{Cmdline}[caption={Windows Command Shell wrapper: \code{cmvn.bat}}]
 :init

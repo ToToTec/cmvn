@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CMVN_PACK=cmvn-src-0.1.6
+CMVN_PACK=cmvn-src-0.1.8
 RELEASE_DIR=repo-releases
 CMVN_DIR=${RELEASE_DIR}/${CMVN_PACK}
 

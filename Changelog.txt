@@ -1,3 +1,5 @@
+* Made dependency to jcommander optional in Eclipse Plugin.
+
 cmvn-0.1.8 - 2011-11-10:
 * Improved interactive experience with output-filter (that component, that cuts
   the noise [INFO] prefixes from the Maven output), e.g. when using an OSGi 

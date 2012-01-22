@@ -10,13 +10,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.esotericsoftware.yamlbeans.YamlWriter;
 
 @Data
-@RequiredArgsConstructor
 public class ConfigureRequest {
 	private Boolean force;
 	private Boolean autoReconfigure;
@@ -28,11 +26,27 @@ public class ConfigureRequest {
 	private String mavenExecutable;
 	private Boolean skipProvisioning;
 	private Boolean eclipseForceLocalWorkspaceRefs;
-	
+
+	public ConfigureRequest() {
+	}
+
+	public ConfigureRequest(ConfigureCmd copy) {
+		force = copy.force();
+		autoReconfigure = copy.autoReconfigure();
+		mavenSettings = copy.mavenSettings();
+		mavenRepo = copy.mavenRepo();
+		generateIvy = copy.generateIvy();
+		forceSystemScope = copy.forceSystemScope();
+		systemScopeForLocalProjects = copy.systemScopeForLocalProjects();
+		mavenExecutable = copy.mavenExecutable();
+		skipProvisioning = copy.skipProvisioning();
+		eclipseForceLocalWorkspaceRefs = copy.eclipseForceLocalWorkspaceRefs();
+	}
+
 	public ConfigureRequest(final ConfigureRequest copy) {
 		copy(copy);
 	}
-	
+
 	public void copy(final ConfigureRequest copy) {
 		force = copy.force;
 		autoReconfigure = copy.autoReconfigure;
@@ -45,7 +59,7 @@ public class ConfigureRequest {
 		skipProvisioning = copy.skipProvisioning;
 		eclipseForceLocalWorkspaceRefs = copy.eclipseForceLocalWorkspaceRefs;
 	}
-	
+
 	public void fromYamlFile(final File file) throws IOException {
 		if (!file.exists()) {
 			throw new FileNotFoundException("Could not found maven config file: " + file);
@@ -58,10 +72,10 @@ public class ConfigureRequest {
 
 	public void toYamlFile(final File file) throws IOException {
 		final File parentDir = file.getParentFile();
-		if(parentDir != null && !parentDir.exists()) {
+		if (parentDir != null && !parentDir.exists()) {
 			parentDir.mkdirs();
 		}
-		
+
 		final FileWriter fileWriter = new FileWriter(file);
 		fileWriter.write("# cmvn configuration state file. Generated on " + new Date().toString() + "\n");
 		final YamlWriter yamlWriter = new YamlWriter(fileWriter);
@@ -71,10 +85,10 @@ public class ConfigureRequest {
 		yamlWriter.close();
 		fileWriter.close();
 	}
-	
+
 	public List<String> validate() {
 		LinkedList<String> msgs = new LinkedList<String>();
-		if(getMavenRepo() != null && getMavenSettings() != null) {
+		if (getMavenRepo() != null && getMavenSettings() != null) {
 			msgs.add("Requesting a maven repository and a maven settings file at the same time is not supported.");
 		}
 		return msgs;

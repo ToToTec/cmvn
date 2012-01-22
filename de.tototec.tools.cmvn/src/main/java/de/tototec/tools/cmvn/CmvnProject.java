@@ -144,6 +144,11 @@ public class CmvnProject {
 			}
 		}
 
+		if(getConfiguredState() == null) {
+			// no configuration at all, so project not configure and thus not up-to-date
+			return false;
+		}
+		
 		return true;
 	}
 

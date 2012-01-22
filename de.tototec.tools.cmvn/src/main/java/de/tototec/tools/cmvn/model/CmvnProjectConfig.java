@@ -16,6 +16,7 @@ import com.esotericsoftware.yamlbeans.YamlWriter;
 @Data
 public class CmvnProjectConfig {
 	private final String baseDir;
+
 	private Dependency project;
 	private final List<Dependency> dependencies = new LinkedList<Dependency>();
 	// private final List<Dependency> provisioningDeps = new
@@ -32,7 +33,11 @@ public class CmvnProjectConfig {
 	private final Map<String, String> variables = new LinkedHashMap<String, String>();
 	private final List<ConfigClassGenerator> configClasses = new LinkedList<ConfigClassGenerator>();
 	private EclipseClasspathGeneratorConfig eclipseClasspathGeneratorConfig;
-	
+
+	public CmvnProjectConfig(final String baseDir) {
+		this.baseDir = baseDir;
+	}
+
 	public void toYamlFile(final File file) throws IOException {
 		final File parentDir = file.getParentFile();
 		if (parentDir != null && !parentDir.exists()) {
@@ -48,5 +53,12 @@ public class CmvnProjectConfig {
 		yamlWriter.write(this);
 		yamlWriter.close();
 		fileWriter.close();
+	}
+
+	// //////////////////
+	// Getter and Setter
+
+	public List<Dependency> getDependencies() {
+		return dependencies;
 	}
 }

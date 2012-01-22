@@ -116,4 +116,8 @@ public class LinePrefixFilterOutputStream extends FilterOutputStream {
 		}
 	}
 
+	public void setDelayedFlush(boolean delayedFlush) {
+		this.delayedFlush = delayedFlush;
+	}
+	
 }

@@ -42,7 +42,7 @@ import java.util.StringTokenizer;
  * @version $Revision: 1.17 $
  */
 
-public class OSGiVersion implements Comparable {
+public class OSGiVersion implements Comparable<OSGiVersion> {
 	private final int major;
 	private final int minor;
 	private final int micro;
@@ -336,12 +336,10 @@ public class OSGiVersion implements Comparable {
 	 * @throws ClassCastException
 	 *             If the specified object is not a <code>Version</code>.
 	 */
-	public int compareTo(Object object) {
-		if (object == this) { // quicktest
+	public int compareTo(OSGiVersion other) {
+		if (other == this) { // quicktest
 			return 0;
 		}
-
-		OSGiVersion other = (OSGiVersion) object;
 
 		int result = major - other.major;
 		if (result != 0) {

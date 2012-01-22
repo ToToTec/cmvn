@@ -36,6 +36,7 @@ case class Dependency(
   var jarPath: String = null,
   var onlyManagement: Boolean = false,
   var forceVersion: Boolean = false,
+  var jackageDep: Boolean = false,
   var jackageRepo: String = null) {
 
   /** Convenience-constructor for use by Java-code. */
@@ -45,9 +46,7 @@ case class Dependency(
 
   def parseOptions(options: java.util.List[KeyValue]) {
     options.foreach(option => {
-      val keyVal = (option.getKey(), option.getValue)
-
-      keyVal match {
+      (option.getKey(), option.getValue) match {
         case ("scope", scope) => this.scope = scope
         case ("classifier", classifier) => this.classifier = classifier
         case ("type", depType) => this.depType = depType
@@ -59,6 +58,7 @@ case class Dependency(
         }
         case ("systemPath", sysPath) => this.jarPath = sysPath
         case ("forceversion", force) => this.forceVersion = force.toLowerCase == "true"
+        case ("jackage", jackage) => this.jackageDep = jackage.toLowerCase == "true"
         case _ => new RuntimeException("Unsupported option: " + option)
       }
     })

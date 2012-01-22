@@ -108,14 +108,14 @@ object CmvnApp2 {
           if (project.getConfiguredState.getLocalRepository != null) {
             project.
               getMultiProjects.
-              flatMap(p => p.getProjectConfig.getJackageDependencies).
+              flatMap(p => p.getProjectConfig.getDependencies.filter(_.jackageDep)).
               distinct.
               foreach(dep => {
                 val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
                 Console.println("Fetching with Jackage: " + depName)
                 val cmd = fetchCmd.experimentalJackageFetchCmd.
                   replaceAllLiterally("{PACK}", depName).
-                  replaceAllLiterally("{MVN}", project.getConfiguredState.getLocalRepository)
+                  replaceAllLiterally("{M2REPO}", project.getConfiguredState.getLocalRepository)
                 import scala.sys.process._
                 Process(cmd).run(true).exitValue match {
                   case 0 => // ok

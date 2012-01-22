@@ -66,22 +66,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			dep.scope_$eq(depKey.equals("dependency") ? "compile" : depKey);
 			dep.onlyManagement_$eq(depKey.equals("dependencyManagement") ? true : false);
 
-			boolean isJackage = false;
-			List<KeyValue> jackageCleanOptions = new LinkedList<KeyValue>();
-					
-			for (KeyValue option : withOptions.getOptions()) {
-				if(option.getKey().trim().equals("jackage")) {
-					isJackage = option.getValue().trim().equalsIgnoreCase("true");
-				}
-				else {
-					jackageCleanOptions.add(option);
-				}
-			}
-
-			dep.parseOptions(jackageCleanOptions);
-			if(isJackage) {
-				projectConfig.getJackageDependencies().add(dep);
-			}
+			dep.parseOptions(withOptions.getOptions());
 			projectConfig.getDependencies().add(dep);
 		}
 	},

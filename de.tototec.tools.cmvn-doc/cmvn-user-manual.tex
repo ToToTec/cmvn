@@ -16,7 +16,7 @@
 % \newcommand{\CMVN}{\fontseries{sbc}\selectfont{}\texttt{cmvn}\fontseries{sf}\selectfont}
 \newcommand{\CMVN}{\texttt{cmvn}}
 \newcommand{\cmvn}{\texttt{cmvn}}
-\newcommand{\VERSION}{0.1.8}
+\newcommand{\VERSION}{0.1.9-SNAPSHOT}
 
 \definecolor{listgray}{rgb}{0.88,0.88,0.88} 
 
@@ -448,10 +448,11 @@ Options: Any option has the format OPTION and is added to the \code{<configurati
 
 Directives: 
 
-\begin{tabular}{llp{.65\textwidth}}
+\begin{tabular}{llp{.57\textwidth}}
 \emph{Directive} & \emph{Format} & \emph{Desciption} \\
 \code{-extension} & BOOLEAN & Specify if this plugin is a extensions-plugin (and thus e.g. can contribute new project packaging types). \\
 \code{-execution} & XML & A free XML fragement that will be placed inside the \code{<executions>}-block of this plugin. \\
+\code{-plugindependency} & GAV & A dependency used when execution the plugin command, e.g. to override a version. \\
 \code{-xml:}\emph{anyOption} & XML & Can be used if the option-value is XML and not text. \\
 \end{tabular}
 

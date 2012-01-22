@@ -1,6 +1,8 @@
 package de.tototec.tools.cmvn;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import lombok.Getter;
@@ -64,44 +66,23 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			dep.scope_$eq(depKey.equals("dependency") ? "compile" : depKey);
 			dep.onlyManagement_$eq(depKey.equals("dependencyManagement") ? true : false);
 
-			dep.parseOptions(withOptions.getOptions());
+			boolean isJackage = false;
+			List<KeyValue> jackageCleanOptions = new LinkedList<KeyValue>();
+					
+			for (KeyValue option : withOptions.getOptions()) {
+				if(option.getKey().trim().equals("jackage")) {
+					isJackage = option.getValue().trim().equalsIgnoreCase("true");
+				}
+				else {
+					jackageCleanOptions.add(option);
+				}
+			}
 
-			// for (final KeyValue option : withOptions.getOptions()) {
-			// final String oKey = option.getKey();
-			// final String oValue = option.getValue();
-			//
-			// if (oKey.equals("scope")) {
-			// dep.setScope(oValue);
-			// } else if (oKey.equals("classifier")) {
-			// dep.setClassifier(oValue);
-			// } else if (oKey.equals("type")) {
-			// dep.setType(oValue);
-			// } else if (oKey.equals("optional")) {
-			// dep.setOptionalAsTransitive(oValue.equalsIgnoreCase("true"));
-			// } else if (oKey.equals("exclude")) {
-			// final String[] exclude = oValue.split(":");
-			// if (exclude.length != 2) {
-			// throw new RuntimeException("Unsupported exclude: " + oValue);
-			// }
-			// dep.addToExcludes(new Dependency(exclude[0].trim(),
-			// exclude[1].trim(), "0"));
-			// } else if (oKey.equals("systemPath")) {
-			// dep.setJarPath(oValue);
-			// } else if (oKey.equals("forceversion")) {
-			// dep.setForceVerison(oValue.equalsIgnoreCase("true"));
-			// } else {
-			// throw new RuntimeException("Unsupported option: " + option);
-			// }
-			// }
-			//
-
-			// if(depKey.equals("provision")) {
-			// projectConfig.getProvisioningDeps().add(dep);
-			// }
-			// else {
-			// this is a dependency
+			dep.parseOptions(jackageCleanOptions);
+			if(isJackage) {
+				projectConfig.getJackageDependencies().add(dep);
+			}
 			projectConfig.getDependencies().add(dep);
-			// }
 		}
 	},
 
@@ -147,6 +128,13 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				}
 			}
 			projectConfig.getRepositories().add(repo);
+		}
+	},
+
+	JACKAGE_REPOSITORY("jackage-repo") {
+		@Override
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
+			// TODO: finish
 		}
 	},
 

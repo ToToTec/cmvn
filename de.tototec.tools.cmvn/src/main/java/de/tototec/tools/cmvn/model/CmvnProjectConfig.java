@@ -33,6 +33,7 @@ public class CmvnProjectConfig {
 	private final Map<String, String> variables = new LinkedHashMap<String, String>();
 	private final List<ConfigClassGenerator> configClasses = new LinkedList<ConfigClassGenerator>();
 	private EclipseClasspathGeneratorConfig eclipseClasspathGeneratorConfig;
+	private final List<Dependency> jackageDependencies = new LinkedList<Dependency>();
 
 	public CmvnProjectConfig(final String baseDir) {
 		this.baseDir = baseDir;
@@ -60,5 +61,9 @@ public class CmvnProjectConfig {
 
 	public List<Dependency> getDependencies() {
 		return dependencies;
+	}
+	
+	public List<Dependency> getJackageDependencies() {
+		return jackageDependencies;
 	}
 }

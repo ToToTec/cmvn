@@ -87,4 +87,10 @@ case class Dependency(
     val fileName = artifactId + "-" + version + classifierPart + ".jar"
     (versionDir / File(fileName)).path
   }
+
+  override def toString =
+    groupId + ":" + artifactId + ":" + version +
+      (if (scope != "compile") { ";scope=" + scope } else "") +
+      (if (classifier != null) { ";classifier=" + classifier } else "")
+
 }

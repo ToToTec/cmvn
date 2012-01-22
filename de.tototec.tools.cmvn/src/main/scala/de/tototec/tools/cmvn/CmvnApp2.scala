@@ -52,7 +52,7 @@ object CmvnApp2 {
     }
 
     def parseDefaultCmd {
-      jc = new JCommander
+      jc = newJCommander
       jc.parse((Array(classOf[BuildCmd].getAnnotation(classOf[Parameters]).commandNames.head) ++ args): _*)
     }
 
@@ -102,6 +102,32 @@ object CmvnApp2 {
       case Some(fetchCmd: FetchCmd) => {
         checkCmdHelp(fetchCmd)
         Console.println("--fetch selected")
+
+        val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile)
+        if (project.isUpToDateRecursive) {
+          if (project.getConfiguredState.getLocalRepository != null) {
+            project.
+              getMultiProjects.
+              flatMap(p => p.getProjectConfig.getJackageDependencies).
+              distinct.
+              foreach(dep => {
+                val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
+                Console.println("Fetching with Jackage: " + depName)
+                val cmd = fetchCmd.experimentalJackageFetchCmd.
+                  replaceAllLiterally("{PACK}", depName).
+                  replaceAllLiterally("{MVN}", project.getConfiguredState.getLocalRepository)
+                import scala.sys.process._
+                Process(cmd).run(true).exitValue match {
+                  case 0 => // ok
+                  case _ => Console.println("Could not download Jackage dependency: " + dep)
+                }
+              })
+          } else {
+            Console.println("No configured Local Maven repository.")
+          }
+        } else {
+          Console.println("Project not up-to-date. Skipping fetch.")
+        }
       }
 
       case Some(other) => {

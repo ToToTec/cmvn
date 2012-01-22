@@ -77,4 +77,11 @@ public class CmvnConfiguredState {
 		yamlWriter.close();
 		fileWriter.close();
 	}
+	
+	
+	//// Boilerplate below
+	
+	public String getLocalRepository() {
+		return localRepository;
+	}
 }

@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Getter;
 import lombok.ToString;
 import de.tototec.tools.cmvn.configfile.KeyValue;
 import de.tototec.tools.cmvn.configfile.bndlike.ConfigFileReaderImpl;
@@ -31,7 +30,6 @@ public class CmvnProject {
 	private final File pomFile;
 	private final File pomTemplateFile;
 	private final File cmvnStateFile;
-	@Getter
 	private final CmvnProjectConfig projectConfig;
 	private final CmvnProject rootProject;
 
@@ -198,6 +196,10 @@ public class CmvnProject {
 		}
 	}
 
+	public CmvnProjectConfig getProjectConfig() {
+		return projectConfig;
+	}
+	
 	public CmvnConfiguredState getConfiguredState() {
 		if (configuredState == null) {
 			configuredState = readConfiguredState();

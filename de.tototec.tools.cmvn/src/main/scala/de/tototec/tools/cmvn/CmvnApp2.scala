@@ -106,11 +106,15 @@ object CmvnApp2 {
         val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile)
         if (project.isUpToDateRecursive) {
           if (project.getConfiguredState.getLocalRepository != null) {
-            project.
+            val toFetch = project.
               getMultiProjects.
               flatMap(p => p.getProjectConfig.getDependencies.filter(_.jackageDep)).
-              distinct.
-              foreach(dep => {
+              distinct
+
+            Console.println("About to fetch the following packages:\n  " + toFetch.mkString("\n  "))
+
+            if (!fetchCmd.dryRun) {
+              toFetch.foreach(dep => {
                 val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
                 Console.println("Fetching with Jackage: " + depName)
                 val cmd = fetchCmd.experimentalJackageFetchCmd.
@@ -122,6 +126,7 @@ object CmvnApp2 {
                   case _ => Console.println("Could not download Jackage dependency: " + dep)
                 }
               })
+            }
           } else {
             Console.println("No configured Local Maven repository.")
           }

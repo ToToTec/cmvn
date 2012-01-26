@@ -5,9 +5,6 @@ import com.beust.jcommander.Parameter
 @Parameters(commandNames = Array("--fetch"))
 class FetchCmd extends HelpAwareCmd {
 
-  @Parameter(names = Array("--help"), hidden = true)
-  var help: Boolean = false
-
   @Parameter(names = Array("--dryrun", "--dry-run"), description = "Do not fetch, just print what whould be fetched.")
   var dryRun: Boolean = false
   

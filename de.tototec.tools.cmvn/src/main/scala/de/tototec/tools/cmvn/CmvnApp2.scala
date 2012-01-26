@@ -145,5 +145,6 @@ object CmvnApp2 {
 }
 
 trait HelpAwareCmd {
-  def help: Boolean
+  @Parameter(names = Array("--help"), hidden = true)
+  var help: Boolean = false
 }

@@ -40,8 +40,6 @@ class ConfigureCmd extends HelpAwareCmd {
   var systemScopeForLocalProjects = false
   @Parameter(names = Array("--eclipse-force-local-workspace-refs"))
   var eclipseForceLocalWorkspaceRefs = false
-  @Parameter(names = Array("--help"), hidden = true)
-  var help: Boolean = false
 
   // Experimental
   @Parameter(names = Array("--skip-provisioning"), hidden = true)

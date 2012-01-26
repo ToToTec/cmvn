@@ -11,6 +11,4 @@ class BuildCmd extends HelpAwareCmd {
   @Parameter
   var mvnArgs = new java.util.LinkedList[String]
 
-  @Parameter(names = Array("--help"), hidden = true)
-  var help: Boolean = false
 }

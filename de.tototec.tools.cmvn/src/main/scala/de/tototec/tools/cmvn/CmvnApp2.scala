@@ -124,7 +124,7 @@ object CmvnApp2 {
                 import scala.sys.process._
                 Process(cmd).run(true).exitValue match {
                   case 0 => // ok
-                  case _ => Console.println("Could not download Jackage dependency: " + dep)
+                  case _ => Console.err.println("Could not download Jackage dependency: " + dep)
                 }
               })
             }

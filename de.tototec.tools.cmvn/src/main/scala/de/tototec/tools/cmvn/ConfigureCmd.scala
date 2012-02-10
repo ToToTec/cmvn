@@ -25,8 +25,9 @@ object ConfigureCmd {
 class ConfigureCmd extends HelpAwareCmd {
   @Parameter(names = Array("--maven-bin"))
   var mavenExecutable: String = _
-  @Parameter(names = Array("--auto-reconfigure"))
-  var autoReconfigure = false
+  @Parameter(names = Array("--no-auto-reconfigure"))
+  private var _noAutoReconfigure = false
+  def autoReconfigure = !_noAutoReconfigure
   @Parameter(names = Array("--force"))
   var force = false
   @Parameter(names = Array("--maven-settings"))

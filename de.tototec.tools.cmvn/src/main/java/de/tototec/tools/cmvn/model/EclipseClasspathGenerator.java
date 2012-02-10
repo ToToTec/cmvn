@@ -40,7 +40,7 @@ public class EclipseClasspathGenerator implements Generator {
 		System.out.println("Generating " + cpFile);
 
 		List<Map<String, String>> cpEntries = new LinkedList<Map<String, String>>();
-		cpEntries.addAll(cpConfig.getCpEntries());
+		cpEntries.addAll(cpConfig.cpEntries());
 		// Avoid adding duplicate entries, so we remember already added
 		// dependencies
 		List<Dependency> seenDeps = new LinkedList<Dependency>();
@@ -53,10 +53,10 @@ public class EclipseClasspathGenerator implements Generator {
 			}
 			seenDeps.add(dep);
 
-			boolean include = cpConfig.isAutoGenerateCompile()
+			boolean include = cpConfig.autoGenerateCompile()
 					&& Arrays.asList("compile", "provided", "system").contains(dep.scope());
-			include |= cpConfig.isAutoGenerateTest() && "test".equals(dep.scope());
-			include |= cpConfig.isAutoGenerateRuntime() && "runtime".equals(dep.scope());
+			include |= cpConfig.autoGenerateTest() && "test".equals(dep.scope());
+			include |= cpConfig.autoGenerateRuntime() && "runtime".equals(dep.scope());
 			if (include) {
 				boolean isLocal = false;
 

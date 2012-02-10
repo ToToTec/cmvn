@@ -48,9 +48,9 @@ public class IvyGenerator implements Generator {
 		ivy.append("\t\t<chain name=\"cmvnMavenRepos\">\n");
 
 		for (final Repository repo : projectConfig.getRepositories()) {
-			if (repo.isForArtifacts()) {
+			if (repo.forArtifacts()) {
 				ivy.append("\t\t\t<ibiblio name=\"").append(repo.getNormalizedRepositoryId())
-						.append("\" m2compatible=\"true\" root=\"").append(repo.getUrl()).append("\" />\n");
+						.append("\" m2compatible=\"true\" root=\"").append(repo.url()).append("\" />\n");
 			}
 		}
 

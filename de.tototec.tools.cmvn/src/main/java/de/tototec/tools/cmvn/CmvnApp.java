@@ -308,10 +308,12 @@ public class CmvnApp {
 				// }
 				System.out.println("Executing " + mvnArgs + "...");
 				process = pB.start();
-				LinePrefixFilterOutputStream errStream = new LinePrefixFilterOutputStream(System.err, "[INFO] ");
+				LinePrefixFilterOutputStream errStream = new LinePrefixFilterOutputStream(System.err,
+						new String[] { "[INFO] " });
 				errStream.setDelayedFlush(true);
 				copyInBackgroundThread(process.getErrorStream(), errStream);
-				LinePrefixFilterOutputStream outStream = new LinePrefixFilterOutputStream(System.out, "[INFO] ");
+				LinePrefixFilterOutputStream outStream = new LinePrefixFilterOutputStream(System.out,
+						new String[] { "[INFO] " });
 				outStream.setDelayedFlush(true);
 				copyInBackgroundThread(process.getInputStream(), outStream);
 

@@ -46,7 +46,7 @@ case class Dependency(
 
   def parseOptions(options: java.util.List[KeyValue]) {
     options.foreach(option => {
-      (option.getKey(), option.getValue) match {
+      (option.key, option.value) match {
         case ("scope", scope) => this.scope = scope
         case ("classifier", classifier) => this.classifier = classifier
         case ("type", depType) => this.depType = depType

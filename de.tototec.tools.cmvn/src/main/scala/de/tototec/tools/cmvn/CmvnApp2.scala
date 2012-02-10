@@ -13,6 +13,7 @@ import java.util.Date
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Directory
 import com.beust.jcommander.MissingCommandException
+import de.tototec.tools.cmvn.pomToCmvn.PomConverter
 
 object CmvnApp2 {
 
@@ -27,7 +28,7 @@ object CmvnApp2 {
 
     val baseArgs = new BaseArgs()
     val commandConfigs = List(
-      new ConfigureCmd(), new FetchCmd(), new BuildCmd())
+      new ConfigureCmd(), new FetchCmd(), new BuildCmd(), new PomConverterCmd())
 
     def newJCommander = {
       val jc = new JCommander
@@ -133,6 +134,13 @@ object CmvnApp2 {
         } else {
           Console.println("Project not up-to-date. Skipping fetch.")
         }
+      }
+
+      case Some(convertCmd: PomConverterCmd) => {
+        checkCmdHelp(convertCmd)
+        Console.println("--convert-pom selected")
+
+        new PomConverter(convertCmd).convert
       }
 
       case Some(other) => {

@@ -60,7 +60,7 @@ public class CmvnProject {
 
 				@Override
 				public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
-					includedFiles.add(keyValue.getValue());
+					includedFiles.add(keyValue.value());
 				}
 			});
 			reader.setProjectConfigKeyValueReader(supportedKeys);
@@ -84,8 +84,8 @@ public class CmvnProject {
 		final List<CmvnProject> projects = new LinkedList<CmvnProject>();
 		projects.add(this);
 		for (final Module module : projectConfig.getModules()) {
-			if (!module.isSkipEmvn()) {
-				final File moduleDir = new File(projectFile.getParent(), module.getModuleName());
+			if (!module.skipEmvn()) {
+				final File moduleDir = new File(projectFile.getParent(), module.moduleName());
 				final CmvnProject subProject = new CmvnProject(moduleDir, rootProject != null ? rootProject : this);
 				projects.addAll(subProject.scanForProjects());
 			}

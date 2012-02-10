@@ -25,6 +25,9 @@ import org.apache.maven.pom.x400.Model.Repositories;
 import org.apache.maven.pom.x400.Plugin.Configuration;
 import org.apache.maven.pom.x400.Plugin.Executions;
 import org.apache.maven.pom.x400.ProjectDocument;
+import org.apache.maven.pom.x400.ReportPlugin;
+import org.apache.maven.pom.x400.ReportPlugin.ReportSets;
+import org.apache.maven.pom.x400.Reporting;
 import org.apache.xmlbeans.XmlCursor;
 import org.apache.xmlbeans.XmlCursor.XmlBookmark;
 import org.apache.xmlbeans.XmlException;
@@ -36,6 +39,7 @@ import de.tototec.tools.cmvn.model.CmvnProjectConfig;
 import de.tototec.tools.cmvn.model.Dependency;
 import de.tototec.tools.cmvn.model.Module;
 import de.tototec.tools.cmvn.model.Plugin;
+import de.tototec.tools.cmvn.model.Report;
 import de.tototec.tools.cmvn.model.Repository;
 
 public class MavenPomGenerator implements Generator {
@@ -95,6 +99,7 @@ public class MavenPomGenerator implements Generator {
 		generateDependencies(mvn, cmvnConfig.isForceSystemScope());
 		generateRepositories(mvn);
 		generatePlugins(mvn, cmvnConfig.isForceSystemScope());
+		generateReports(mvn);
 		generateBuild(mvn);
 
 		final ByteArrayOutputStream inMemoryOutputStream = new ByteArrayOutputStream();
@@ -168,9 +173,72 @@ public class MavenPomGenerator implements Generator {
 		if (build.targetDir() != null) {
 			mvnBuild.setDirectory(build.targetDir());
 		}
+		if(build.classesDir() != null) {
+			mvnBuild.setOutputDirectory(build.classesDir());
+		}
+		if(build.testClassesDir() != null) {
+			mvnBuild.setTestOutputDirectory(build.testClassesDir());
+		}
+		
 
 	}
 
+	protected void generateReports(final Model mvn) {
+		if (projectConfig.getReports().isEmpty()) {
+			return;
+		}
+		
+		Reporting mvnReporting = mvn.getReporting();
+		if(mvnReporting == null) {
+			mvnReporting = mvn.addNewReporting();
+		}
+		
+		if(projectConfig.getBuild().siteDir() != null) {
+			mvnReporting.setOutputDirectory(projectConfig.getBuild().siteDir());
+		}
+
+		org.apache.maven.pom.x400.Reporting.Plugins mvnReports = mvnReporting.getPlugins();
+		if(mvnReports == null) {
+			mvnReports = mvnReporting.addNewPlugins();
+		}
+		
+		for(Report report : projectConfig.getReports()) {
+			Dependency reportInfo = report.reportInfo();
+			
+			ReportPlugin mvnReport = null;
+			
+			for(ReportPlugin mvnExistingReport : mvnReports.getPluginArray()) {
+				if (reportInfo.groupId().equals(mvnExistingReport.getGroupId())
+						&& reportInfo.artifactId().equals(mvnExistingReport.getArtifactId())) {
+					mvnReport = mvnExistingReport;
+					break;
+				}
+			}
+			
+			if(mvnReport == null) {
+				mvnReport = mvnReports.addNewPlugin();
+				mvnReport.setGroupId(reportInfo.groupId());
+				mvnReport.setArtifactId(reportInfo.artifactId());
+			}
+			
+			mvnReport.setVersion(reportInfo.version());
+
+			if(!report.reportSetsAsXml().isEmpty()) {
+				ReportSets mvnReportSets = mvnReport.getReportSets();
+				if(mvnReportSets == null) {
+					mvnReportSets = mvnReport.addNewReportSets();
+				}
+				final XmlCursor execCursor = mvnReportSets.newCursor();
+				execCursor.toFirstContentToken();
+
+				for (final String exec : report.reportSetsAsXml()) {
+					generateFreeXmlBlock(execCursor, exec, "reportSet");
+				}
+				execCursor.dispose();
+			}
+		}
+	}
+	
 	protected void generatePlugins(final Model mvn, final boolean forceSystemScope) {
 		if (projectConfig.getPlugins().isEmpty()) {
 			return;
@@ -187,7 +255,7 @@ public class MavenPomGenerator implements Generator {
 		}
 
 		for (final Plugin plugin : projectConfig.getPlugins()) {
-			final Dependency pluginInfo = plugin.getPluginInfo();
+			final Dependency pluginInfo = plugin.pluginInfo();
 
 			org.apache.maven.pom.x400.Plugin mvnPlugin = null;
 
@@ -206,21 +274,21 @@ public class MavenPomGenerator implements Generator {
 			}
 
 			mvnPlugin.setVersion(pluginInfo.version());
-			if (plugin.isExtension()) {
+			if (plugin.extension()) {
 				mvnPlugin.setExtensions(true);
 			}
 
 			// special plugin dependencies
-			if (!plugin.getPluginDependencies().isEmpty()) {
+			if (!plugin.pluginDependencies().isEmpty()) {
 				org.apache.maven.pom.x400.Plugin.Dependencies pDeps = mvnPlugin.getDependencies();
 				if (pDeps == null) {
 					pDeps = mvnPlugin.addNewDependencies();
 				}
 
-				generateDependenciesBlock(plugin.getPluginDependencies(), pDeps, forceSystemScope);
+				generateDependenciesBlock(plugin.pluginDependencies(), pDeps, forceSystemScope);
 			}
 
-			if (!plugin.getExecutionsAsXml().isEmpty()) {
+			if (!plugin.executionsAsXml().isEmpty()) {
 				Executions pExecs = mvnPlugin.getExecutions();
 				if (pExecs == null) {
 					pExecs = mvnPlugin.addNewExecutions();
@@ -229,7 +297,7 @@ public class MavenPomGenerator implements Generator {
 				final XmlCursor execCursor = pExecs.newCursor();
 				execCursor.toFirstContentToken();
 
-				for (final String exec : plugin.getExecutionsAsXml()) {
+				for (final String exec : plugin.executionsAsXml()) {
 					generateFreeXmlBlock(execCursor, exec, "execution");
 				}
 
@@ -241,7 +309,7 @@ public class MavenPomGenerator implements Generator {
 			if (mvnConfig == null) {
 				mvnConfig = mvnPlugin.addNewConfiguration();
 			}
-			generatePropertiesBlock(plugin.getConfiguration(), mvnConfig, "-xml:");
+			generatePropertiesBlock(plugin.configuration(), mvnConfig, "-xml:");
 		}
 	}
 
@@ -256,7 +324,7 @@ public class MavenPomGenerator implements Generator {
 		}
 
 		for (final Module module : projectConfig.getModules()) {
-			mvnModules.addModule(module.getModuleName());
+			mvnModules.addModule(module.moduleName());
 		}
 	}
 
@@ -278,7 +346,7 @@ public class MavenPomGenerator implements Generator {
 
 			final List<org.apache.maven.pom.x400.Repository> mvnRepos = new LinkedList<org.apache.maven.pom.x400.Repository>();
 
-			if (repo.isForArtifacts()) {
+			if (repo.forArtifacts()) {
 				Repositories repos = mvn.getRepositories();
 				if (repos == null) {
 					repos = mvn.addNewRepositories();
@@ -287,7 +355,7 @@ public class MavenPomGenerator implements Generator {
 				mvnRepo.setId("artifact_" + repo.getNormalizedRepositoryId());
 				mvnRepos.add(mvnRepo);
 			}
-			if (repo.isForPlugins()) {
+			if (repo.forPlugins()) {
 				PluginRepositories repos = mvn.getPluginRepositories();
 				if (repos == null) {
 					repos = mvn.addNewPluginRepositories();
@@ -298,12 +366,12 @@ public class MavenPomGenerator implements Generator {
 			}
 
 			for (final org.apache.maven.pom.x400.Repository mvnRepo : mvnRepos) {
-				if (repo.getId() != null) {
-					mvnRepo.setId(repo.getId());
+				if (repo.id() != null) {
+					mvnRepo.setId(repo.id());
 				}
-				mvnRepo.addNewReleases().setEnabled(repo.isForReleases());
-				mvnRepo.addNewSnapshots().setEnabled(repo.isForSnapshots());
-				mvnRepo.setUrl(repo.getUrl());
+				mvnRepo.addNewReleases().setEnabled(repo.forReleases());
+				mvnRepo.addNewSnapshots().setEnabled(repo.forSnapshots());
+				mvnRepo.setUrl(repo.url());
 			}
 		}
 	}

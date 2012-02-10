@@ -32,9 +32,9 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 		private final String variableSuffix;
 		private boolean addToResult;
 	}
-	
-	@Setter
-	private VariableExpander variableExpander;
+
+	// @Setter
+	// private VariableExpander variableExpander;
 
 	@Data
 	public static class ConditionalBlock {
@@ -42,10 +42,10 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 		private final String endKey;
 		private boolean addToResult;
 	}
-	
+
 	@Setter
 	private ConditionalBlock conditionalBlock;
-	
+
 	@Override
 	public List<KeyValue> readKeyValues(final File configFile) {
 		final List<KeyValue> result = new LinkedList<KeyValue>();
@@ -129,8 +129,7 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 					result.addAll(includeKeyValues);
 
 				} else {
-					result.add(new KeyValue(key, val, configFile.getAbsolutePath(), lineReader
-							.getLineNumber()));
+					result.add(new KeyValue(key, val, configFile.getAbsolutePath(), lineReader.getLineNumber()));
 				}
 			}
 

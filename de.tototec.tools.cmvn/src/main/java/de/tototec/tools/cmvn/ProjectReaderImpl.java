@@ -34,7 +34,7 @@ public class ProjectReaderImpl implements ProjectReader {
 			final CmvnProjectConfig projectConfig = new CmvnProjectConfig(file.getParentFile().getAbsolutePath());
 
 			for (final KeyValue keyValue : readKeyValues) {
-				if (supportedKeys.containsKey(keyValue.getKey())) {
+				if (supportedKeys.containsKey(keyValue.key())) {
 					final Map<String, String> values = new LinkedHashMap<String, String>();
 					Dependency project = projectConfig.getProject();
 					if (project != null) {
@@ -52,7 +52,7 @@ public class ProjectReaderImpl implements ProjectReader {
 						}
 					}
 					final KeyValue enhancedKeyValue = enhanceKeyValue(keyValue, values, "$${", "}");
-					supportedKeys.get(keyValue.getKey()).read(projectConfig, enhancedKeyValue);
+					supportedKeys.get(keyValue.key()).read(projectConfig, enhancedKeyValue);
 				} else {
 					throw new RuntimeException("Unsupported config line: " + keyValue);
 				}
@@ -67,7 +67,7 @@ public class ProjectReaderImpl implements ProjectReader {
 	protected KeyValue enhanceKeyValue(final KeyValue keyValue, final Map<String, String> replacements,
 			final String prefix, final String suffix) {
 
-		String value = keyValue.getValue();
+		String value = keyValue.value();
 
 		for (final Entry<String, String> entry : replacements.entrySet()) {
 			final String key = prefix + entry.getKey() + suffix;
@@ -89,6 +89,6 @@ public class ProjectReaderImpl implements ProjectReader {
 			}
 		}
 
-		return new KeyValue(keyValue.getKey(), value, keyValue.getFile(), keyValue.getLine());
+		return new KeyValue(keyValue.key(), value, keyValue.file(), keyValue.line());
 	}
 }

@@ -29,6 +29,7 @@ public class CmvnProjectConfig {
 	private String packaging;
 	private final List<Module> modules = new LinkedList<Module>();
 	private final List<Plugin> plugins = new LinkedList<Plugin>();
+	private final List<Report> reports = new LinkedList<Report>();
 	private Build build;
 	private final Map<String, String> variables = new LinkedHashMap<String, String>();
 	private final List<ConfigClassGenerator> configClasses = new LinkedList<ConfigClassGenerator>();

@@ -62,5 +62,9 @@ public class CmvnProjectConfig {
 	public List<Dependency> getDependencies() {
 		return dependencies;
 	}
+
+	public Map<String, String> getVariables() {
+		return variables;
+	}
 	
 }

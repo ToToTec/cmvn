@@ -27,12 +27,12 @@ object CmvnApp2 {
 
     val baseArgs = new BaseArgs()
     val commandConfigs = List(
-      new ConfigureCmd(), new FetchCmd(), new BuildCmd(), new PomConverterCmd(), new RegenerateCmd())
+      new ConfigureCmd(), new FetchCmd(), new BuildCmd(), new PomConverterCmd(), new RegenerateCmd(), new InfoCmd())
 
     val cp = new CmdlineParser(baseArgs)
     cp.addObject(commandConfigs: _*)
     cp.setDefaultCommandClass(classOf[BuildCmd])
-    
+
     cp.parse(args: _*)
 
     if (baseArgs.help) {
@@ -70,35 +70,31 @@ object CmvnApp2 {
         checkCmdHelp(fetchCmd)
         Console.println("--fetch selected")
 
-        val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile)
-        if (project.isUpToDateRecursive) {
-          if (project.getConfiguredState.getLocalRepository != null) {
-            val toFetch = project.
-              getMultiProjects.
-              flatMap(p => p.getProjectConfig.getDependencies.filter(_.jackageDep)).
-              distinct
+        val project = upToDateProject
+        if (project.getConfiguredState.getLocalRepository != null) {
+          val toFetch = project.
+            getMultiProjects.
+            flatMap(p => p.getProjectConfig.getDependencies.filter(_.jackageDep)).
+            distinct
 
-            Console.println("About to fetch the following packages:\n  " + toFetch.mkString("\n  "))
+          Console.println("About to fetch the following packages:\n  " + toFetch.mkString("\n  "))
 
-            if (!fetchCmd.dryRun) {
-              toFetch.foreach(dep => {
-                val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
-                Console.println("Fetching with Jackage: " + depName)
-                val cmd = fetchCmd.experimentalJackageFetchCmd.
-                  replaceAllLiterally("{PACK}", depName).
-                  replaceAllLiterally("{M2REPO}", project.getConfiguredState.getLocalRepository)
-                import scala.sys.process._
-                Process(cmd).run(true).exitValue match {
-                  case 0 => // ok
-                  case _ => Console.err.println("Could not download Jackage dependency: " + dep)
-                }
-              })
-            }
-          } else {
-            Console.println("No configured Local Maven repository.")
+          if (!fetchCmd.dryRun) {
+            toFetch.foreach(dep => {
+              val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
+              Console.println("Fetching with Jackage: " + depName)
+              val cmd = fetchCmd.experimentalJackageFetchCmd.
+                replaceAllLiterally("{PACK}", depName).
+                replaceAllLiterally("{M2REPO}", project.getConfiguredState.getLocalRepository)
+              import scala.sys.process._
+              Process(cmd).run(true).exitValue match {
+                case 0 => // ok
+                case _ => Console.err.println("Could not download Jackage dependency: " + dep)
+              }
+            })
           }
         } else {
-          Console.println("Project not up-to-date. Skipping fetch.")
+          Console.println("No configured Local Maven repository.")
         }
 
       case convertCmd: PomConverterCmd =>
@@ -107,11 +103,31 @@ object CmvnApp2 {
 
         new PomConverter(convertCmd).convert
 
+      case infoCmd: InfoCmd =>
+        checkCmdHelp(infoCmd)
+
+        if (infoCmd.showVals) {
+          Console.println("Project defined variables:");
+          upToDateProject.getProjectConfig().getVariables() foreach {
+            case (k, v) => Console.println(k + " = " + v)
+          }
+        }
+
       case other =>
         // Delegate to old CmvnApp
         CmvnApp.main(args)
     }
 
+  }
+
+  def upToDateProject: CmvnProject = {
+    val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile)
+    if (project.isUpToDateRecursive) {
+      project
+    } else {
+      // TODO: use specific exception
+      throw new RuntimeException("Project not up-to-date.")
+    }
   }
 
 }

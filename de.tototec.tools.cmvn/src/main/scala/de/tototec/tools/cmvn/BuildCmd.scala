@@ -1,24 +1,17 @@
 package de.tototec.tools.cmvn
 
-import com.beust.jcommander.Parameters
-import com.beust.jcommander.Parameter
+import de.tototec.cmdoption.CmdCommand
+import de.tototec.cmdoption.CmdCommand
+import de.tototec.cmdoption.CmdOption
 
-@Parameters(commandNames = Array("--build"))
+@CmdCommand(names = Array("--build"), description = "Build the project and all sub projects (Requires a configured project)")
 class BuildCmd extends HelpAwareCmd {
 
-  @Parameter(names = Array("--build-from-root"))
+  @CmdOption(names = Array("--build-from-root"),
+    description = "Run Maven from root project with additional '-pl <current-project>'")
   var buildFromRoot = false
 
-  @Parameter(names = Array("--generate-ivy"), description = "DO NOT USE", hidden = true)
-  var generateIvy = false
-
-  @Parameter(names = Array("--force-regenerate", "--force"))
-  var forceRegenerate = false
-  
-  @Parameter(names = Array("--regenerate"))
-  val regenerate = false
-  
-  @Parameter
+  @CmdOption(args = Array("mvnarg"), description = "Arguments delegated to the Maven build tool.", minCount = 1, maxCount = -1)
   var mvnArgs = new java.util.LinkedList[String]
 
 }

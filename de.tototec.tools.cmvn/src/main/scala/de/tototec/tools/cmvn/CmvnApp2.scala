@@ -1,8 +1,5 @@
 package de.tototec.tools.cmvn
 
-import com.beust.jcommander.JCommander
-import com.beust.jcommander.Parameter
-import com.beust.jcommander.Parameters
 import collection.JavaConversions._
 import java.io.FileNotFoundException
 import com.esotericsoftware.yamlbeans.YamlReader
@@ -12,15 +9,17 @@ import com.esotericsoftware.yamlbeans.YamlWriter
 import java.util.Date
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Directory
-import com.beust.jcommander.MissingCommandException
 import de.tototec.tools.cmvn.pomToCmvn.PomConverter
+import de.tototec.cmdoption.CmdOption
+import de.tototec.cmdoption.CmdlineParser
+import de.tototec.cmdoption.DefaultUsageFormatter
 
 object CmvnApp2 {
 
   class BaseArgs {
-    @Parameter(names = Array("-h", "--help"), description = "Show this help screen")
+    @CmdOption(names = Array("--help", "-h"), description = "Show this help screen", isHelp = true)
     var help: Boolean = _
-    @Parameter(names = Array("--version", "-version"), description = "Show the program version")
+    @CmdOption(names = Array("--version"), description = "Show the program version")
     var version: Boolean = _
   }
 
@@ -28,79 +27,46 @@ object CmvnApp2 {
 
     val baseArgs = new BaseArgs()
     val commandConfigs = List(
-      new ConfigureCmd(), new FetchCmd(), new BuildCmd(), new PomConverterCmd())
+      new ConfigureCmd(), new FetchCmd(), new BuildCmd(), new PomConverterCmd(), new RegenerateCmd())
 
-    def newJCommander = {
-      val jc = new JCommander
-      jc.addObject(baseArgs)
-      commandConfigs.foreach(jc.addCommand(_))
-      jc
+    val cp = new CmdlineParser(baseArgs)
+    cp.addObject(commandConfigs: _*)
+    cp.setDefaultCommandClass(classOf[BuildCmd])
+    
+    cp.parse(args: _*)
+
+    if (baseArgs.help) {
+      cp.usage
+      System.exit(0)
     }
-    var jc = newJCommander
-
-    // FIXME: see https://github.com/cbeust/jcommander/issues/100, we use try-catch block for now
-    //    jc.parseWithoutValidation(args: _*)
-    //    val argsWithCommand = jc.getParsedCommand match {
-    //      case null => Array(classOf[BuildCmd].getAnnotation(classOf[Parameters]).commandNames.head) ++ args
-    //      case _ => args
-    //    }
-
-    def checkHelp {
-      if (baseArgs.help) {
-        jc.usage
-        System.exit(0)
-      }
-    }
-
-    def parseDefaultCmd {
-      jc = newJCommander
-      jc.parse((Array(classOf[BuildCmd].getAnnotation(classOf[Parameters]).commandNames.head) ++ args): _*)
-    }
-
-    // "--build" is default, if no command was given
-    try {
-      jc.parseWithoutValidation(args: _*)
-      checkHelp
-      if (jc.getParsedCommand == null) parseDefaultCmd
-    } catch {
-      case e: MissingCommandException => parseDefaultCmd
-    }
-
-    checkHelp
-
-    val parsedCommandClassOption = commandConfigs.find(cmdConfig => {
-      cmdConfig.getClass.getAnnotation(classOf[Parameters]).commandNames.contains(jc.getParsedCommand)
-    })
 
     def checkCmdHelp(helpAware: HelpAwareCmd) {
       if (helpAware.help) {
-        jc.getCommands.get(jc.getParsedCommand).usage()
+        cp.commandUsage(helpAware.getClass())
         System.exit(0)
       }
     }
 
-    parsedCommandClassOption match {
+    cp.getParsedCommandObject() match {
 
-      case None => Console.println("No command selected")
+      case null => Console.println("No command selected")
 
-      case Some(confCmd: ConfigureCmd) => {
+      case confCmd: ConfigureCmd =>
         checkCmdHelp(confCmd)
         Console.println("--configure selected")
         val confRequest = new ConfigureRequest(confCmd)
         val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile)
-        project.configureProjectRecursive(confRequest);
-      }
+        project.configureProjectRecursive(confRequest)
 
-      case Some(buildCmd: BuildCmd) => {
+      case buildCmd: BuildCmd =>
         checkCmdHelp(buildCmd)
         Console.println("--build selected")
         //        val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile)
         //        val upToDate = project.isUpToDateRecursive
         // delegate to old code
         CmvnApp.main(args)
-      }
 
-      case Some(fetchCmd: FetchCmd) => {
+      case fetchCmd: FetchCmd =>
         checkCmdHelp(fetchCmd)
         Console.println("--fetch selected")
 
@@ -134,25 +100,18 @@ object CmvnApp2 {
         } else {
           Console.println("Project not up-to-date. Skipping fetch.")
         }
-      }
 
-      case Some(convertCmd: PomConverterCmd) => {
+      case convertCmd: PomConverterCmd =>
         checkCmdHelp(convertCmd)
         Console.println("--convert-pom selected")
 
         new PomConverter(convertCmd).convert
-      }
 
-      case Some(other) => {
+      case other =>
+        // Delegate to old CmvnApp
         CmvnApp.main(args)
-      }
     }
 
   }
 
-}
-
-trait HelpAwareCmd {
-  @Parameter(names = Array("--help"), hidden = true)
-  var help: Boolean = false
 }

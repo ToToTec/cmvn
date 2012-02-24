@@ -1,12 +1,12 @@
 package de.tototec.tools.cmvn
 
-import com.beust.jcommander.Parameters
-import com.beust.jcommander.Parameter
+import de.tototec.cmdoption.CmdOption
+import de.tototec.cmdoption.CmdCommand
 
-@Parameters(commandNames = Array("--regenerate", "--reconfigure"))
+@CmdCommand(names = Array("--regenerate", "--reconfigure"), description = "Regenerate/reconfigure all files with same config")
 class RegenerateCmd extends HelpAwareCmd {
 
-  @Parameter(names = Array("--force"))
+  @CmdOption(names = Array("--force"), description = "Configure and generate all files")
   var force: Boolean = false
-  
+
 }

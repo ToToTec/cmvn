@@ -77,11 +77,18 @@ public class CmvnConfiguredState {
 		yamlWriter.close();
 		fileWriter.close();
 	}
-	
-	
-	//// Boilerplate below
-	
+
+	// // Boilerplate below
+
 	public String getLocalRepository() {
 		return localRepository;
+	}
+
+	public String getProjectFile() {
+		return projectFile;
+	}
+
+	public String getRootProjectFile() {
+		return rootProjectFile;
 	}
 }

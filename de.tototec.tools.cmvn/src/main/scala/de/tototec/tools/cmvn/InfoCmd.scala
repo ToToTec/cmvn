@@ -7,6 +7,21 @@ import de.tototec.cmdoption.CmdOption
 class InfoCmd extends HelpAwareCmd {
 
   @CmdOption(names = Array("--show-vals"), description = "Show all project variables")
-  val showVals = false
+  var showVals = false
+
+  @CmdOption(names = Array("--configuration"), description = "Show the current project configuration")
+  var projectConfiguration = false
+
+  @CmdOption(names = Array("--select"), args = Array("LABEL"), description = "Select a specific information", maxCount = -1)
+  val selectedLabels = new java.util.LinkedList[String]
+
+  @CmdOption(names = Array("--raw"), description = "Show raw output, do not print the label(s).")
+  var rawOutput = false
   
+//  @CmdOption(names = Array("--conf-all"), description = "Show the current project configuration")
+//  var projectConfiguration = false
+//
+//  @CmdOption(names = Array("--conf-get"), args = Array("LABEL"), description = "Select a specific information from the current project configuration")
+//  var selectedLabel: String = _
+
 }

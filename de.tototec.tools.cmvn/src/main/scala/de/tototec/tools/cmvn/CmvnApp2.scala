@@ -13,6 +13,7 @@ import de.tototec.tools.cmvn.pomToCmvn.PomConverter
 import de.tototec.cmdoption.CmdOption
 import de.tototec.cmdoption.CmdlineParser
 import de.tototec.cmdoption.DefaultUsageFormatter
+import scala.collection.mutable
 
 object CmvnApp2 {
 
@@ -106,8 +107,27 @@ object CmvnApp2 {
       case infoCmd: InfoCmd =>
         checkCmdHelp(infoCmd)
 
+        if (infoCmd.projectConfiguration) {
+          val project = upToDateProject
+          val conf = project.getConfiguredState()
+          var projConfMap =
+            ("project file" -> conf.getProjectFile()) ::
+              ("root project file" -> conf.getRootProjectFile()) ::
+              Nil
+
+          val result = projConfMap filter {
+            case (k, v) => infoCmd.selectedLabels.isEmpty || infoCmd.selectedLabels.contains(k)
+          }
+
+          result foreach {
+            case (k, v) =>
+              if (!infoCmd.rawOutput) Console.print(k + ": ")
+              Console.println(v)
+          }
+
+        }
+
         if (infoCmd.showVals) {
-          Console.println("Project defined variables:");
           upToDateProject.getProjectConfig().getVariables() foreach {
             case (k, v) => Console.println(k + " = " + v)
           }

@@ -17,11 +17,14 @@ class InfoCmd extends HelpAwareCmd {
 
   @CmdOption(names = Array("--raw"), description = "Show raw output, do not print the label(s).")
   var rawOutput = false
-  
-//  @CmdOption(names = Array("--conf-all"), description = "Show the current project configuration")
-//  var projectConfiguration = false
-//
-//  @CmdOption(names = Array("--conf-get"), args = Array("LABEL"), description = "Select a specific information from the current project configuration")
-//  var selectedLabel: String = _
+
+  //  @CmdOption(names = Array("--effective-project"), description = "Show the effective project")
+  //  var effectiveProject = false
+
+  //  @CmdOption(names = Array("--conf-all"), description = "Show the current project configuration")
+  //  var projectConfiguration = false
+  //
+  //  @CmdOption(names = Array("--conf-get"), args = Array("LABEL"), description = "Select a specific information from the current project configuration")
+  //  var selectedLabel: String = _
 
 }

@@ -33,11 +33,14 @@ object CmvnApp2 {
     val cp = new CmdlineParser(baseArgs)
     cp.addObject(commandConfigs: _*)
     cp.setDefaultCommandClass(classOf[BuildCmd])
+    cp.setProgramName("cmvn")
+    cp.setUsageFormatter(new DefaultUsageFormatter(false))
 
     cp.parse(args: _*)
 
     if (baseArgs.help) {
       cp.usage
+      System.out.println("\nUse cmvn [command] --help for detailed command help.")
       System.exit(0)
     }
 
@@ -56,7 +59,7 @@ object CmvnApp2 {
         checkCmdHelp(confCmd)
         Console.println("--configure selected")
         val confRequest = new ConfigureRequest(confCmd)
-        val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile)
+        val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile);
         project.configureProjectRecursive(confRequest)
 
       case buildCmd: BuildCmd =>
@@ -129,9 +132,13 @@ object CmvnApp2 {
 
         if (infoCmd.showVals) {
           upToDateProject.getProjectConfig().getVariables() foreach {
-            case (k, v) => Console.println(k + " = " + v)
+            case (k, v) => Console.println(k + "=" + v)
           }
         }
+
+      //        if(infoCmd.effectiveProject) {
+      //          upToDateProject
+      //        }
 
       case other =>
         // Delegate to old CmvnApp

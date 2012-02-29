@@ -570,7 +570,7 @@ For convenience, you may want to create a simple shell script \code{cmvn} as an 
 \begin{Cmdline}[caption={Shell wrapper: \code{cmvn}}]
 #!/bin/sh
 # pass all arguments to cmvn with $@
-exec java -jar cmvn-executable-0.1.3.jar $@
+exec java -jar cmvn-executable-0.1.3.jar "$@"
 \end{Cmdline}
 
 \subsection{Windows: Using the binary}

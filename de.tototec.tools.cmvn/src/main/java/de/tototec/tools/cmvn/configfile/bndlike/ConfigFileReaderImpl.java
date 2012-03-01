@@ -20,9 +20,12 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 	public static class IncludeFileLine {
 		private final String includeKey;
 		private boolean addToResult;
+		public IncludeFileLine(String includeKey, boolean addToResult) {
+			this.includeKey = includeKey;
+			this.addToResult = addToResult;
+		}
 	}
 
-	@Setter
 	private IncludeFileLine includeFileLine;
 
 	@Data
@@ -136,5 +139,9 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 		} while (line != null);
 
 		return result;
+	}
+	
+	public void setIncludeFileLine(IncludeFileLine includeFileLine) {
+		this.includeFileLine = includeFileLine;
 	}
 }

@@ -22,6 +22,7 @@ import org.apache.maven.pom.x400.Model.Dependencies;
 import org.apache.maven.pom.x400.Model.PluginRepositories;
 import org.apache.maven.pom.x400.Model.Properties;
 import org.apache.maven.pom.x400.Model.Repositories;
+import org.apache.maven.pom.x400.Parent;
 import org.apache.maven.pom.x400.Plugin.Configuration;
 import org.apache.maven.pom.x400.Plugin.Executions;
 import org.apache.maven.pom.x400.ProjectDocument;
@@ -93,6 +94,7 @@ public class MavenPomGenerator implements Generator {
 		}
 
 		generateMarkerComment(mvn);
+		generateParentProject(mvn);
 		generateProjectInfo(mvn);
 		generateModules(mvn);
 		generateProperties(mvn);
@@ -173,13 +175,12 @@ public class MavenPomGenerator implements Generator {
 		if (build.targetDir() != null) {
 			mvnBuild.setDirectory(build.targetDir());
 		}
-		if(build.classesDir() != null) {
+		if (build.classesDir() != null) {
 			mvnBuild.setOutputDirectory(build.classesDir());
 		}
-		if(build.testClassesDir() != null) {
+		if (build.testClassesDir() != null) {
 			mvnBuild.setTestOutputDirectory(build.testClassesDir());
 		}
-		
 
 	}
 
@@ -187,45 +188,45 @@ public class MavenPomGenerator implements Generator {
 		if (projectConfig.getReports().isEmpty()) {
 			return;
 		}
-		
+
 		Reporting mvnReporting = mvn.getReporting();
-		if(mvnReporting == null) {
+		if (mvnReporting == null) {
 			mvnReporting = mvn.addNewReporting();
 		}
-		
-		if(projectConfig.getBuild().siteDir() != null) {
+
+		if (projectConfig.getBuild().siteDir() != null) {
 			mvnReporting.setOutputDirectory(projectConfig.getBuild().siteDir());
 		}
 
 		org.apache.maven.pom.x400.Reporting.Plugins mvnReports = mvnReporting.getPlugins();
-		if(mvnReports == null) {
+		if (mvnReports == null) {
 			mvnReports = mvnReporting.addNewPlugins();
 		}
-		
-		for(Report report : projectConfig.getReports()) {
+
+		for (Report report : projectConfig.getReports()) {
 			Dependency reportInfo = report.reportInfo();
-			
+
 			ReportPlugin mvnReport = null;
-			
-			for(ReportPlugin mvnExistingReport : mvnReports.getPluginArray()) {
+
+			for (ReportPlugin mvnExistingReport : mvnReports.getPluginArray()) {
 				if (reportInfo.groupId().equals(mvnExistingReport.getGroupId())
 						&& reportInfo.artifactId().equals(mvnExistingReport.getArtifactId())) {
 					mvnReport = mvnExistingReport;
 					break;
 				}
 			}
-			
-			if(mvnReport == null) {
+
+			if (mvnReport == null) {
 				mvnReport = mvnReports.addNewPlugin();
 				mvnReport.setGroupId(reportInfo.groupId());
 				mvnReport.setArtifactId(reportInfo.artifactId());
 			}
-			
+
 			mvnReport.setVersion(reportInfo.version());
 
-			if(!report.reportSetsAsXml().isEmpty()) {
+			if (!report.reportSetsAsXml().isEmpty()) {
 				ReportSets mvnReportSets = mvnReport.getReportSets();
-				if(mvnReportSets == null) {
+				if (mvnReportSets == null) {
 					mvnReportSets = mvnReport.addNewReportSets();
 				}
 				final XmlCursor execCursor = mvnReportSets.newCursor();
@@ -238,7 +239,7 @@ public class MavenPomGenerator implements Generator {
 			}
 		}
 	}
-	
+
 	protected void generatePlugins(final Model mvn, final boolean forceSystemScope) {
 		if (projectConfig.getPlugins().isEmpty()) {
 			return;
@@ -442,6 +443,20 @@ public class MavenPomGenerator implements Generator {
 		final String packaging = projectConfig.getPackaging();
 		if (packaging != null) {
 			mvn.setPackaging(packaging);
+		}
+	}
+
+	protected void generateParentProject(final Model mvn) {
+		final Dependency parent = projectConfig.parentProject();
+		if (parent != null) {
+			Parent mvnParent = mvn.getParent();
+			if (mvnParent == null) {
+				mvnParent = mvn.addNewParent();
+			}
+
+			mvnParent.setGroupId(parent.groupId());
+			mvnParent.setArtifactId(parent.artifactId());
+			mvnParent.setVersion(parent.version());
 		}
 	}
 

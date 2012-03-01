@@ -1,9 +1,9 @@
 package de.tototec.tools.cmvn;
 
+import java.text.MessageFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import lombok.Getter;
 import de.tototec.tools.cmvn.configfile.KeyValue;
 import de.tototec.tools.cmvn.configfile.KeyValueWithOptions;
 import de.tototec.tools.cmvn.model.Build;
@@ -44,6 +44,28 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				} else {
 					throw new RuntimeException("Unsupported project option: " + option);
 				}
+			}
+		}
+	},
+
+	PARENT("parent") {
+		@Override
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
+
+			Output.jInfo(MessageFormat
+					.format("Found a parent declaration. You should avoid parent projects as they lead to unreproducible builds. ({0}:{1})",
+							keyValue.file(), keyValue.line()));
+
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue, ";", "=", "true");
+			final String[] split = withOptions.value().split(":", 3);
+			if (split.length < 3) {
+				throw new RuntimeException("Unsupported parent value: " + keyValue);
+			}
+			final Dependency projectInfo = new Dependency(split[0], split[1], split[2]);
+			projectConfig.parentProject_$eq(projectInfo);
+
+			for (final KeyValue option : withOptions.options()) {
+				throw new RuntimeException("Unsupported parent option: " + option);
 			}
 		}
 	},
@@ -209,8 +231,8 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		@Override
 		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			// We only have options, so we start the value with an ";"
-			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.key(), ";"
-					+ keyValue.value(), ";", "=", "true");
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.key(), ";" + keyValue.value(),
+					";", "=", "true");
 			withOptions.file_$eq(keyValue.file());
 			withOptions.line_$eq(keyValue.line());
 
@@ -260,8 +282,8 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		@Override
 		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			// We only have options, so we start the value with an ";"
-			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.key(), ";"
-					+ keyValue.value(), ";", "=", "true");
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.key(), ";" + keyValue.value(),
+					";", "=", "true");
 			withOptions.file_$eq(keyValue.file());
 			withOptions.line_$eq(keyValue.line());
 
@@ -309,8 +331,8 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		@Override
 		public void read(CmvnProjectConfig projectConfig, KeyValue keyValue) {
 			// We only have options, so we start the value with an ";"
-			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.key(), ";"
-					+ keyValue.value(), ";", "=", "true");
+			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.key(), ";" + keyValue.value(),
+					";", "=", "true");
 			withOptions.file_$eq(keyValue.file());
 			withOptions.line_$eq(keyValue.line());
 
@@ -350,11 +372,14 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	;
 
-	@Getter
 	private final String[] key;
 
 	private CmvnConfigKey(final String... key) {
 		this.key = key;
+	}
+
+	public String[] getKey() {
+		return key;
 	}
 
 	public static void assertVersion(String requiredVersionString, String currentCmvnVersionString,

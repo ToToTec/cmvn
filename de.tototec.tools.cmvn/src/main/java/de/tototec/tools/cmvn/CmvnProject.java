@@ -22,8 +22,8 @@ import de.tototec.tools.cmvn.model.Module;
 @ToString(exclude = { "scannedProjects" })
 public class CmvnProject {
 
-	private static final String DEFAULT_PROJECT_FILE_NAME = "cmvn.conf";
-	private static final String DEFAULT_PROJECT_STATE_FILE_NAME = ".cmvn.state";
+	public static final String DEFAULT_PROJECT_FILE_NAME = Constants.CmvnProjectFileName();
+	public static final String DEFAULT_PROJECT_STATE_FILE_NAME = Constants.CmvnConfiguredStateFileName();
 	private static final String DEFAULT_MVN_SETTINGS_DIR_NAME = ".cmvn";
 
 	private final File projectFile;
@@ -66,8 +66,7 @@ public class CmvnProject {
 			reader.setProjectConfigKeyValueReader(supportedKeys);
 
 			final ConfigFileReaderImpl configFileReader = new ConfigFileReaderImpl();
-			final IncludeFileLine includeFileLine = new ConfigFileReaderImpl.IncludeFileLine("-include");
-			includeFileLine.setAddToResult(true);
+			final IncludeFileLine includeFileLine = new ConfigFileReaderImpl.IncludeFileLine("-include", true);
 			configFileReader.setIncludeFileLine(includeFileLine);
 			reader.setConfigFileReader(configFileReader);
 		}
@@ -142,11 +141,12 @@ public class CmvnProject {
 			}
 		}
 
-		if(getConfiguredState() == null) {
-			// no configuration at all, so project not configure and thus not up-to-date
+		if (getConfiguredState() == null) {
+			// no configuration at all, so project not configure and thus not
+			// up-to-date
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -199,7 +199,7 @@ public class CmvnProject {
 	public CmvnProjectConfig getProjectConfig() {
 		return projectConfig;
 	}
-	
+
 	public CmvnConfiguredState getConfiguredState() {
 		if (configuredState == null) {
 			configuredState = readConfiguredState();
@@ -338,8 +338,9 @@ public class CmvnProject {
 				configuredState.setReferenceLocalArtifactsAsSystemScope(configureRequest
 						.getSystemScopeForLocalProjects().booleanValue());
 			}
-			if(configureRequest.getEclipseForceLocalWorkspaceRefs() != null) {
-				configuredState.setEclipseForceLocalWorkspaceRefs(configureRequest.getEclipseForceLocalWorkspaceRefs().booleanValue());
+			if (configureRequest.getEclipseForceLocalWorkspaceRefs() != null) {
+				configuredState.setEclipseForceLocalWorkspaceRefs(configureRequest.getEclipseForceLocalWorkspaceRefs()
+						.booleanValue());
 			}
 			// if (configureRequest.getSkipProvisioning() != null) {
 			// configuredState.setProvisioningEnabled(!configureRequest.getSkipProvisioning());
@@ -434,11 +435,7 @@ public class CmvnProject {
 
 		if (false) {
 			final File configFile = new File(new File(projectFile.getParentFile(), ".cmvn"), "projectConfig");
-			try {
-				projectConfig.toYamlFile(configFile);
-			} catch (final IOException e) {
-				throw new RuntimeException("Could not write projectConfig to " + configFile, e);
-			}
+			projectConfig.toYamlFile(configFile);
 		}
 	}
 

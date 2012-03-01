@@ -30,7 +30,7 @@ class PomConverter(config: PomConverterCmd) {
     val xml = XML.loadFile(pomFile.jfile)
 
     // Project
-    val parGroupId = (xml \ "parent" \ "groupId") match {
+    val parGroupId = xml \ "parent" \ "groupId" match {
       case x if x.isEmpty => ""
       case x => x.head.text
     }
@@ -41,6 +41,10 @@ class PomConverter(config: PomConverterCmd) {
     val parVer = xml \ "parent" \ "version" match {
       case x if x.isEmpty => ""
       case x => x.head.text
+    }
+    xml \ "parent" match {
+      case x if x.isEmpty => ""
+      case _ => writeln("parent: " + parGroupId + ":" + parArtId + ":" + parVer)
     }
 
     val groupId = xml \ "groupId" match {

@@ -209,13 +209,9 @@ public class CmvnProject {
 
 	protected CmvnConfiguredState readConfiguredState() {
 		if (cmvnStateFile.exists()) {
-			try {
-				final CmvnConfiguredState readState = new CmvnConfiguredState();
-				readState.fromYamlFile(cmvnStateFile);
-				return readState;
-			} catch (final IOException e) {
-				throw new RuntimeException("Could not read configured state file: " + cmvnStateFile, e);
-			}
+			final CmvnConfiguredState readState = new CmvnConfiguredState();
+			readState.fromYamlFile(cmvnStateFile);
+			return readState;
 		} else {
 			return null;
 		}
@@ -355,11 +351,7 @@ public class CmvnProject {
 
 	private void persistCmvnState(final CmvnConfiguredState configuredState) {
 		// Persisting configured state
-		try {
-			configuredState.toYamlFile(cmvnStateFile);
-		} catch (final IOException e) {
-			throw new RuntimeException("Could not write configured state file: " + cmvnStateFile, e);
-		}
+		configuredState.toYamlFile(cmvnStateFile);
 		this.configuredState = configuredState;
 	}
 

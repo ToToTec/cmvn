@@ -14,10 +14,8 @@ import de.tototec.tools.cmvn.model.Dependency;
 
 public class ProjectReaderImpl implements ProjectReader {
 
-	@Setter
 	private Map<String, ProjectConfigKeyValueReader> projectConfigKeyValueReader;
 
-	@Setter
 	private ConfigFileReader configFileReader;
 
 	@Override
@@ -90,5 +88,15 @@ public class ProjectReaderImpl implements ProjectReader {
 		}
 
 		return new KeyValue(keyValue.key(), value, keyValue.file(), keyValue.line());
+	}
+
+	// Boilerplate
+
+	public void setConfigFileReader(ConfigFileReader configFileReader) {
+		this.configFileReader = configFileReader;
+	}
+
+	public void setProjectConfigKeyValueReader(Map<String, ProjectConfigKeyValueReader> projectConfigKeyValueReader) {
+		this.projectConfigKeyValueReader = projectConfigKeyValueReader;
 	}
 }

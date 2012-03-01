@@ -93,4 +93,59 @@ public class ConfigureRequest {
 		}
 		return msgs;
 	}
+
+	// Boilerplate below
+
+	public String getMavenSettings() {
+		return mavenSettings;
+	}
+
+	public String getMavenRepo() {
+		return mavenRepo;
+	}
+	
+	public String getMavenExecutable() {
+		return mavenExecutable;
+	}
+	
+	public void setMavenExecutable(String mavenExecutable) {
+		this.mavenExecutable = mavenExecutable;
+	}
+	
+	public Boolean getAutoReconfigure() {
+		return autoReconfigure;
+	}
+	
+	public void setAutoReconfigure(Boolean autoReconfigure) {
+		this.autoReconfigure = autoReconfigure;
+	}
+	
+	public Boolean getEclipseForceLocalWorkspaceRefs() {
+		return eclipseForceLocalWorkspaceRefs;
+	}
+	
+	public Boolean getForce() {
+		return force;
+	}
+	
+	public Boolean getForceSystemScope() {
+		return forceSystemScope;
+	}
+	
+	public void setForceSystemScope(Boolean forceSystemScope) {
+		this.forceSystemScope = forceSystemScope;
+	}
+	
+	public Boolean getGenerateIvy() {
+		return generateIvy;
+	}
+	
+	public void setGenerateIvy(Boolean generateIvy) {
+		this.generateIvy = generateIvy;
+	}
+	
+	public Boolean getSystemScopeForLocalProjects() {
+		return systemScopeForLocalProjects;
+	}
+	
 }

@@ -1,20 +1,27 @@
 package de.tototec.tools.cmvn.pomToCmvn
 
-import scala.tools.nsc.io.File
-import de.tototec.tools.cmvn.PomConverterCmd
-import scala.xml.XML
-import de.tototec.tools.cmvn.Config
-import de.tototec.tools.cmvn.model.{ Dependency => CDependency }
-import scala.xml.NodeSeq
-import scala.xml.Utility
 import java.util.Date
 
-class PomConverter(config: PomConverterCmd) {
+import scala.Array.canBuildFrom
+import scala.tools.nsc.io.File
+import scala.tools.nsc.io.Directory
+import scala.xml.Utility
+import scala.xml.XML
 
-  def convert = {
+import de.tototec.tools.cmvn.Config
+import de.tototec.tools.cmvn.Output
+import de.tototec.tools.cmvn.PomConverterCmd
 
+class PomConverter() {
+
+  def convert(config: PomConverterCmd) {
     val pomFile = File(config.pomFile)
     val cmvnFile = File(config.cmvnFile)
+    convert(recursive = config.recursive, modulesAreCmvn = config.modulesAreCmvn, dryRun = config.dryRun, pomFile = pomFile, cmvnFile = cmvnFile)
+  }
+
+  protected def convert(recursive: Boolean, modulesAreCmvn: Boolean, dryRun: Boolean, pomFile: File, cmvnFile: File) {
+    Output.verbose("Converting " + pomFile + " to " + cmvnFile)
 
     if (cmvnFile.exists) {
       // TODO: create backup file
@@ -73,10 +80,11 @@ class PomConverter(config: PomConverterCmd) {
     }
 
     // Module
-    xml \ "modules" \ "module" foreach { module =>
+    val moduleNames = xml \ "modules" \ "module" map { module =>
       write("module: " + module.text)
-      if (!config.modulesAreCmvn) write(";skipCmvn")
+      if (!modulesAreCmvn) write(";skipCmvn")
       writeln()
+      module.text
     }
 
     // Build
@@ -300,10 +308,16 @@ class PomConverter(config: PomConverterCmd) {
 
     // TODO: Reporting
 
-    Console.println("Generated cmvn config:\n" + newCmvnText)
+    Output.info("Generated cmvn config:\n" + newCmvnText)
 
-    if (!config.dryRun) {
+    if (!dryRun) {
       cmvnFile.writeAll(newCmvnText)
+    }
+
+    if (recursive) moduleNames foreach { name =>
+      val pom = pomFile.parent / name / File("pom.xml")
+      val cmvn = cmvnFile.parent / name / File("cmvn.conf")
+      convert(recursive = recursive, modulesAreCmvn = modulesAreCmvn, dryRun = dryRun, pomFile = pom, cmvnFile = cmvn)
     }
 
   }

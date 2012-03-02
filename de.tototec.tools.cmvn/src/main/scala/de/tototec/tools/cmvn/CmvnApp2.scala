@@ -82,7 +82,10 @@ object CmvnApp2 {
 
       case buildCmd: BuildCmd =>
         checkCmdHelp(buildCmd)
-        Console.println("--build selected")
+        Output.verbose("--build selected")
+        
+        
+        
         //        val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile)
         //        val upToDate = project.isUpToDateRecursive
         // delegate to old code
@@ -123,7 +126,7 @@ object CmvnApp2 {
         checkCmdHelp(convertCmd)
         Output.verbose("--convert-pom selected")
 
-        new PomConverter(convertCmd).convert
+        new PomConverter().convert(convertCmd)
 
       case infoCmd: InfoCmd =>
         Output.verbose("--info selected")
@@ -154,10 +157,6 @@ object CmvnApp2 {
             case (k, v) => Console.println(k + "=" + v)
           }
         }
-
-      //        if(infoCmd.effectiveProject) {
-      //          upToDateProject
-      //        }
 
       case other =>
         // Delegate to old CmvnApp

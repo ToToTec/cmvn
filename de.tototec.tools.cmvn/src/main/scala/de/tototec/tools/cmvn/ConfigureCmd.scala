@@ -24,30 +24,36 @@ object ConfigureCmd {
 @CmdCommand(names = Array("--configure"),
   description = "Configure the build system and environment (required before any other command)")
 class ConfigureCmd extends HelpAwareCmd {
+  
   @CmdOption(names = Array("--maven-bin"), args = Array("CMD"))
   var mavenExecutable: String = _
+  
   @CmdOption(names = Array("--no-auto-reconfigure"),
     description = "Disable automatic reconfiguration for out-of-date files")
   private var _noAutoReconfigure = false
   def autoReconfigure = !_noAutoReconfigure
-  @CmdOption(names = Array("--force"), description = "Configure and generate all files")
-  var force = false
+
   @CmdOption(names = Array("--maven-settings"), args = Array("FILE"),
     description = "Use the given Maven settings file (may result in unrepeatable builds, so you should prefer --maven-repo option). Projects configured with this option may not work well when using the Cmvn Eclipse Plugin.")
   var mavenSettings: String = _
+  
   @CmdOption(names = Array("--maven-repo"), args = Array("DIR"),
     description = "Use the given (existing) directory DIR as local Maven repository")
   var mavenRepo: String = _
+  
   @CmdOption(names = Array("--generate-ivy"),
     description = "(Experimental) Generate ivy.xml and ivysettings.xml")
   var generateIvy = false
+  
   @CmdOption(names = Array("--force-system-scopy"),
     description = "(Experimental) Forces all dependencies to be of system scope (in pom.xml)")
   var forceSystemScope = false
-  @CmdOption(names = Array("--local-artifacts-as-system-scope"),
+  
+  @CmdOption(names = Array("--local-artifacts-as-system-scope"), hidden = true,
     description = "(Experimental) Convert dependencies to local artifact to system-scope dependenies")
   var systemScopeForLocalProjects = false
-  @CmdOption(names = Array("--eclipse-force-local-workspace-refs"),
+  
+  @CmdOption(names = Array("--eclipse-force-local-workspace-refs"), hidden = true,
     description = "(Experimental) When generating .classpath files, force local project to be generated as Worspace references")
   var eclipseForceLocalWorkspaceRefs = false
 

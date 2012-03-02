@@ -22,6 +22,8 @@ object CmvnApp2 {
     var help: Boolean = _
     @CmdOption(names = Array("--version"), description = "Show the program version")
     var version: Boolean = _
+    @CmdOption(names = Array("--verbose", "-v"), description = "Be more verbose and print somewhat more output")
+    var verbose: Boolean = _
   }
 
   def main(args: Array[String]) {
@@ -44,6 +46,10 @@ object CmvnApp2 {
       System.exit(0)
     }
 
+    if (baseArgs.verbose) {
+      Output.verboseMode = true
+    }
+
     def checkCmdHelp(helpAware: HelpAwareCmd) {
       if (helpAware.help) {
         cp.commandUsage(helpAware.getClass())
@@ -57,10 +63,9 @@ object CmvnApp2 {
 
       case confCmd: ConfigureCmd =>
         checkCmdHelp(confCmd)
-        Console.println("--configure selected")
-        val confRequest = new ConfigureRequest(confCmd)
-        val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile);
-        project.configureProjectRecursive(confRequest)
+        Output.verbose("--configure selected")
+        val project = new UnconfiguredCmvnProject(None, Directory(System.getProperty("user.dir")))
+        project.configureProjectRecursive(confCmd)
 
       case buildCmd: BuildCmd =>
         checkCmdHelp(buildCmd)

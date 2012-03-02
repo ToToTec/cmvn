@@ -6,8 +6,12 @@ object Output {
     Console.out.println(msg)
   }
 
+  var verboseMode: Boolean = false
+
   def verbose(msg: => String) {
-    Console.out.println(msg)
+    if (verboseMode) {
+      Console.out.println(msg)
+    }
   }
 
   // Java compat

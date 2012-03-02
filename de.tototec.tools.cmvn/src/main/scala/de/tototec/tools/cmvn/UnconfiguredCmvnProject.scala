@@ -55,26 +55,7 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
 
   val stateFile = projectFile.parent / File(Constants.CmvnConfiguredStateFileName)
 
-  //  val inputsStateFile = projectFile.parent / File(Constants.CmvnConfiguredInputFileName)
-
   protected var configuredState: CmvnConfiguredState = null
-
-  // Comment out, because this should only neccesary, if we check for generated 
-  //  protected val (inputState, projectConfig) = {
-  //    val inputState = new CmvnConfiguredInputState()
-  //    inputState.inputFilesWithTimeStamp.put(projectFile.toAbsolute.path, projectFile.lastModified)
-  //    val inputFileCollector = new ProjectConfigKeyValueReader() {
-  //      override def read(projectConfig: CmvnProjectConfig, keyValue: KeyValue) {
-  //        // add each included file into config
-  //        val includedFile = File(keyValue.value)
-  //        inputState.inputFilesWithTimeStamp.put(includedFile.path, includedFile.lastModified)
-  //      }
-  //    }
-  //    val projectReader = UnconfiguredCmvnProject.projectReader(includeFileReader = Some(inputFileCollector))
-  //    val projectConfig = projectReader.readConfigFile(projectFile.jfile)
-  //
-  //    (inputState, projectConfig)
-  //  }
 
   def isConfigured = stateFile.exists
 
@@ -105,45 +86,6 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
     }
     this :: subProjects
   }
-
-  //  	def isUpToDate: Boolean = {
-  //		// configured
-  //		if (!isConfigured) return  false
-  //		
-  //				// TODO: We should track a list of generated files
-  //				// TODO: We should track a list of input files
-  //
-  //		
-  //		if (!pomFile.exists()) {
-  //			return false;
-  //		}
-  //
-  //
-  //		// TODO: add here other generated files
-  //		final long lastGenerated = pomFile.lastModified();
-  //
-  //		if (projectFile.lastModified() > lastGenerated) {
-  //			return false;
-  //		}
-  //
-  //		if (pomTemplateFile.exists() && pomTemplateFile.lastModified() > lastGenerated) {
-  //			return false;
-  //		}
-  //
-  //		for (final String includeFile : includedFiles) {
-  //			if (new File(includeFile).lastModified() > lastGenerated) {
-  //				return false;
-  //			}
-  //		}
-  //
-  //		if (getConfiguredState() == null) {
-  //			// no configuration at all, so project not configure and thus not
-  //			// up-to-date
-  //			return false;
-  //		}
-  //
-  //		return true;
-  //	}
 
   def configureProjectRecursive(configureCmd: ConfigureCmd) = allSubProjects foreach { _.configureProject(configureCmd) }
 

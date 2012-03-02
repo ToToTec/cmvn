@@ -2,7 +2,11 @@ package de.tototec.tools.cmvn
 
 object Output {
 
-  def info(msg: => String) {
+  def error(msg: String) {
+    Console.err.println(msg)
+  }
+
+  def info(msg: String) {
     Console.out.println(msg)
   }
 

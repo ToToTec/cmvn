@@ -69,4 +69,12 @@ public class ConfigClassGenerator {
 			throw new RuntimeException("Could not generate version class: " + this, e);
 		}
 	}
+
+	public String getTargetDir() {
+		return targetDir;
+	}
+
+	public String getClassName() {
+		return className;
+	}
 }

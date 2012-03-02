@@ -31,7 +31,7 @@ public class ConfigureRequest {
 	}
 
 	public ConfigureRequest(ConfigureCmd copy) {
-		force = copy.force();
+		force = true;
 		autoReconfigure = copy.autoReconfigure();
 		mavenSettings = copy.mavenSettings();
 		mavenRepo = copy.mavenRepo();

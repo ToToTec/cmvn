@@ -64,7 +64,13 @@ class ConfiguredCmvnProject(projectFileOrDir: Path) {
       + projectFile.path)
   }
 
-  protected val (inputState, projectConfig) = {
+  lazy val configuredState = {
+		  val configuredState = new CmvnConfiguredState()
+		  configuredState.fromYamlFile(configuredStateFile.jfile)
+		  configuredState
+  }
+
+  lazy val (inputState, projectConfig) = {
     val inputState = new CmvnConfiguredInputState()
     // The project file itself
     inputState.inputFilesWithTimeStamp.put(projectFile.toAbsolute.path, projectFile.lastModified)
@@ -163,9 +169,6 @@ class ConfiguredCmvnProject(projectFileOrDir: Path) {
 
     // Generate Maven POM
     val pomFile = projectFile.parent / File(projectConfig.pomFileName)
-
-    val configuredState = new CmvnConfiguredState()
-    configuredState.fromYamlFile(configuredStateFile.jfile)
 
     val mavenPomGenerator = new MavenPomGenerator(pomFile.jfile, configuredState, projectConfig)
     // TODO: support configuredState.isReferenceLocalArtifactsAsSystemScope

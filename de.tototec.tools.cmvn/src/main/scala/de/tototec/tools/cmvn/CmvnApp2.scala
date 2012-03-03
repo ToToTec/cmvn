@@ -14,6 +14,7 @@ import de.tototec.cmdoption.CmdOption
 import de.tototec.cmdoption.CmdlineParser
 import de.tototec.cmdoption.DefaultUsageFormatter
 import scala.collection.mutable
+import de.tototec.tools.cmvn.model.Dependency
 
 object CmvnApp2 {
 
@@ -26,7 +27,7 @@ object CmvnApp2 {
     var verbose: Boolean = _
   }
 
-  private lazy val curDir = Directory(System.getProperty("user.dir"))
+  private lazy val curDir = Directory(System.getProperty("user.dir")).toAbsolute
 
   def main(args: Array[String]) {
 
@@ -83,13 +84,7 @@ object CmvnApp2 {
       case buildCmd: BuildCmd =>
         checkCmdHelp(buildCmd)
         Output.verbose("--build selected")
-        
-        
-        
-        //        val project = new CmvnProject(Directory(System.getProperty("user.dir")).toAbsolute.jfile)
-        //        val upToDate = project.isUpToDateRecursive
-        // delegate to old code
-        CmvnApp.main(args)
+        runMaven(buildCmd)
 
       case fetchCmd: FetchCmd =>
         checkCmdHelp(fetchCmd)
@@ -175,4 +170,105 @@ object CmvnApp2 {
     }
   }
 
+  def runMaven(buildCmd: BuildCmd) {
+
+    val confProject = new ConfiguredCmvnProject(curDir)
+    val configuredState = confProject.configuredState
+    if (configuredState.autoReconfigure) {
+      confProject.generateRecursive(evenWhenNotChanged = false)
+    } else {
+      if (!confProject.isUpToDateRecursive) {
+        throw new RuntimeException("Project not up-to-date. Please run --generate first or configure project without --no-auto-reconfigure.")
+      }
+    }
+
+    // Run Maven
+
+    Output.verbose("Running Maven...")
+    val mvnExe = configuredState.mavenExecutable match {
+      case null | "" =>
+        if (System.getProperty("os.name").toLowerCase.contains("windows")) {
+          "mvn.bat"
+        } else {
+          "mvn"
+        }
+      case exe => exe
+    }
+
+    Output.verbose("Using local Maven repository: " + configuredState.getLocalRepository())
+    Output.verbose("Using Maven settings file: " + configuredState.getSettingsFile())
+
+    // try to evaluate root project dir and Maven coordinates of current project
+    val (additionalPlArgs, rootDirOption) = if (buildCmd.buildFromRoot) {
+      val rootProjectDir = File(configuredState.getRootProjectFile).parent
+      confProject.projectConfig.project match {
+        case dep: Dependency =>
+          (Array("-pl", dep.groupId + ":" + dep.artifactId), Some(rootProjectDir.jfile))
+        case _ => (Array[String](), None)
+      }
+    } else (Array[String](), None)
+
+    val mvnArgs: Array[String] = Array(mvnExe, "-s", configuredState.getSettingsFile) ++ additionalPlArgs ++ buildCmd.mvnArgs
+
+    val pB = new ProcessBuilder(mvnArgs: _*)
+    rootDirOption map { dir =>
+      pB.directory(dir)
+      Output.info("Working directory: " + dir)
+    }
+    Output.info("Executing: " + mvnArgs.mkString(" "));
+    val process = pB.start()
+
+    var threads = List[Thread]()
+
+    //    val errStream = new LinePrefixFilterOutputStream2(System.err)
+    //    errStream.setDelayedFlush(true);
+    threads ::= CmvnApp.copyInBackgroundThread(process.getErrorStream(), Console.err)
+
+    val outStream = new LinePrefixFilterOutputStream2(System.out, "[INFO] ")
+    outStream.setDelayedFlush(true)
+    threads ::= CmvnApp.copyInBackgroundThread(process.getInputStream(), outStream)
+
+    val in = System.in
+    val out = process.getOutputStream()
+
+    val outThread = new Thread() {
+      override def run {
+        try {
+          while (true) {
+            if (in.available > 0) {
+              in.read match {
+                case -1 =>
+                case read =>
+                  out.write(read)
+                  out.flush()
+              }
+            } else {
+              Thread.sleep(50)
+            }
+          }
+        } catch {
+          case e: InterruptedException => // this is ok
+        }
+      }
+    }
+    outThread.start()
+    threads ::= outThread
+
+    //      			} catch (final IOException e) {
+    //      				throw new RuntimeException("Error occured while starting process mvn.", e);
+    //      			}
+    if (process != null) {
+      try {
+        val exitValue = process.waitFor
+        threads foreach { _.interrupt }
+        outStream.flush
+        //        errStream.flush
+        System.exit(exitValue)
+      } finally {
+        if (outThread != null) {
+          outThread.interrupt();
+        }
+      }
+    }
+  }
 }

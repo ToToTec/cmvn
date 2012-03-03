@@ -9,10 +9,9 @@ import java.util.List
 //remove if not needed
 import scala.collection.JavaConversions._
 
-class LinePrefixFilterOutputStream(out: OutputStream, filter: String*) extends FilterOutputStream(out) {
+class LinePrefixFilterOutputStream(out: OutputStream, filter: Array[String]) extends FilterOutputStream(out) {
 
-  def this(out: OutputStream, filter: Array[String]) = this(out, filter: _*)
-  def this(out: OutputStream) = this(out, Array(): _*)
+  def this(out: OutputStream) = this(out, Array())
 
   private val filters = new ArrayList[Array[Byte]](filter.length)
 
@@ -26,7 +25,7 @@ class LinePrefixFilterOutputStream(out: OutputStream, filter: String*) extends F
 
   private var delayedFlush: Boolean = false
 
-  for (f <- filter) {
+  filter foreach { f =>
     this.filters.add(f.getBytes)
   }
 
@@ -49,7 +48,7 @@ class LinePrefixFilterOutputStream(out: OutputStream, filter: String*) extends F
       }
       isFirst = false
     }
-    var `match` = false
+    var matched = false
     if (b == '\n') {
       curFilter.clear()
       curPos = 0
@@ -59,7 +58,7 @@ class LinePrefixFilterOutputStream(out: OutputStream, filter: String*) extends F
       while (it.hasNext) {
         var filter = filters.get(it.next())
         if (filter.length > curPos && filter(curPos) == b.toByte) {
-          `match` = true
+          matched = true
           if (filter.length == curPos + 1) {
             bytesBuffered.clear()
           } else {
@@ -71,9 +70,9 @@ class LinePrefixFilterOutputStream(out: OutputStream, filter: String*) extends F
       }
       curPos
     }
-    if (!`match`) {
+    if (!matched) {
       if (!bytesBuffered.isEmpty) {
-        for (buf <- bytesBuffered) {
+        bytesBuffered foreach { buf =>
           out.write(buf)
         }
         bytesBuffered.clear()

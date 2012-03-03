@@ -393,16 +393,18 @@ public class CmvnApp {
 		System.out.println(help);
 	}
 
-	protected static void copyInBackgroundThread(final InputStream in, final OutputStream out) {
-		new Thread("StreamCopyThread") {
+	static Thread copyInBackgroundThread(final InputStream in, final OutputStream out) {
+		Thread thread = new Thread("StreamCopyThread") {
 			@Override
 			public void run() {
 				copy(in, out);
 			}
-		}.start();
+		};
+		thread.start();
+		return thread;
 	}
 
-	protected static void copy(final InputStream in, final OutputStream out) {
+	static void copy(final InputStream in, final OutputStream out) {
 		try {
 			boolean withBuffer = false;
 			if (withBuffer) {

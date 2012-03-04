@@ -1,4 +1,13 @@
-* Made dependency to jcommander optional in Eclipse Plugin.
+* Experimental Jackage integration (http://jackage.tototec.de/): Command --fetch
+  added to fetch all dependencies provided by jackage
+* Much improved cmndline interface
+* Rewrite of internal handling of cmvn project
+* Eclipse Plugin can found dependencies if project was configured with
+  --maven-settings
+* Added a converter from pom.xml to cmvn.conf
+* Support for Maven <reporting> section
+* Use new cmdline parser CmdOption (http://cmdoption.tototec.de/)
+* Removed JCommander dependency
 
 cmvn-0.1.8 - 2011-11-10:
 * Improved interactive experience with output-filter (that component, that cuts

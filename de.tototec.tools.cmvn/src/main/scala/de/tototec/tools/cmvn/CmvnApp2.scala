@@ -15,6 +15,15 @@ import de.tototec.cmdoption.CmdlineParser
 import de.tototec.cmdoption.DefaultUsageFormatter
 import scala.collection.mutable
 import de.tototec.tools.cmvn.model.Dependency
+import de.tototec.tools.cmvn.cmdoption.BuildCmd
+import de.tototec.tools.cmvn.cmdoption.ConfigureCmd
+import de.tototec.tools.cmvn.cmdoption.FetchCmd
+import de.tototec.tools.cmvn.cmdoption.GenerateCmd
+import de.tototec.tools.cmvn.cmdoption.InfoCmd
+import de.tototec.tools.cmvn.cmdoption.PomConverterCmd
+import de.tototec.tools.cmvn.cmdoption.HelpAwareCmd
+import de.tototec.tools.cmvn.cmdoption.CleanCmd
+import de.tototec.tools.cmvn.cmdoption.DistcleanCmd
 
 object CmvnApp2 {
 
@@ -33,7 +42,7 @@ object CmvnApp2 {
 
     val baseArgs = new BaseArgs()
     val commandConfigs = List(
-      new ConfigureCmd(), new FetchCmd(), new BuildCmd(), new PomConverterCmd(), new GenerateCmd(), new InfoCmd())
+      new ConfigureCmd(), new FetchCmd(), new BuildCmd(), new PomConverterCmd(), new GenerateCmd(), new InfoCmd(), new CleanCmd(), new DistcleanCmd())
 
     val cp = new CmdlineParser(baseArgs)
     cp.addObject(commandConfigs: _*)
@@ -89,48 +98,16 @@ object CmvnApp2 {
       case fetchCmd: FetchCmd =>
         checkCmdHelp(fetchCmd)
         Output.verbose("--fetch selected")
-
-        val project = new ConfiguredCmvnProject(curDir)
-        if (project.configuredState.localRepository == null) {
-          throw new RuntimeException("No configured local Maven repository.")
-        }
-
-        val toFetch = project.allSubProjects flatMap { p =>
-          p.projectConfig.getDependencies filter { _.jackageDep }
-        } distinct
-
-        Output.verbose("About to fetch the following " + toFetch.size + " packages:\n  " + toFetch.mkString("\n  "))
-
-        if (!fetchCmd.dryRun) {
-          toFetch.foreach { dep =>
-            val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
-            Output.info("Fetching with Jackage: " + depName)
-            val cmd = fetchCmd.jackageFetchCmd.
-              replaceAllLiterally("{PACK}", depName).
-              replaceAllLiterally("{M2REPO}", project.configuredState.localRepository)
-            import scala.sys.process._
-            Process(cmd).run(true).exitValue match {
-              case 0 => // ok
-              case rc => {
-                val msg = "Could not download Jackage dependency: " + dep + ". Jackage return code " + rc
-                fetchCmd.keepGoing match {
-                  case true => Output.error(msg + ". Ignoring failed fetch in keep-going mode.")
-                  case false => throw new RuntimeException(msg)
-                }
-              }
-            }
-          }
-        }
+        runFetch(fetchCmd)
 
       case convertCmd: PomConverterCmd =>
         checkCmdHelp(convertCmd)
         Output.verbose("--convert-pom selected")
-
         new PomConverter().convert(convertCmd)
 
       case infoCmd: InfoCmd =>
-        Output.verbose("--info selected")
         checkCmdHelp(infoCmd)
+        Output.verbose("--info selected")
 
         if (infoCmd.projectConfiguration) {
           val project = new ConfiguredCmvnProject(curDir)
@@ -158,9 +135,25 @@ object CmvnApp2 {
           }
         }
 
+      case cleanCmd: CleanCmd =>
+        checkCmdHelp(cleanCmd)
+        Output.verbose("--clean selected")
+        runClean(false)
+
+      case distcleanCmd: DistcleanCmd =>
+        checkCmdHelp(distcleanCmd)
+        Output.verbose("--distclean selected")
+
+        // TODO: implement distclean
+
+        val project = new UnconfiguredCmvnProject(None, curDir)
+        if (project.isConfigured) {
+          runClean(true)
+        }
+        project.distcleanRecursive(keepManagedRepo = distcleanCmd.keepRepo)
+        
       case other =>
-        // Delegate to old CmvnApp
-        CmvnApp.main(args)
+        throw new RuntimeException("Unsupported command: " + cp.getParsedCommandName)
     }
 
   }
@@ -176,6 +169,53 @@ object CmvnApp2 {
       }
     }
     project
+  }
+
+  def runClean(ignoreUnconfigured: Boolean) {
+    try {
+      val project = new ConfiguredCmvnProject(curDir)
+      // TODO: implement clean
+      project.removeGeneratedFilesRecursive
+    } catch {
+      case e: Exception => // could not construct, so not configured
+        if (!ignoreUnconfigured) {
+          Output.error("Could not clean project. " + e.getLocalizedMessage)
+        }
+    }
+  }
+
+  def runFetch(fetchCmd: FetchCmd) {
+    val project = new ConfiguredCmvnProject(curDir)
+    if (project.configuredState.localRepository == null) {
+      throw new RuntimeException("No configured local Maven repository.")
+    }
+
+    val toFetch = project.allSubProjects flatMap { p =>
+      p.projectConfig.getDependencies filter { _.jackageDep }
+    } distinct
+
+    Output.verbose("About to fetch the following " + toFetch.size + " packages:\n  " + toFetch.mkString("\n  "))
+
+    if (!fetchCmd.dryRun) {
+      toFetch.foreach { dep =>
+        val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
+        Output.info("Fetching with Jackage: " + depName)
+        val cmd = fetchCmd.jackageFetchCmd.
+          replaceAllLiterally("{PACK}", depName).
+          replaceAllLiterally("{M2REPO}", project.configuredState.localRepository)
+        import scala.sys.process._
+        Process(cmd).run(true).exitValue match {
+          case 0 => // ok
+          case rc => {
+            val msg = "Could not download Jackage dependency: " + dep + ". Jackage return code " + rc
+            fetchCmd.keepGoing match {
+              case true => Output.error(msg + ". Ignoring failed fetch in keep-going mode.")
+              case false => throw new RuntimeException(msg)
+            }
+          }
+        }
+      }
+    }
   }
 
   def runMaven(buildCmd: BuildCmd) {
@@ -275,3 +315,4 @@ object CmvnApp2 {
     }
   }
 }
+ 

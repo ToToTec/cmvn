@@ -1,13 +1,15 @@
-package de.tototec.tools.cmvn
+package de.tototec.tools.cmvn.cmdoption
 
-import java.io.FileNotFoundException
 import com.esotericsoftware.yamlbeans.YamlReader
-import java.io.FileReader
-import java.io.FileWriter
-import java.util.Date
 import com.esotericsoftware.yamlbeans.YamlWriter
 import de.tototec.cmdoption.CmdCommand
 import de.tototec.cmdoption.CmdOption
+import java.io.FileNotFoundException
+import java.io.FileReader
+import java.io.FileWriter
+import java.util.Date
+import scala.tools.nsc.io.Path.string2path
+import scala.tools.nsc.io.File
 
 object ConfigureCmd {
   def fromYamlFile(file: java.io.File): ConfigureCmd = {

@@ -1,6 +1,5 @@
-package de.tototec.tools.cmvn
+package de.tototec.tools.cmvn.cmdoption
 
-import de.tototec.cmdoption.CmdCommand
 import de.tototec.cmdoption.CmdCommand
 import de.tototec.cmdoption.CmdOption
 

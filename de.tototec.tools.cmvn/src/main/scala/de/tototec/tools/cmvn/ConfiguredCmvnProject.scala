@@ -65,9 +65,9 @@ class ConfiguredCmvnProject(projectFileOrDir: Path) {
   }
 
   lazy val configuredState = {
-		  val configuredState = new CmvnConfiguredState()
-		  configuredState.fromYamlFile(configuredStateFile.jfile)
-		  configuredState
+    val configuredState = new CmvnConfiguredState()
+    configuredState.fromYamlFile(configuredStateFile.jfile)
+    configuredState
   }
 
   lazy val (inputState, projectConfig) = {
@@ -184,6 +184,19 @@ class ConfiguredCmvnProject(projectFileOrDir: Path) {
 
     // Write current state
     inputState.toYamlFile(savedInputStateFile.jfile)
+  }
+
+  def removeGeneratedFilesRecursive {
+    allSubProjects foreach {
+      _.removeGeneratedFiles
+    }
+  }
+
+  def removeGeneratedFiles {
+    // TODO: implement clean
+    Output.error("Clean is currently not implemented")
+    
+    // TODO: We should record a list of generated files, and delete these files now
   }
 
 }

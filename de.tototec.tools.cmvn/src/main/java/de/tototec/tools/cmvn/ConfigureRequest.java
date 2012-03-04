@@ -14,6 +14,8 @@ import lombok.Data;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.esotericsoftware.yamlbeans.YamlWriter;
 
+import de.tototec.tools.cmvn.cmdoption.ConfigureCmd;
+
 @Data
 public class ConfigureRequest {
 	private Boolean force;

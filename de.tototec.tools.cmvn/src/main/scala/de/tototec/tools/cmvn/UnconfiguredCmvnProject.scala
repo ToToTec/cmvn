@@ -9,9 +9,9 @@ import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
 import scala.xml.PrettyPrinter
 import scala.xml.XML
-
 import de.tototec.cmdoption.CmdCommand
 import de.tototec.tools.cmvn.configfile.bndlike.ConfigFileReaderImpl
+import de.tototec.tools.cmvn.cmdoption.ConfigureCmd
 
 object UnconfiguredCmvnProject {
   def projectReader: ProjectReader = projectReader()
@@ -191,6 +191,24 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
     // Paranoia
     assert(isConfigured)
 
+  }
+
+  def distcleanRecursive(keepManagedRepo: Boolean) {
+    allSubProjects foreach {
+      _.distclean(keepManagedRepo)
+    }
+  }
+
+  def distclean(keepManagedRepo: Boolean) {
+    if (isConfigured) {
+      if (!keepManagedRepo) {
+        val stateDir = projectFile.parent / Directory(Constants.CmvnStateDirName)
+        if (stateDir.exists) {
+          stateDir.deleteRecursively
+        }
+      }
+      stateFile.deleteIfExists
+    }
   }
 
 }

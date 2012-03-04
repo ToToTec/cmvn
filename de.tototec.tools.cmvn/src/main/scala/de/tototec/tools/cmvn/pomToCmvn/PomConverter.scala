@@ -1,16 +1,14 @@
 package de.tototec.tools.cmvn.pomToCmvn
 
 import java.util.Date
-
 import scala.Array.canBuildFrom
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Directory
 import scala.xml.Utility
 import scala.xml.XML
-
 import de.tototec.tools.cmvn.Config
 import de.tototec.tools.cmvn.Output
-import de.tototec.tools.cmvn.PomConverterCmd
+import de.tototec.tools.cmvn.cmdoption.PomConverterCmd
 
 class PomConverter() {
 

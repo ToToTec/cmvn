@@ -1,7 +1,7 @@
-package de.tototec.tools.cmvn
+package de.tototec.tools.cmvn.cmdoption
 
-import de.tototec.cmdoption.CmdOption
 import de.tototec.cmdoption.CmdCommand
+import de.tototec.cmdoption.CmdOption
 
 @CmdCommand(names = Array("--fetch"),
   description = "Fetch dependencies and resources (Jackage only)")

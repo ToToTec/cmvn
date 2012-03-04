@@ -4,6 +4,7 @@ import static org.testng.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
@@ -39,7 +40,7 @@ public class LinePrefixFiterOutputStreamTest {
 	}
 
 	@Test(dataProvider = "stringProvider")
-	public void testCopyStreamsMethod(final String input) throws UnsupportedEncodingException {
+	public void testCopyStreamsMethod(final String input) throws IOException {
 		InputStream is = new ByteArrayInputStream(input.getBytes());
 		java.io.ByteArrayOutputStream os = new ByteArrayOutputStream();
 		CmvnApp.copy(is, os);
@@ -69,8 +70,7 @@ public class LinePrefixFiterOutputStreamTest {
 	}
 
 	@Test(dataProvider = "filteredStringProvider")
-	public void testLinePrefixStreams(String input, String expectedOutput, String[] filteredStrings)
-			throws UnsupportedEncodingException {
+	public void testLinePrefixStreams(String input, String expectedOutput, String[] filteredStrings) throws IOException {
 		InputStream is = new ByteArrayInputStream(input.getBytes());
 		java.io.ByteArrayOutputStream os = new ByteArrayOutputStream();
 		LinePrefixFilterOutputStream streamInTest = new LinePrefixFilterOutputStream(os, filteredStrings);

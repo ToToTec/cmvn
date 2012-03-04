@@ -90,31 +90,36 @@ object CmvnApp2 {
         checkCmdHelp(fetchCmd)
         Output.verbose("--fetch selected")
 
-        val project = upToDateProject
-        if (project.getConfiguredState.getLocalRepository != null) {
-          val toFetch = project.
-            getMultiProjects.
-            flatMap(p => p.getProjectConfig.getDependencies.filter(_.jackageDep)).
-            distinct
+        val project = new ConfiguredCmvnProject(curDir)
+        if (project.configuredState.localRepository == null) {
+          throw new RuntimeException("No configured local Maven repository.")
+        }
 
-          Output.verbose("About to fetch the following packages:\n  " + toFetch.mkString("\n  "))
+        val toFetch = project.allSubProjects flatMap { p =>
+          p.projectConfig.getDependencies filter { _.jackageDep }
+        } distinct
 
-          if (!fetchCmd.dryRun) {
-            toFetch.foreach(dep => {
-              val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
-              Output.info("Fetching with Jackage: " + depName)
-              val cmd = fetchCmd.experimentalJackageFetchCmd.
-                replaceAllLiterally("{PACK}", depName).
-                replaceAllLiterally("{M2REPO}", project.getConfiguredState.getLocalRepository)
-              import scala.sys.process._
-              Process(cmd).run(true).exitValue match {
-                case 0 => // ok
-                case _ => Output.error("Could not download Jackage dependency: " + dep)
+        Output.verbose("About to fetch the following " + toFetch.size + " packages:\n  " + toFetch.mkString("\n  "))
+
+        if (!fetchCmd.dryRun) {
+          toFetch.foreach { dep =>
+            val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
+            Output.info("Fetching with Jackage: " + depName)
+            val cmd = fetchCmd.jackageFetchCmd.
+              replaceAllLiterally("{PACK}", depName).
+              replaceAllLiterally("{M2REPO}", project.configuredState.localRepository)
+            import scala.sys.process._
+            Process(cmd).run(true).exitValue match {
+              case 0 => // ok
+              case rc => {
+                val msg = "Could not download Jackage dependency: " + dep + ". Jackage return code " + rc
+                fetchCmd.keepGoing match {
+                  case true => Output.error(msg + ". Ignoring failed fetch in keep-going mode.")
+                  case false => throw new RuntimeException(msg)
+                }
               }
-            })
+            }
           }
-        } else {
-          Output.verbose("No configured Local Maven repository.")
         }
 
       case convertCmd: PomConverterCmd =>
@@ -128,8 +133,8 @@ object CmvnApp2 {
         checkCmdHelp(infoCmd)
 
         if (infoCmd.projectConfiguration) {
-          val project = upToDateProject
-          val conf = project.getConfiguredState()
+          val project = new ConfiguredCmvnProject(curDir)
+          val conf = project.configuredState
           var projConfMap =
             ("project file" -> conf.getProjectFile()) ::
               ("root project file" -> conf.getRootProjectFile()) ::
@@ -148,7 +153,7 @@ object CmvnApp2 {
         }
 
         if (infoCmd.showVals) {
-          upToDateProject.getProjectConfig().getVariables() foreach {
+          upToDateProject.projectConfig.variables foreach {
             case (k, v) => Console.println(k + "=" + v)
           }
         }
@@ -160,14 +165,17 @@ object CmvnApp2 {
 
   }
 
-  def upToDateProject: CmvnProject = {
-    val project = new CmvnProject(curDir.toAbsolute.jfile)
-    if (project.isUpToDateRecursive) {
-      project
+  def upToDateProject: ConfiguredCmvnProject = {
+    val project = new ConfiguredCmvnProject(curDir)
+    val confState = project.configuredState
+    if (confState.autoReconfigure) {
+      project.generateRecursive(evenWhenNotChanged = false)
     } else {
-      // TODO: use specific exception
-      throw new RuntimeException("Project not up-to-date.")
+      if (!project.isUpToDate) {
+        throw new RuntimeException("Project not up-to-date. Please run --generate first or configure project without --no-auto-reconfigure.")
+      }
     }
+    project
   }
 
   def runMaven(buildCmd: BuildCmd) {
@@ -218,18 +226,14 @@ object CmvnApp2 {
     Output.info("Executing: " + mvnArgs.mkString(" "));
     val process = pB.start()
 
-    var threads = List[Thread]()
-
-    //    val errStream = new LinePrefixFilterOutputStream2(System.err)
-    //    errStream.setDelayedFlush(true);
-    threads ::= CmvnApp.copyInBackgroundThread(process.getErrorStream(), Console.err)
+    CmvnApp.copyInBackgroundThread(process.getErrorStream, Console.err)
 
     val outStream = new LinePrefixFilterOutputStream2(System.out, "[INFO] ")
     outStream.setDelayedFlush(true)
-    threads ::= CmvnApp.copyInBackgroundThread(process.getInputStream(), outStream)
+    CmvnApp.copyInBackgroundThread(process.getInputStream, outStream)
 
     val in = System.in
-    val out = process.getOutputStream()
+    val out = process.getOutputStream
 
     val outThread = new Thread() {
       override def run {
@@ -240,7 +244,7 @@ object CmvnApp2 {
                 case -1 =>
                 case read =>
                   out.write(read)
-                  out.flush()
+                  out.flush
               }
             } else {
               Thread.sleep(50)
@@ -252,22 +256,21 @@ object CmvnApp2 {
       }
     }
     outThread.start()
-    threads ::= outThread
 
     //      			} catch (final IOException e) {
     //      				throw new RuntimeException("Error occured while starting process mvn.", e);
     //      			}
     if (process != null) {
-      try {
-        val exitValue = process.waitFor
-        threads foreach { _.interrupt }
-        outStream.flush
-        //        errStream.flush
-        System.exit(exitValue)
+      val exitValue = try {
+        process.waitFor
       } finally {
         if (outThread != null) {
           outThread.interrupt();
         }
+      }
+      if (exitValue != 0) {
+        Output.error("Maven exited abnormaly with exit value: " + exitValue)
+        System.exit(exitValue)
       }
     }
   }

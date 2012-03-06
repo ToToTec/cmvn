@@ -18,29 +18,44 @@ object Dependency {
     }
     dep
   }
+
+  def hideTheOtherInPom(depA: Dependency, depB: Dependency): Boolean =
+    depA.groupId == depB.groupId && depA.artifactId == depB.artifactId &&
+      depA.nonDefaultClassifier == depB.nonDefaultClassifier && depA.nonDefaultDepType == depB.nonDefaultDepType
+
 }
 
 /**
  * A dependency with various options used in a CMVN project.
  * Per default, a dependency will be resolved through a Maven repository, but this may change in future.
  */
-case class Dependency(
-  val groupId: String,
-  val artifactId: String,
-  val version: String,
-  var scope: String = "compile",
-  var classifier: String = null,
-  var depType: String = null,
-  var optionalAsTransitive: Boolean = false,
-  val excludes: java.util.List[Dependency] = new java.util.LinkedList(),
-  var jarPath: String = null,
-  var onlyManagement: Boolean = false,
-  var forceVersion: Boolean = false,
-  var jackageDep: Boolean = false,
-  var jackageRepo: String = null) {
+class Dependency(val groupId: String, val artifactId: String, val version: String) {
 
-  /** Convenience-constructor for use by Java-code. */
-  def this(groupId: String, artifactId: String, version: String) = this(groupId, artifactId, version, null)
+  var scope: String = "compile"
+  def nonDefaultScope: Option[String] = scope match {
+    case null | "compile" => None
+    case x => Some(x)
+  }
+
+  var classifier: String = null
+  def nonDefaultClassifier = classifier match {
+    case null | "jar" => None
+    case x => Some(x)
+  }
+
+  var depType: String = null
+  def nonDefaultDepType = depType match {
+    case null | "jar" => None
+    case x => Some(x)
+  }
+
+  var optionalAsTransitive: Boolean = false
+  val excludes: java.util.List[Dependency] = new java.util.LinkedList()
+  var jarPath: String = null
+  var onlyManagement: Boolean = false
+  var forceVersion: Boolean = false
+  var jackageDep: Boolean = false
+  var jackageRepo: String = null
 
   def addToExcludes(exclude: Dependency) = excludes.add(exclude)
 
@@ -54,7 +69,7 @@ case class Dependency(
         case ("exclude", excludeString) => {
           val exclude = excludeString.split(":")
           if (exclude.length != 2) throw new RuntimeException("Unsupported exclude: " + option)
-          addToExcludes(Dependency(exclude(0).trim, exclude(1).trim, "0"))
+          addToExcludes(new Dependency(exclude(0).trim, exclude(1).trim, "0"))
         }
         case ("systemPath", sysPath) => this.jarPath = sysPath
         case ("forceversion", force) => this.forceVersion = force.toLowerCase == "true"
@@ -91,6 +106,7 @@ case class Dependency(
   override def toString =
     groupId + ":" + artifactId + ":" + version +
       (if (scope != "compile") { ";scope=" + scope } else "") +
-      (if (classifier != null) { ";classifier=" + classifier } else "")
+      (if (classifier != null) { ";classifier=" + classifier } else "") +
+      (if (depType != null) { ";type=" + depType } else "")
 
 }

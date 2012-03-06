@@ -495,6 +495,10 @@ public class MavenPomGenerator implements Generator {
 								|| dep.classifier() == null && mvnDepExist.getClassifier() == null;
 					}
 					if (exists) {
+						exists = dep.depType() != null && dep.depType().equals(mvnDepExist.getType())
+								|| dep.depType() == null && mvnDepExist.getType() == null;
+					}
+					if (exists) {
 						mvnMgmtDep = mvnDepExist;
 						break;
 					}
@@ -509,6 +513,9 @@ public class MavenPomGenerator implements Generator {
 				mvnMgmtDep.setVersion(dep.version());
 				if (dep.classifier() != null) {
 					mvnMgmtDep.setClassifier(dep.classifier());
+				}
+				if (dep.depType() != null) {
+					mvnMgmtDep.setType(dep.depType());
 				}
 			}
 		}
@@ -534,6 +541,10 @@ public class MavenPomGenerator implements Generator {
 				if (exists) {
 					exists = dep.classifier() != null && dep.classifier().equals(mvnDepExist.getClassifier())
 							|| dep.classifier() == null && mvnDepExist.getClassifier() == null;
+				}
+				if (exists) {
+					exists = dep.depType() != null && dep.depType().equals(mvnDepExist.getType())
+							|| dep.depType() == null && mvnDepExist.getType() == null;
 				}
 				if (exists) {
 					mvnDep = mvnDepExist;
@@ -602,11 +613,10 @@ public class MavenPomGenerator implements Generator {
 				&& !dep.scope().equals("system")) {
 			// check if dep is local
 			for (final Dependency localDep : localArtifacts) {
-				if (dep.groupId().equals(localDep.groupId())
-						&& dep.artifactId().equals(localDep.artifactId())
+				if (dep.groupId().equals(localDep.groupId()) && dep.artifactId().equals(localDep.artifactId())
 						&& dep.version().equals(localDep.version())
-						&& (dep.classifier() != null && dep.classifier().equals(localDep.classifier()) || dep
-								.classifier() == null && localDep.classifier() == null) && localDep.jarPath() != null) {
+						&& dep.nonDefaultClassifier().equals(localDep.nonDefaultClassifier())
+						&& dep.nonDefaultDepType().equals(localDep.nonDefaultDepType()) && localDep.jarPath() != null) {
 
 					// TODO: should we force conrete versions? Actually we do.
 

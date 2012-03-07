@@ -54,7 +54,12 @@ object CmvnApp2 {
 
     if (baseArgs.help) {
       cp.usage
-      System.out.println("\nUse cmvn [command] --help for detailed command help.")
+      Output.info("\nUse cmvn [command] --help for detailed command help.")
+      System.exit(0)
+    }
+
+    if (baseArgs.version) {
+      Output.info("cmvn " + Config.cmvnOsgiVersion + " (c) 2010 - 2012, Tobias Roeser, ToToTec")
       System.exit(0)
     }
 
@@ -151,7 +156,7 @@ object CmvnApp2 {
           runClean(true)
         }
         project.distcleanRecursive(keepManagedRepo = distcleanCmd.keepRepo)
-        
+
       case other =>
         throw new RuntimeException("Unsupported command: " + cp.getParsedCommandName)
     }

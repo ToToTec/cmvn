@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lombok.Setter;
 import de.tototec.tools.cmvn.configfile.ConfigFileReader;
 import de.tototec.tools.cmvn.configfile.KeyValue;
 import de.tototec.tools.cmvn.model.CmvnProjectConfig;

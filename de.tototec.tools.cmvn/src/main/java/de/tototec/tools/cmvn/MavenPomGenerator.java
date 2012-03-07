@@ -194,7 +194,7 @@ public class MavenPomGenerator implements Generator {
 			mvnReporting = mvn.addNewReporting();
 		}
 
-		if (projectConfig.getBuild().siteDir() != null) {
+		if (projectConfig.getBuild() != null && projectConfig.getBuild().siteDir() != null) {
 			mvnReporting.setOutputDirectory(projectConfig.getBuild().siteDir());
 		}
 

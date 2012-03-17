@@ -18,9 +18,12 @@ import de.tototec.tools.cmvn.model.Repository;
 
 public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
-	REQUIRE_CMVN("requireCmvn") {
+	REQUIRE_CMVN("-requireCmvn", "requireCmvn") {
 		@Override
 		public void read(CmvnProjectConfig projectConfig, KeyValue keyValue) {
+			if("requireCmvn".equals(keyValue.key())) {
+				Output.info("requireCmvn is deprecated since Cmvn 0.2.0. Please use \"-requireCmvn\" instead.");
+			}
 			assertVersion(keyValue.value(), Config.cmvnOsgiVersion(), Config.cmvnCompatibleOsgiVersion());
 		}
 	},
@@ -278,9 +281,12 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		}
 	},
 
-	CONFIG_CLASS("-configClass") {
+	CONFIG_CLASS("configClass", "-configClass") {
 		@Override
 		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
+			if("-configClass".equals(keyValue.key())) {
+				Output.info("-configClass is deprecated since Cmvn 0.2.0. Please use \"configClass\" instead.");
+			}
 			// We only have options, so we start the value with an ";"
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.key(), ";" + keyValue.value(),
 					";", "=", "true");

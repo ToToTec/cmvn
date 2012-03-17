@@ -306,8 +306,9 @@ test: org.testng:testng:5.14.6
 
 </section>
 
-<section><title>Directives</title>
+<section><title>Directives Overview</title>
 <para>Directives are instructions to Cmvn to do something special.</para>
+
 <table>
 <title>Directives</title>
 <tgroup cols="3" colsep="1" rowsep="1">
@@ -343,7 +344,7 @@ test: org.testng:testng:5.14.6
 
 </section>
 
-<section><title>Settings</title>
+<section><title>Settings Overview</title>
 <para>Settings are used to generate the underlying (native) build scripts. Currently the only supported buildsystem is Maven 2 or greater.</para>
 
 <table>
@@ -446,8 +447,535 @@ test: org.testng:testng:5.14.6
 
 </section>
 
+<section><title><code>project</code></title>
+<para>Essential project information mandatory for Maven.</para>
+<para>Format: GAV[;OPTION]*</para>
+<para>Options:</para>
+
+<table>
+<title>Options for <code>project</code></title>
+<tgroup cols="3" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="1*" />
+	<colspec colwidth="3*" />
+<thead>
+<row>
+<entry>Option</entry>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>packaging</code></entry>
+<entry>TEXT</entry>
+<entry>The packaging of the project, if ommitted, than <code>jar</code></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<para>Example:</para>
+
+<programlisting><![CDATA[
+# using maven-bundle-plugin
+project: org.example:org.example.osgibundle:1.0.0;packaging=bundle
+]]></programlisting>
+
+</section>
+
+<section><title><code>module</code></title>
+<para>Definition of a sub project.</para>
+<para>Format: DIR[;OPTION]*</para>
+<para>Options:</para>
+       
+<table>
+<title>Options for <code>module</code></title>
+<tgroup cols="3" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="1*" />
+	<colspec colwidth="3*" />
+<thead>
+<row>
+<entry>Option</entry>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>skipCmvn</code></entry>
+<entry>BOOLEAN</entry>
+<entry>This sub project is a pure Maven project. Do not try to find a <code>cmvn.conf</code> file.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<para>Example:</para>
+<programlisting><![CDATA[
+module: org.example.domain
+module: org.example.service
+module: org.example.service.impl.legacy;skipCmvn
+]]></programlisting>
+
+</section>
+
+<section><title><code>dependency</code></title>
+<para>A dependency referencing a project in a Maven repository (in most cases a <code>*.jar</code> file).</para>
+<para>Format: GAV[;OPTION]*</para>
+<para>Options:</para>
+
+<table>
+<title>Options for <code>dependency</code></title>
+<tgroup cols="3" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="1*" />
+	<colspec colwidth="3*" />
+<thead>
+<row>
+<entry>Option</entry>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>scope</code></entry>
+<entry>TEXT</entry>
+<entry>The scope of the dependency. One of <code>compile</code>, <code>runtime</code>, <code>test</code>, <code>system</code> or <code>provided</code>.</entry>
+</row>
+<row>
+<entry><code>systemPath</code></entry>
+<entry>FILE</entry>
+<entry>The local file path to the jar file. Only valid if <code>scope</code> is <code>system</code>. In contrast to Maven specification, this path can be also relative.</entry>
+</row>
+<row>
+<entry><code>classifier</code></entry>
+<entry>TEXT</entry>
+<entry>The classifier, e.g. <code>sources</code>.</entry>
+</row>
+<row>
+<entry><code>type</code></entry>
+<entry>TEXT</entry>
+<entry>The type.</entry>
+</row>
+<row>
+<entry><code>optional</code></entry>
+<entry>BOOLEAN</entry>
+<entry>An optional dependency is not optional for the current project but will be ignored in a transitive dependency resolution. (In an ideal world any compile type dependency should be optional!)</entry>
+</row>
+<row>
+<entry><code>exclude</code></entry>
+<entry>GA</entry>
+<entry>Excluded dependency from transitive resolved dependency tree.</entry>
+</row>
+<row>
+<entry><code>forceversion</code></entry>
+<entry>BOOLEAN</entry>
+<entry>Additionally the dependency will be added to the <code><![CDATA[<dependencyManagement>]]></code>-block. This enforces the given version and is somethimes an alternative to the \code{exclude} option (and vice versa).</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<para>Aliases:</para>
+
+<table>
+<title>Aliases for <code>dependency</code></title>
+<tgroup cols="2" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="2*" />
+<thead>
+<row>
+<entry>Alias</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>compile</code></entry>
+<entry>A dependency with option <code>scope=compile</code>.</entry>
+</row>
+<row>
+<entry><code>test</code></entry>
+<entry>A dependency with option <code>scope=test</code>.</entry>
+</row>
+<row>
+<entry><code>runtime</code></entry>
+<entry>A dependency with option <code>scope=runtime</code>.</entry>
+</row>
+<row>
+<entry><code>system</code></entry>
+<entry>A dependency with option <code>scope=system</code>.</entry>
+</row>
+<row>
+<entry><code>dependencyManagement</code></entry>
+<entry>A managed dependency only in <code>dependencyManagement</code>-block.</entry>
+</row>
+<row>
+<entry><code>provided</code></entry>
+<entry>A dependency with option <code>scope=provided</code>.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<para>Example:</para>
+<programlisting><![CDATA[
+compile: org.slf4j:slf4j-api:1.6.1;optional
+compile: org.slf4j:jcl-over-slf4j:1.6.1;optional;forceversion
+test: org.testng:testng:6.0.1
+]]></programlisting>
+
+</section>
+
+<section><title><code>property</code></title>
+<para>Define a property in a <code><![CDATA[<properties>]]></code>-block.</para>
+<para>Format: OPTION</para>
+<para>Example:</para>
+<programlisting><![CDATA[
+property: maven.compiler.source=1.6
+property: maven.compiler.target=1.6
+property: project.build.sourceEncoding=UTF-8
+]]></programlisting>
+
+</section>
+
+<section><title><code>repository</code></title>
+<para>A remote Maven repository used to download dependencies.</para>
+<para>Format: URL[;OPTION]*</para>
+<para>Options:</para>
+
+<table>
+<title>Options for <code>repository</code></title>
+<tgroup cols="3" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="1*" />
+	<colspec colwidth="3*" />
+<thead>
+<row>
+<entry>Option</entry>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>plugins</code></entry>
+<entry>BOOLEAN</entry>
+<entry>Can be used to download Maven plugins (default: <code>true</code>).</entry>
+</row>
+<row>
+<entry><code>artifacts</code></entry>
+<entry>BOOLEAN</entry>
+<entry>Can be used to download Maven artifacts (default: <code>true</code>).</entry>
+</row>
+<row>
+<entry><code>releases</code></entry>
+<entry>BOOLEAN</entry>
+<entry>Can be used to download released dependencies.</entry>
+</row>
+<row>
+<entry><code>snapshots</code></entry>
+<entry>BOOLEAN</entry>
+<entry>Can be used to download snapshot dependencies.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<!-- TODO: Missing option id -->
+
+<para>Aliases:</para>
+
+<table>
+<title>Aliases for <code>repository</code></title>
+<tgroup cols="2" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="3*" />
+<thead>
+<row>
+<entry>Alias</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>repo</code></entry>
+<entry>Same as <code>repository</code>.</entry>
+</row>
+<row>
+<entry><code>pluginrepo</code></entry>
+<entry>A repository with option <code>artifacts=false</code>.</entry>
+</row>
+<row>
+<entry><code>artifactrepo</code></entry>
+<entry>A repository with option <code>plugins=false</code>.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+</section>
+
+<section><title><code>plugin</code></title>
+<para>A Maven plugin contribution to the Maven lifecycle.</para>
+<para>Format: GAV[;OPTION]*</para>
+<para>Options: Any option has the format OPTION and is added to the <code><![CDATA[<configuration>]]></code>-block of the plugin definition.</para>
+<para>Directives:</para>
+
+<table>
+<title>Directives for <code>plugin</code></title>
+<tgroup cols="3" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="1*" />
+	<colspec colwidth="2*" />
+<thead>
+<row>
+<entry>Directive</entry>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>-extension</code></entry>
+<entry>BOOLEAN</entry>
+<entry>Specify if this plugin is a extensions-plugin (and thus e.g. can contribute new project packaging types).</entry>
+</row>
+<row>
+<entry><code>-execution</code></entry>
+<entry>XML</entry>
+<entry>A free XML fragement that will be placed inside the <code><![CDATA[<executions>]]></code>-block of this plugin.</entry>
+</row>
+<row>
+<entry><code>-plugindependency</code></entry>
+<entry>GAV</entry>
+<entry>A dependency used when execution the plugin command, e.g. to override a version.</entry>
+</row>
+<row>
+<entry><code>-xml:</code><emphasis>anyOption</emphasis></entry>
+<entry>XML</entry>
+<entry>Can be used if the option-value is XML and not text.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<para>Example:</para>
+<programlisting><![CDATA[
+plugin: org.apache.maven.plugins:maven-assembly-plugin:2.2-beta-5; \
+ appendAssemblyId=false; \
+ -xml:descriptorRefs= \
+    <descriptorRef>jar-with-dependencies</descriptorRef>; \
+ -xml:archive= \
+    <manifest> \
+      <mainClass>org.example.Main</mainClass> \
+    </manifest>
+]]></programlisting>
+
+</section>
+
+<section><title><code>build</code></title>
+<para>Redefine some project default settings.</para>
+<para>Format: LIST[OPTION]</para>
+<para>Options:</para>
+
+<table>
+<title>Options for <code>build</code></title>
+<tgroup cols="3" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="1*" />
+	<colspec colwidth="3*" />
+<thead>
+<row>
+<entry>Option</entry>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>sources</code></entry>
+<entry>DIR</entry>
+<entry>The directory containing the source files.</entry>
+</row>
+<row>
+<entry><code>testSources</code></entry>
+<entry>DIR</entry>
+<entry>The directory containing the test source files.</entry>
+</row>
+<row>
+<entry><code>finalName</code></entry>
+<entry>FILE</entry>
+<entry>The name of the final build JAR file.</entry>
+</row>
+<row>
+<entry><code>targetDir</code></entry>
+<entry>DIR</entry>
+<entry>The directory containing the build output files (e.g. <code>target</code>).</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+</section>
+
+<section id="sec:settingsEclipseClasspath"><title><code>eclipseClasspath</code></title>
+<para>Generate a <code>.classpath</code> file which can be used by Eclipse to generate the project classpath container.</para>
+<para>Format: LIST[OPTION]</para>
+<para>Options:</para>
+
+<table>
+<title>Options for <code>eclipseClasspath</code></title>
+<tgroup cols="3" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="1*" />
+	<colspec colwidth="3*" />
+<thead>
+<row>
+<entry>Option</entry>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>autoGenerate</code></entry>
+<entry>TEXT</entry>
+<entry>Auto-generate lib-entries for project dependencies of the given scope. Supported scopes are: compile (includes provided and system), test, runtime.</entry> </row>
+<row>
+<entry><code>optional</code></entry>
+<entry>BOOLEAN</entry>
+<entry>Generate an optional-marker for the actual entry. </entry>
+</row>
+<row>
+<entry><emphasis>key</emphasis></entry>
+<entry>TEXT</entry>
+<entry>A free <emphasis>key</emphasis> added as attribute in the classpathentry-element. Known supported attributes are, e.g.: kind, path, output, sourcepath, ...</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<para>Example:</para>
+<para>Multiple given eclipseClasspath settings to configure a Java 6 project with tests.</para>
+
+<programlisting><![CDATA[
+eclipseClasspath: kind=src;path=src/main/java
+eclipseClasspath: kind=src;path=src/main/resources
+eclipseClasspath: kind=output;path=target/classes
+eclipseClasspath: kind=src;output=target/test-classes;path=src/test/java
+eclipseClasspath: kind=con;path=org.eclipse.jdt.launching.JRE_CONTAINER/\\
+org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6
+eclipseClasspath: autoGenerate=compile
+eclipseClasspath: autoGenerate=test
+]]></programlisting>
+
+<para>This Feature is deprecated and superceeded by the Eclipse Classpath Container for Cmvn.</para>
+
+</section>
+
 </section>
 </chapter>
+
+
+<chapter id="ch:eclispseCpContainer"><title>Eclipse Classpath Container</title>
+<para>Since Cmvn 0.1.8 there is a Eclipse Cmvn Plugin that provides a classpath container, thus making the use of other classpath container like the Maven classpath container unnecessary.</para>
+<para>Features:</para>
+<itemizedlist>
+<listitem><para>Provides classpath dependencies instantly</para></listitem>
+<listitem><para>non-transitive classpath, only add explicit listed dependencies to classpath</para></listitem>
+<listitem><para>different resolution scopes configurable (compile, runtime, test)</para></listitem>
+<listitem><para>very fast (especially a lot faster than Maven and Ivy classpath containers)</para></listitem>
+<listitem><para>Workspace resolution for dependencies (configurable)</para></listitem>
+<listitem><para>uses project-local configuration (uses exact same repositories and dependencies as the command line tool)</para></listitem>
+<listitem><para>supports attached sources and javadoc</para></listitem>
+</itemizedlist>
+
+<para>Restrictions in Cmvn 0.1.8 (fixed in later versions, e.g. 0.2.0):</para>
+<itemizedlist>
+<listitem><para>If cmvn was configured with <code>--maven-settings</code> the Cmvn classpath container will fall back to a <code>{M2_REPO</code> variable, which must be defined in Eclipse. In most cases you should prefer the <code>--maven-repo</code> commandline switch to specify external local Maven repositories.</para></listitem>
+</itemizedlist>
+
+<para>Notice: If you use the Eclipse Cmvn classpath container, you usually do not want to use the <code>eclipseClasspath autoGenerate</code> setting (see section \ref{secSettingEclipseClasspath}).</para>
+
+</chapter>
+
+<chapter><title>Terms of Use (License)</title>
+<para>Cmvn is published under the Apache License, Version 2.0.</para>
+<para><ulink url="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</ulink></para>
+</chapter>
+
+<chapter><title>Installation</title>
+
+<section><title>Unix/Linux/MacOSX: Shell Wrapper</title>
+<para>Cmvn is distributed as executable jar including all its required dependencies.</para>
+<para>For convenience, you may want to create a simple shell script <code>cmvn</code> as an executable wrapper around the program:</para>
+<programlisting><![CDATA[
+#!/bin/sh
+# pass all arguments to cmvn with $@
+exec java -jar cmvn-executable-0.1.3.jar "$@"
+]]></programlisting>
+
+</section>
+
+<section><title>Windows: Using the binary</title>
+<para>Since Cmvn 0.1.4 there is also a released Windows binary version <code>cmvn-0.1.4.exe</code>. As long as this executable exists on the search path (<code>PATH</code>-variable), no command shell wrapper is needed.</para>
+
+<section><title>Windows: Command Shell Wrapper</title>
+<para>If you can not or want not use the executable binary version of Cmvn for Windows, you can alternatively use a command shell wrapper like this one:</para>
+
+<programlisting><![CDATA[
+:init
+@REM Decide how to startup depending on the version of windows
+
+@REM -- Windows NT with Novell Login
+if "%OS%"=="WINNT" goto WinNTNovell
+
+@REM -- Win98ME
+if NOT "%OS%"=="Windows_NT" goto Win9xArg
+
+:WinNTNovell
+
+@REM -- 4NT shell
+if "%@eval[2+2]" == "4" goto 4NTArgs
+
+@REM -- Regular WinNT shell
+set CMVN_CMD_LINE_ARGS=%*
+goto endInit
+
+@REM The 4NT Shell from jp software
+:4NTArgs
+set CMVN_CMD_LINE_ARGS=%$
+goto endInit
+
+:Win9xArg
+@REM Slurp the command line arguments.  This loop allows for an unlimited number
+@REM of agruments (up to the command line limit, anyway).
+set CMVN_CMD_LINE_ARGS=
+:Win9xApp
+if %1a==a goto endInit
+set CMVN_CMD_LINE_ARGS=%CMVN_CMD_LINE_ARGS% %1
+shift
+goto Win9xApp
+
+@REM Reaching here means variables are defined and arguments have been captured
+:endInit
+SET CMVN_JAVA_EXE="%JAVA_HOME%\bin\java.exe"
+
+%CMVN_JAVA_EXE% -jar cmvn-executable.jar %CMVN_CMD_LINE_ARGS%
+
+set CMVN_JAVA_EXE=
+set CMVN_CMD_LINE_ARGS=
+]]></programlisting>
+
+</section>
+</section>
+</chapter>
+
+
 
 </book>
 

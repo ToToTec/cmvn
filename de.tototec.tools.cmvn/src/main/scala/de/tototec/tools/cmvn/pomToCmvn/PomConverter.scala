@@ -30,7 +30,7 @@ class PomConverter() {
     def writeln(str: => String = "") = write(str + "\n")
 
     writeln("# Generated with cmvn " + Config.cmvnOsgiVersion + " on " + new Date().toString)
-    writeln("requireCmvn: " + Config.cmvnOsgiVersion)
+    writeln("-requireCmvn: " + Config.cmvnOsgiVersion)
 
     val xml = XML.loadFile(pomFile.jfile)
 

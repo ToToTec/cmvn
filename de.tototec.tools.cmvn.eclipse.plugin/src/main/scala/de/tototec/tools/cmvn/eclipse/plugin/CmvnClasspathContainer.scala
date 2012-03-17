@@ -121,7 +121,7 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
   private val cmvnFile = new File(projectRootFile, "cmvn.conf")
   private var _cmvnFileTimestamp: Long = 0L
   private var _cmvnProject: CmvnProject = _
-  protected def cmvnProject = {
+  protected def cmvnProject: CmvnProject = {
     if (cmvnFile.exists) {
       if (_cmvnProject == null || cmvnFile.lastModified > _cmvnFileTimestamp) {
         debug((if (_cmvnProject != null) "Reloading" else "Loading") + " CmvnProject from " + cmvnFile)

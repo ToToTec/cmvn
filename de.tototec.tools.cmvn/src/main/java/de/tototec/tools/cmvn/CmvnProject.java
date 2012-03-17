@@ -1,6 +1,7 @@
 package de.tototec.tools.cmvn;
 
 import java.io.File;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,7 +20,12 @@ import de.tototec.tools.cmvn.model.Dependency;
 import de.tototec.tools.cmvn.model.EclipseClasspathGenerator;
 import de.tototec.tools.cmvn.model.Module;
 
+/**
+ * @deprecated Use {@link UnconfiguredCmvnProject} or
+ *             {@link ConfiguredCmvnProject} instead.
+ */
 @ToString(exclude = { "scannedProjects" })
+@Deprecated
 public class CmvnProject {
 
 	public static final String DEFAULT_PROJECT_FILE_NAME = Constants.CmvnProjectFileName();

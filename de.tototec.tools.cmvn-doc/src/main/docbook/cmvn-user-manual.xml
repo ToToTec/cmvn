@@ -1,0 +1,453 @@
+<?xml version='1.0'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+	<!ENTITY versionNumber "0.2.0">
+	<!ENTITY copyrightYear "2010-2012">
+	<!ENTITY copyrightHolder "ToToTec GbR, Tobias Roeser und Tobias Lahn">
+]>
+<book>
+
+<bookinfo>
+	<title>Configured Maven (cmvn)</title>
+	<subtitle>User Manual</subtitle>
+	<productname>cmvn</productname>
+	<releaseinfo>&versionNumber;</releaseinfo>
+	<authorgroup>
+		<author>
+			<firstname>Tobias</firstname>
+			<surname>Roeser</surname>
+		</author>
+	</authorgroup>
+	<copyright>
+		<year>&copyrightYear;</year>
+		<holder>&copyrightHolder;</holder>
+	</copyright>
+</bookinfo>
+
+<toc />
+	
+<chapter id="ch:intro"><title>Introduction</title>
+	
+<para>
+Cmvn is a helper tool for developers targeted at the Java Virtual Machine (JVM). Its main focus is to declaratively describe and configure the required development and build environment.
+</para>
+<para>
+A most significant difference between Java-targeted build systems compared to those for C/C++<footnote><para>e.g. Autotools + GNU Make, CMake, Scons.</para></footnote> is the lack of a defined configuration step before executing the compiler. 
+Although building a Java application is a lot more easy compared to platform dependent programming languages and tools, nevertheless a lot of the (configuration) tasks of those other build systems are still required. 
+Often the lack of a configuration process in Java build systems results in very obscure setups.
+</para>
+<para>
+A very popular build system for Java is Apache Maven<footnote><para><ulink url="http://maven.apache.org">http://maven.apache.org</ulink></para>
+</footnote>, currently in version 3. 
+It partially helps the developer with managing her dependencies but fails miserably at producing reliable builds, at least without support of a complex build infrastructure.<footnote><para>...like a Repository Manager.</para></footnote>
+</para>
+<para>
+Cmvn tries to close this gap by providing a configuration step before the actual build system. 
+Concrete, this goal will be reached by	generating the build scripts for the underlying  (nativ) build system. 
+Whenever a configuration has changed Cmvn will first regenerate the build scripts and after that executes the underlying build system with the right (configured) settings.
+To assist the developer but do not stay in his way, Cmvn does not aim to replace existing build chains.
+Instead, its main focus is adding another (first) configuration step
+to the build chain to create more reliable and reproducable build environments.
+</para>
+<para>
+In its first release Cmvn supports Apache Maven 2.0 and above.<footnote><para>Using Apache Maven 3.0 is higly recommended.</para></footnote>
+In later releases support for various other build chains will be added, e.g. Apache Ant + Ivy, SBT, JackBuild, or others. 
+Although Cmvn generates the build scripts (in Maven case: pom.xml files) is does not can and it wants not handle all aspects of the underlying build infrastructure. 
+To leave the full power to the developer, Cmvn supports templates for the underlying build scripts for those settings Cmvn can not generate.
+But for common project setup, this is rarely needed.
+</para>
+
+</chapter>
+	
+<chapter id="ch:execModes"><title>Execution Modes</title>
+	  
+<para>
+Cmvn can be run in different execution modes. The main modes are:
+<itemizedlist>
+<listitem><para>Configuration</para></listitem>
+<listitem><para>Build</para></listitem>
+<listitem><para>Cleanup</para></listitem>
+</itemizedlist>
+</para>
+<para>
+The execution mode is given as (first) parameter when executing Cmvn.
+</para>
+
+<section><title>Configuration</title>
+<para>
+Simplest Example:
+<programlisting><![CDATA[
+shell> cmvn --configure
+]]></programlisting>
+</para>
+<para>
+Just generate the needed build scripts (if needed) of the underlying buildsystem.
+</para>
+<para>
+For Maven this generates a <code>pom.xml</code> and a Maven settings file <code>.cmvn/settings.xml</code> in a local hidden directory.
+</para>
+			
+<section><title>Automatic re-configuration</title>
+
+<para>
+To reconfigure an already configured project, e.g. because the Cmvn config file has changed or a generated file is missing, one can use the option <code>--reconfigure</code> which does exactly the same as <code>--configure</code> except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration. 
+</para>
+
+<programlisting><![CDATA[
+shell> cmvn --reconfigure
+]]></programlisting>
+
+<para>
+If Cmvn detects, that the current project is not up-to-date, it must be used with <code>--reconfigure</code>. To avoid the burden of beeing forced to run a <code>cmvn --reconfigure</code> after each change of the project (or sub project) configuration, the option <code>--auto-reconfigure</code> can be used together with <code>--configure</code>. 
+</para>
+
+<programlisting><![CDATA[
+shell> cmvn --configure --auto-reconfigure
+]]></programlisting>
+
+<para>
+Configured that way, Cmvn will automatically reconfigure the project (and the whole project tree) before a build, if needed.
+</para>
+
+<para>
+Since cmvn-0.1.2 <code>--auto-reconfigure</code> is the default.
+</para>
+</section>
+
+<section><title>Maven Settings</title>
+<para>
+By default, <code>cmvn --configure</code> initally created an new project-local Maven settings file and thus uses a project-local repository. 
+This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) realeased dependencies. 
+This default way enables the developer to easy build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are releasing to the same local repository. 
+</para>
+<para>
+Of course, the newly created repository and Maven settings file is shared between all sub projects of the one you just configured.
+</para>
+<para>
+In case, this default behavior is not desired, you can tell Cmvn to use an alternative existing Maven settings file with the option <code>--maven-settings</code>. 
+In this case, you may will loose the benefits of side-effect free development of multiple project on the same computer. 
+Also this may limit the reproducability of the build process in different environments. 
+</para>
+
+<programlisting><![CDATA[
+shell> cmvn --configure --maven-settings /home/user/.m2/settings.xml
+]]></programlisting>
+
+<para>
+Notice, that if you use an alternative Maven settings file, Cmvn will not touch this file and the Local Maven Repository when running in cleanup execution mode.
+</para>
+
+</section>
+
+<section><title>Using Templates - pom.xml.cmvn</title>
+<para>
+When Cmvn detects the presence of a file pom.xml.cmvn it will use it as template when generating the pom.xml file for Maven. 
+Cmvn will first read the template file and afterward extend it with the settings found in <code>cmvn.conf</code>. 
+You can use this to easily migrate existing Maven projects or if you need complex setups and Maven features (like <code><![CDATA[<profile>]]></code>). 
+</para>
+</section>
+
+<section><title>Build</title>
+<para>
+Maven Example: Clean project build and install the build jar file into the local Maven repository.
+</para>
+
+<programlisting><![CDATA[
+shell> cmvn --build clean install
+]]></programlisting>
+
+<para>
+The build execution mode is automatically enabled if no other mode was requested and at least one non-option argument was given to Cmvn. So the example above could also be written as:
+</para>
+<programlisting><![CDATA[
+shell> cmvn clean install
+]]></programlisting>
+	
+<para>
+If Cmvn is run without any option and parameter but the project was configured with the <code>--reconfigure</code> option, all necessary project files will be regenerated automatically if needed.<footnote><para>Without the <code>--auto-reconfigure</code> setting the same behavior can be achieved by running <code>cmvn --reconfigure</code>.</para></footnote>
+</para>
+
+</section>
+
+<section><title>Cleanup</title>
+
+<para>
+The execution mode cleanup is used to remove all generated files and the configuration data. Currently there are two variants to enable the cleanup mode: one version enabled with --clean removes only the generated native build scripts, the other variant <code>--distclean</code> cleans also the configuration state and any other generated environment setup, e.g. a hidden project local Maven repository.
+</para>
+
+<programlisting>
+shell> cmvn --clean
+</programlisting>
+
+<para>
+Cleans up all generated native build scripts.
+</para>
+
+<programlisting>
+shell> cmvn --distclean
+</programlisting>
+
+<para>
+Cleans up all generated files including configured state.
+</para>
+
+</section>
+</section>
+</chapter>
+
+<chapter><title>The configuration file <code>cmvn.conf</code></title>
+<section><title>Config file syntax</title>
+
+<para>
+The config file has a very simplistic human readable and editable format:
+</para>
+
+<orderedlist>
+	<listitem><para><emphasis>empty lines</emphasis> were ignored</para></listitem>
+	<listitem><para>the hash sign (<code>#</code>) starts a <emphasis>comment</emphasis> until end of line</para></listitem>
+	<listitem><para>each non-comment line consists of a pair of <emphasis>key</emphasis> and <emphasis>value</emphasis> delimited by a colon (<code>:</code>)</para></listitem>
+	<listitem><para>keys starting with a hyphen (<code>-</code>) are <emphasis>directives</emphasis> all other keys were <emphasis>settings</emphasis></para></listitem>
+	<listitem><para>values may have <emphasis>options</emphasis>, in which case options are separated by a semicolon (<code>;</code>)</para></listitem>
+	<listitem><para>value-options are themselves key-value pairs delimited by equal sign (<code>=</code>)</para></listitem>
+	<listitem><para>if an option-value is ommitted (an option without an equal sign) it is evaluated to <code>true</code></para></listitem>
+	<listitem><para>non-comment lines ending with a backslash (<code>\</code>) were <emphasis>continued</emphasis> on the next line</para></listitem>
+</orderedlist>
+
+<section><title>Config file example</title>
+
+<para>
+	The following is an example project config file <code>cmvn.conf</code>:
+</para>
+
+       <programlisting><![CDATA[
+# Include directive
+-include: ../common/cmvncommon.conf
+
+# Immutable variable directive
+-val: EXAMPLE_VERSION=0.0.1
+
+# project settings using a variable
+# cmvn uses a short syntax for projects and dependencies
+# group:artifact:version (GAV) or org:name:rev
+project: de.tototec:de.tototec.example:$${EXAMPLE_VERSION}
+
+# a dependency with option spreading two lines
+compile: de.tototec:de.tototec.example.utils:$${EXAMPLE_VERSION}; \
+ classifier=jdk15
+
+# compile-scope dependency 
+compile: org.slf4j:slf4j-api:1.6.1
+
+# optional runtime-dependency
+runtime: ch.qos.logback:logback-classic:0.9.26;optional
+
+# test-scope dependency
+test: org.testng:testng:5.14.6
+]]></programlisting>
+</section>
+
+<section><title>Legend</title>
+<para>The following sections contain tables with uses the following keyword in the format column:</para>
+
+<table>
+<title>Legend of Formats</title>
+<tgroup cols="2" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="4*" />
+<thead>
+<row>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>BOOLEAN</entry>
+<entry>A boolean value: "true" or "false"</entry>
+</row>
+<row>
+<entry>DIR</entry>
+<entry>A directory in the local file system</entry>
+</row>
+<row>
+<entry>FILE</entry>
+<entry>A file in the local file system</entry>
+</row>
+<row>
+<entry>GAV</entry>
+<entry><emphasis>groupId</emphasis>:<emphasis>artifactId</emphasis>:<emphasis>version</emphasis> (analog to Maven) or <emphasis>org</emphasis>:<emphasis>name</emphasis>:<emphasis>rev</emphasis> (analog to Ivy)</entry>
+</row>
+<row>
+<entry>GA</entry>
+<entry>Same as GAV, but without a version</entry>
+</row>
+<row>
+<entry>LIST[X]</entry>
+<entry>A semicolon delimited list of X (if ommitted, than text)</entry>
+</row>
+<row>
+<entry>OPTION</entry>
+<entry>A <emphasis>key</emphasis>=<emphasis>value</emphasis> pair</entry>
+</row>
+<row>
+<entry>TEXT</entry>
+<entry>Text</entry>
+</row>
+<row>
+<entry>URL</entry>
+<entry>A URL</entry>
+</row>
+<row>
+<entry>XML</entry>
+<entry>A XML fragement</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+</section>
+
+<section><title>Directives</title>
+<para>Directives are instructions to Cmvn to do something special.</para>
+<table>
+<title>Directives</title>
+<tgroup cols="3" colsep="1" rowsep="1">
+	<colspec colwidth="1*" />
+	<colspec colwidth="1*" />
+	<colspec colwidth="3*" />
+<thead>
+<row>
+<entry>Directive</entry>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>-configClass</code></entry>
+<entry>LIST[OPTION]</entry>
+<entry>Generate a Java class as source code containing static methods.</entry>
+</row>
+<row>
+<entry><code>-include</code></entry>
+<entry>FILE</entry>
+<entry>Include the content of the given file. The content will be threated as if it was in the actual file.</entry>
+</row>
+<row>
+<entry><code>-val</code></entry>
+<entry>OPTION</entry>
+<entry>Create an immutable variable <emphasis>key</emphasis> with content <emphasis>value</emphasis>. All occurences of this variable were expanded in the value-part of all succeeding lines (except <code>-include</code>).</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+</section>
+
+<section><title>Settings</title>
+<para>Settings are used to generate the underlying (native) build scripts. Currently the only supported buildsystem is Maven 2 or greater.</para>
+
+<table>
+<title>Settings</title>
+<tgroup cols="3" colsep="1" rowsep="1">
+<colspec colwidth="1*" />
+<colspec colwidth="1*" />
+<colspec colwidth="3*" />
+<thead>
+<row>
+<entry>Setting</entry>
+<entry>Format</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><code>artifactrepo</code></entry>
+<entry>URL</entry>
+<entry>Alias for <code>repository</code> with option <code>plugins=false</code></entry>
+</row>
+<row>
+	<entry><code>plugin</code></entry>
+<entry>GAV</entry>
+<entry>Maven plugin coordinates</entry>
+</row>
+<row>
+	<entry><code>project</code></entry>
+<entry>GAV</entry>
+<entry>Project coordinates</entry>
+</row>
+<row>
+<entry><code>compile</code></entry>
+<entry>GAV</entry>
+<entry>Alias for <code>dependency</code> with option <code>scope=compile</code></entry>
+</row>
+<row>
+<entry><code>dependency</code></entry>
+<entry>GAV</entry>
+<entry>A project/package dependency</entry>
+</row>
+<row>
+<entry><code>dependencyManagement</code></entry>
+<entry>GAV</entry>
+<entry>Managed dependency in \code{dependencyManagement}-block</entry>
+</row>
+<row>
+<entry><code>eclipseClasspath</code></entry>
+<entry>LIST[OPTION]</entry>
+<entry>List of options to generate a <code>.classpath</code> file used by Eclipse.</entry>
+</row>
+<row>
+<entry><code>exclude</code></entry>
+<entry>GA</entry>
+<entry>Exclude the given dependency in transitive dependencies. Will generate exclusion-blocks in any dependency-block.</entry>
+</row>
+<row>
+<entry><code>module</code></entry>
+<entry>DIR</entry>
+<entry>The path of a sub project</entry>
+</row>
+<row>
+<entry><code>pluginrepo</code></entry>
+<entry>URL</entry>
+<entry>Alias for <code>repository</code> with option <code>artifacts=false</code></entry>
+</row>
+<row>
+<entry><code>property</code></entry>
+<entry>OPTION</entry>
+<entry>Definition of property <emphasis>key</emphasis> with value <emphasis>value</emphasis></entry>
+</row>
+<row>
+<entry><code>repo</code></entry>
+<entry>URL</entry>
+<entry>Alias for <code>repository</code></entry>
+</row>
+<row>
+<entry><code>repository</code></entry>
+<entry>URL</entry>
+<entry>Maven Repository</entry>
+</row>
+<row>
+<entry><code>runtime</code></entry>
+<entry>GAV</entry>
+<entry>Alias for <code>dependency</code> with option <code>scope=runtime</code></entry>
+</row>
+<row>
+<entry><code>system</code></entry>
+<entry>GAV</entry>
+<entry>Alias for <code>dependency</code> with option <code>scope=system</code></entry>
+</row>
+<row>
+<entry><code>test</code></entry>
+<entry>GAV</entry>
+<entry>Alias for <code>dependency</code> with option <code>scope=test</code></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+</section>
+
+</section>
+</chapter>
+
+</book>
+

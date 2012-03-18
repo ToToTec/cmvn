@@ -57,15 +57,43 @@ But for common project setup, this is rarely needed.
 </para>
 
 </chapter>
-	
+
+<chapter><title>What's New in Cmvn 0.2.0</title>
+
+
+<para>New features in Cmvn 0.2.0:</para>
+<itemizedlist>
+<listitem><para>A new POM converter was added to easily convert existing Maven project to Cmvn. See <xref linkend="sec:convertPom" />.</para></listitem>
+<listitem><para>Experimental suport for Jackage repositories. New execution mode <code>--fetch</code> to download Jackage dependencies.</para></listitem>
+<listitem><para>Cmvn can now generate <code><![CDATA[<reporting>]]></code>-blocks.</para></listitem>
+<listitem><para>Cmvn can now generate <code><![CDATA[<parent>]]></code>-blocks.</para></listitem>
+<listitem><para>New execution mode <code>--info</code> to gather various project information, e.g. root project location, variables, ...</para></listitem>
+
+</itemizedlist>
+
+<para>Changes in Cmvn 0.2.0:</para>
+<itemizedlist>
+<listitem><para>Setting <code>-generateConfigClass</code> was renamed to <code>generateConfigClass</code></para></listitem>
+<listitem><para>Setting <code>requireCmvn</code> was renamed to <code>-requireCmvn</code></para></listitem>
+<listitem><para>Internally, Cmvn uses not the <ulink url="http://cmndoption.tototec.de">CmnOption toolkit (http://cmdoption.tototec.de)</ulink> to parse commandlines.</para></listitem>
+<listitem><para>Inproved up-to-date detection which should not detect all relevant changes in input files.</para></listitem>
+<listitem><para>Dependencies, that only differ in it <code>type</code> property are no longer swallowed.</para></listitem>
+</itemizedlist>
+
+</chapter>
+
+
 <chapter id="ch:execModes"><title>Execution Modes</title>
 	  
 <para>
 Cmvn can be run in different execution modes. The main modes are:
 <itemizedlist>
-<listitem><para>Configuration</para></listitem>
-<listitem><para>Build</para></listitem>
-<listitem><para>Cleanup</para></listitem>
+<listitem><para>Configuration (<code>--configure</code>, <code>--reconfigure</code>)</para></listitem>
+<listitem><para>Fetch (<code>--fetch</code>)</para></listitem>
+<listitem><para>Build (<code>--build</code>)</para></listitem>
+<listitem><para>Cleanup (<code>--clean</code>, <code>--distclean</code>)</para></listitem>
+<listitem><para>Convert POM (<code>--convert-pom</code>)</para></listitem>
+<listitem><para>Information (<code>--info</code>)</para></listitem>
 </itemizedlist>
 </para>
 <para>
@@ -86,38 +114,29 @@ Just generate the needed build scripts (if needed) of the underlying buildsystem
 For Maven this generates a <code>pom.xml</code> and a Maven settings file <code>.cmvn/settings.xml</code> in a local hidden directory.
 </para>
 			
+<para>For a complete list of options see the built-in commandline help: <code>cmvn --configure --help</code>.</para>
+
 <section><title>Automatic re-configuration</title>
 
-<para>
-To reconfigure an already configured project, e.g. because the Cmvn config file has changed or a generated file is missing, one can use the option <code>--reconfigure</code> which does exactly the same as <code>--configure</code> except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration. 
+<para>Whenever an input file of Cmvn changed, Cmvn will detect the change at the next execution time and will automatically run a <code>--reconfigure</code> before further processing.</para>
+
+<para>However, if there is for some reason the need to disable this automatism, you can add the <code>--no-auto-reconfigure</code> option when configuring the project. If Cmvn detects, that some input files changed, it will claim, that it is out-ouf-date and needs reconfiguration and stop any further processing.</para>
+
+<para>To reconfigure, one can use the option <code>--reconfigure</code> which does exactly the same as <code>--configure</code> except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration. 
 </para>
 
 <programlisting><![CDATA[
 shell> cmvn --reconfigure
 ]]></programlisting>
 
-<para>
-If Cmvn detects, that the current project is not up-to-date, it must be used with <code>--reconfigure</code>. To avoid the burden of beeing forced to run a <code>cmvn --reconfigure</code> after each change of the project (or sub project) configuration, the option <code>--auto-reconfigure</code> can be used together with <code>--configure</code>. 
-</para>
-
-<programlisting><![CDATA[
-shell> cmvn --configure --auto-reconfigure
-]]></programlisting>
-
-<para>
-Configured that way, Cmvn will automatically reconfigure the project (and the whole project tree) before a build, if needed.
-</para>
-
-<para>
-Since cmvn-0.1.2 <code>--auto-reconfigure</code> is the default.
-</para>
 </section>
 
-<section><title>Maven Settings</title>
+
+<section><title>Changing the Maven Local Repository and Settings</title>
 <para>
 By default, <code>cmvn --configure</code> initally created an new project-local Maven settings file and thus uses a project-local repository. 
 This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) realeased dependencies. 
-This default way enables the developer to easy build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are releasing to the same local repository. 
+This default way enables the developer to easy build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are installing (in the Maven sense) to the same local repository. 
 </para>
 <para>
 Of course, the newly created repository and Maven settings file is shared between all sub projects of the one you just configured.
@@ -136,14 +155,23 @@ shell> cmvn --configure --maven-settings /home/user/.m2/settings.xml
 Notice, that if you use an alternative Maven settings file, Cmvn will not touch this file and the Local Maven Repository when running in cleanup execution mode.
 </para>
 
+<para>If all you want is to reuse an existing Maven local repository, you can use the <code>--maven-repo</code> option.</para>
+
+<programlisting><![CDATA[
+shell> cmvn --configure --maven-repo /home/user/.m2/repository
+]]></programlisting>
+       
+<para>The <code>--maven-repo</code> option is preferred over <code>--maven-settings</code> as you do not get the potential side effects from the external settings file. As these settings are normally not part of the build environment (e.g. not managed by a version control system), they increase the risk to get non-repoducable builds and build failures.</para>
+
 </section>
 
 <section><title>Using Templates - pom.xml.cmvn</title>
 <para>
-When Cmvn detects the presence of a file pom.xml.cmvn it will use it as template when generating the pom.xml file for Maven. 
+When Cmvn detects the presence of a file <code>pom.xml.cmvn</code> it will use it as template when generating the pom.xml file for Maven. 
 Cmvn will first read the template file and afterward extend it with the settings found in <code>cmvn.conf</code>. 
 You can use this to easily migrate existing Maven projects or if you need complex setups and Maven features (like <code><![CDATA[<profile>]]></code>). 
 </para>
+</section>
 </section>
 
 <section><title>Build</title>
@@ -161,17 +189,14 @@ The build execution mode is automatically enabled if no other mode was requested
 <programlisting><![CDATA[
 shell> cmvn clean install
 ]]></programlisting>
-	
-<para>
-If Cmvn is run without any option and parameter but the project was configured with the <code>--reconfigure</code> option, all necessary project files will be regenerated automatically if needed.<footnote><para>Without the <code>--auto-reconfigure</code> setting the same behavior can be achieved by running <code>cmvn --reconfigure</code>.</para></footnote>
-</para>
 
 </section>
 
 <section><title>Cleanup</title>
 
 <para>
-The execution mode cleanup is used to remove all generated files and the configuration data. Currently there are two variants to enable the cleanup mode: one version enabled with --clean removes only the generated native build scripts, the other variant <code>--distclean</code> cleans also the configuration state and any other generated environment setup, e.g. a hidden project local Maven repository.
+The execution mode cleanup is used to remove all generated files and the configuration data. 
+Currently there are two variants to enable the cleanup mode: one version enabled with <code>--clean</code> removes only the generated native build scripts, the other variant <code>--distclean</code> cleans also the configuration state and any other generated environment setup, e.g. a hidden project local Maven repository.
 </para>
 
 <programlisting>
@@ -189,9 +214,28 @@ shell> cmvn --distclean
 <para>
 Cleans up all generated files including configured state.
 </para>
+</section>
+
+<section id="sec:convertPom"><title>Converting existing Maven projects</title>
+<para>To easily use Cmvn with existing Maven projects, one can use the built-in <code>pom.xml</code> converter.</para>
+
+<programlisting><![CDATA[
+shell> cmvn --convert-pom --dry-run
+]]></programlisting>
+
+<para>This command will show you how the conversion result looks like. If issues are detected, e.g. unresolvable versions for plugins, a warning will be shown.</para>
+
+<para>To convert a whole multi-project recursive, execute the following:</para>
+
+<programlisting><![CDATA[
+shell> cmvn --convert-pom --recursive
+]]></programlisting>
+       
+<para>For more options see the built-in commandline help: <code>cmvn --convert-pom --help</code></para>
 
 </section>
-</section>
+
+
 </chapter>
 
 <chapter><title>The configuration file <code>cmvn.conf</code></title>

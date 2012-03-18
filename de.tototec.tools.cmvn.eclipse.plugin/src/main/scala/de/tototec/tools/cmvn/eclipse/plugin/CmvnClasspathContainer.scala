@@ -1,19 +1,17 @@
 package de.tototec.tools.cmvn.eclipse.plugin
 
 import java.io.File
-
 import scala.Array.canBuildFrom
 import scala.collection.JavaConversions.asScalaBuffer
-
 import org.eclipse.core.runtime.IPath
 import org.eclipse.core.runtime.Path
 import org.eclipse.jdt.core.IClasspathContainer
 import org.eclipse.jdt.core.IClasspathEntry
 import org.eclipse.jdt.core.IJavaProject
 import org.eclipse.jdt.core.JavaCore
-
 import de.tototec.tools.cmvn.model.Dependency
 import de.tototec.tools.cmvn.CmvnProject
+import de.tototec.tools.cmvn.ConfiguredCmvnProject
 
 object CmvnClasspathContainer {
   val ContainerPath = """de.tototec.tools.cmvn.CMVN_DEPENDENCIES"""
@@ -55,7 +53,7 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
     Console.println(msg)
   }
 
-  protected def computeClasspathEntries(cmvn: CmvnProject): Array[IClasspathEntry] = {
+  protected def computeClasspathEntries(cmvn: ConfiguredCmvnProject): Array[IClasspathEntry] = {
     debug("computeClasspathEntries(cmvn=" + (if (cmvn != null) "..." else "null") + ") for project=" + project + " and containerPath=" + path)
 
     val workspaceProjects = JavaCore.create(project.getProject.getWorkspace.getRoot).getJavaProjects
@@ -68,7 +66,7 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
       })
     }
 
-    cmvn.getProjectConfig.getDependencies.distinct.filter(dep => scope match {
+    cmvn.projectConfig.getDependencies.distinct.filter(dep => scope match {
       case "compile" => Array("compile", "provided", "system").contains(dep.scope)
       case "runtime" => Array("compile", "provided", "system", "runtime").contains(dep.scope)
       case "test" => Array("compile", "provided", "system", "runtime", "test").contains(dep.scope)
@@ -88,7 +86,7 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
                 case false => project.getProject.getRawLocation.toFile.getPath + File.separator + p
               }
               case _ => {
-                var localRepoPathPrefix = cmvn.getConfiguredState.getLocalRepository
+                var localRepoPathPrefix = cmvn.configuredState.getLocalRepository
                 if (localRepoPathPrefix != null && localRepoPathPrefix != "") {
                   localRepoPathPrefix = new File(localRepoPathPrefix).getAbsolutePath
                 } else {
@@ -120,13 +118,18 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
 
   private val cmvnFile = new File(projectRootFile, "cmvn.conf")
   private var _cmvnFileTimestamp: Long = 0L
-  private var _cmvnProject: CmvnProject = _
-  protected def cmvnProject: CmvnProject = {
+  private var _cmvnProject: ConfiguredCmvnProject = _
+  protected def cmvnProject: ConfiguredCmvnProject = {
     if (cmvnFile.exists) {
       if (_cmvnProject == null || cmvnFile.lastModified > _cmvnFileTimestamp) {
         debug((if (_cmvnProject != null) "Reloading" else "Loading") + " CmvnProject from " + cmvnFile)
         _cmvnFileTimestamp = cmvnFile.lastModified
-        _cmvnProject = new CmvnProject(cmvnFile)
+        try {
+          _cmvnProject = new ConfiguredCmvnProject(cmvnFile, relaxedVersionCheck = true)
+        } catch {
+          case e: RuntimeException =>
+            debug("Could not create project. Caught RuntimeException: " + e.getLocalizedMessage)
+        }
       }
       _cmvnProject
     } else {

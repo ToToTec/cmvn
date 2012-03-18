@@ -46,7 +46,7 @@ object ConfiguredCmvnProject {
   }
 }
 
-class ConfiguredCmvnProject(projectFileOrDir: Path) {
+class ConfiguredCmvnProject(projectFileOrDir: Path, relaxedVersionCheck: Boolean = false) {
 
   val projectFile = projectFileOrDir match {
     case f: File => f
@@ -70,7 +70,7 @@ class ConfiguredCmvnProject(projectFileOrDir: Path) {
     configuredState
   }
 
-  if (configuredState.cmvnVersion != Config.cmvnOsgiVersion) {
+  if (!relaxedVersionCheck && configuredState.cmvnVersion != Config.cmvnOsgiVersion) {
     throw new RuntimeException("The project was configured by another Cmvn version (" + configuredState.cmvnVersion + "). Please configure the project again. Project: " + projectFile.path)
   }
 

@@ -79,8 +79,8 @@ test: junit:junit:4.8.2
 <itemizedlist>
 <listitem><para>Setting <code>-generateConfigClass</code> was renamed to <code>generateConfigClass</code></para></listitem>
 <listitem><para>Setting <code>requireCmvn</code> was renamed to <code>-requireCmvn</code></para></listitem>
-<listitem><para>Internally, Cmvn uses not the <ulink url="http://cmndoption.tototec.de">CmnOption toolkit (http://cmdoption.tototec.de)</ulink> to parse commandlines.</para></listitem>
-<listitem><para>Inproved up-to-date detection which should not detect all relevant changes in input files.</para></listitem>
+<listitem><para>Internally, Cmvn uses now the CmdOption toolkit (<ulink url="http://cmdoption.tototec.de">http://cmdoption.tototec.de</ulink>) to parse commandlines.</para></listitem>
+<listitem><para>Inproved up-to-date detection which should now detect all relevant changes in input files.</para></listitem>
 <listitem><para>Dependencies, that only differ in it <code>type</code> property are no longer swallowed.</para></listitem>
 </itemizedlist>
 

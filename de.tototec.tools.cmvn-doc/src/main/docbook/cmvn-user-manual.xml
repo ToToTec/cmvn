@@ -31,7 +31,7 @@
 Cmvn is a helper tool for developers targeted at the Java Virtual Machine (JVM). Its main focus is to declaratively describe and configure the required development and build environment.
 </para>
 <para>
-A most significant difference between Java-targeted build systems compared to those for C/C++<footnote><para>e.g. Autotools + GNU Make, CMake, Scons.</para></footnote> is the lack of a defined configuration step before executing the compiler. 
+A most significant difference between existing Java-targeted build systems compared to those for C/C++<footnote><para>e.g. Autotools + GNU Make, CMake, Scons.</para></footnote> is the lack of a defined configuration step before executing the compiler. 
 Although building a Java application is a lot more easy compared to platform dependent programming languages and tools, nevertheless a lot of the (configuration) tasks of those other build systems are still required. 
 Often the lack of a configuration process in Java build systems results in very obscure setups.
 </para>
@@ -50,11 +50,15 @@ to the build chain to create more reliable and reproducable build environments.
 </para>
 <para>
 In its first release Cmvn supports Apache Maven 2.0 and above.<footnote><para>Using Apache Maven 3.0 is higly recommended.</para></footnote>
-In later releases support for various other build chains will be added, e.g. Apache Ant + Ivy, SBT, JackBuild, or others. 
-Although Cmvn generates the build scripts (in Maven case: pom.xml files) is does not can and it wants not handle all aspects of the underlying build infrastructure. 
+In later releases, support for various other build chains might be added, e.g. Apache Ant + Ivy, SBT, JackBuild, or others. 
+Although Cmvn generates the build scripts (in Maven case: pom.xml files) is does not can and it wants not handle all aspects of the underlying build infrastructure.
 To leave the full power to the developer, Cmvn supports templates for the underlying build scripts for those settings Cmvn can not generate.
 But for common project setup, this is rarely needed.
 </para>
+<para>Besides the configuration concept, Cmvn brings you concise and maintainable build scripts and empowers you (again) to understand and control your buildsystem! E.g. the <code>cmvn.conf</code> equivalent of the <code>pom.xml</code> in the "Maven in 5 Minutes" tutorial<footnote><para><ulink url="http://maven.apache.org/guides/getting-started/maven-in-five-minutes.html">http://maven.apache.org/guides/getting-started/maven-in-five-minutes.html</ulink></para></footnote> looks like this:<programlisting>
+project: com.mycompany.app:my-app:1.0-SNAPSHOT
+test: junit:junit:4.8.2
+</programlisting></para>
 
 </chapter>
 
@@ -945,7 +949,7 @@ eclipseClasspath: autoGenerate=test
 
 
 <chapter id="ch:eclipseCpContainer"><title>Eclipse Classpath Container</title>
-<para>Since Cmvn 0.1.8 there is a Eclipse Cmvn Plugin that provides a classpath container, thus making the use of other classpath container like the Maven classpath container obsolete.</para>
+<para>Since Cmvn 0.1.8 there is an Eclipse Cmvn Plugin that provides a classpath container, thus making the use of other classpath container like the Maven classpath container obsolete.</para>
 <para>Features:</para>
 <itemizedlist>
 <listitem><para>Provides classpath dependencies instantly</para></listitem>
@@ -959,7 +963,7 @@ eclipseClasspath: autoGenerate=test
 
 <para>Restrictions in Cmvn 0.1.8 (fixed in later versions, e.g. 0.2.0):</para>
 <itemizedlist>
-<listitem><para>If cmvn was configured with <code>--maven-settings</code> the Cmvn classpath container will fall back to a <code>{M2_REPO</code> variable, which must be defined in Eclipse. In most cases you should prefer the <code>--maven-repo</code> commandline switch to specify external local Maven repositories.</para></listitem>
+<listitem><para>If cmvn was configured with <code>--maven-settings</code> the Cmvn classpath container will fall back to a <code>M2_REPO</code> variable, which must be defined in Eclipse. In most cases you should prefer the <code>--maven-repo</code> commandline switch to specify external local Maven repositories.</para></listitem>
 </itemizedlist>
 
        <para>Notice: If you use the Eclipse Cmvn classpath container, you usually do not want to use the <code>eclipseClasspath autoGenerate</code> setting (see <xref linkend="sec:settingsEclipseClasspath" />).</para>

@@ -73,10 +73,8 @@ object CmvnApp2 {
         System.exit(0)
       }
     }
-
+    
     cp.getParsedCommandObject() match {
-
-      case null => Console.println("No command selected")
 
       case confCmd: ConfigureCmd =>
         checkCmdHelp(confCmd)
@@ -95,6 +93,12 @@ object CmvnApp2 {
         val confProject = new ConfiguredCmvnProject(curDir)
         confProject.generateRecursive(generateCmd.force)
 
+      case null =>
+        // No command selected, but this means, no default-command selected because no other parameter
+        Output.verbose("--build selected (without extra parameters)")
+        // implicitly bring project up-to-date if configured so
+        upToDateProject
+        
       case buildCmd: BuildCmd =>
         checkCmdHelp(buildCmd)
         Output.verbose("--build selected")
@@ -169,7 +173,7 @@ object CmvnApp2 {
     if (confState.autoReconfigure) {
       project.generateRecursive(evenWhenNotChanged = false)
     } else {
-      if (!project.isUpToDate) {
+      if (!project.isUpToDateRecursive) {
         throw new RuntimeException("Project not up-to-date. Please run --generate first or configure project without --no-auto-reconfigure.")
       }
     }
@@ -223,17 +227,12 @@ object CmvnApp2 {
     }
   }
 
+
+
   def runMaven(buildCmd: BuildCmd) {
 
-    val confProject = new ConfiguredCmvnProject(curDir)
+    val confProject = upToDateProject
     val configuredState = confProject.configuredState
-    if (configuredState.autoReconfigure) {
-      confProject.generateRecursive(evenWhenNotChanged = false)
-    } else {
-      if (!confProject.isUpToDateRecursive) {
-        throw new RuntimeException("Project not up-to-date. Please run --generate first or configure project without --no-auto-reconfigure.")
-      }
-    }
 
     // Run Maven
 

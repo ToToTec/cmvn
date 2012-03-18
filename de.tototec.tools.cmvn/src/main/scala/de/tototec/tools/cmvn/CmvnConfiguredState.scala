@@ -14,22 +14,21 @@ import scala.reflect.{ BeanProperty, BooleanBeanProperty }
 //remove if not needed
 import scala.collection.JavaConversions._
 
-class CmvnConfiguredState(
-  @BooleanBeanProperty var controlSettingsFile: Boolean = false,
-  @BooleanBeanProperty var controlRepoDir: Boolean = false,
-  @BeanProperty var localRepository: String = null,
-  @BeanProperty var settingsFile: String = null,
-  @BeanProperty var rootProjectFile: String = null,
-  @BeanProperty var projectFile: String = null,
-  @BooleanBeanProperty var autoReconfigure: Boolean = false,
-  @BooleanBeanProperty var forceSystemScope: Boolean = false,
-  @BeanProperty var mavenExecutable: String = null,
-  @BooleanBeanProperty var generateIvy: Boolean = false,
-  @BooleanBeanProperty var referenceLocalArtifactsAsSystemScope: Boolean = false,
-  @BooleanBeanProperty var eclipseForceLocalWorkspaceRefs: Boolean = false) {
-
-  /** Default constructor compatibility with Java */
-  def this() = this(controlSettingsFile = false)
+class CmvnConfiguredState() {
+  @BooleanBeanProperty var controlSettingsFile: Boolean = false
+  @BooleanBeanProperty var controlRepoDir: Boolean = false
+  @BeanProperty var localRepository: String = null
+  @BeanProperty var settingsFile: String = null
+  @BeanProperty var rootProjectFile: String = null
+  @BeanProperty var projectFile: String = null
+  @BooleanBeanProperty var autoReconfigure: Boolean = false
+  @BooleanBeanProperty var forceSystemScope: Boolean = false
+  @BeanProperty var mavenExecutable: String = null
+  @BooleanBeanProperty var generateIvy: Boolean = false
+  @BooleanBeanProperty var referenceLocalArtifactsAsSystemScope: Boolean = false
+  @BooleanBeanProperty var eclipseForceLocalWorkspaceRefs: Boolean = false
+  var definedVals: java.util.Map[String, String] = new java.util.LinkedHashMap()
+  var cmvnVersion = "unknown"
 
   def this(copy: CmvnConfiguredState) {
     this
@@ -49,6 +48,9 @@ class CmvnConfiguredState(
     generateIvy = copy.generateIvy
     referenceLocalArtifactsAsSystemScope = copy.referenceLocalArtifactsAsSystemScope
     eclipseForceLocalWorkspaceRefs = copy.eclipseForceLocalWorkspaceRefs
+    definedVals.clear
+    definedVals.putAll(copy.definedVals)
+    cmvnVersion = copy.cmvnVersion
   }
 
   def fromYamlFile(file: File) {
@@ -72,6 +74,7 @@ class CmvnConfiguredState(
     val yamlWriter = new YamlWriter(fileWriter)
     yamlWriter.getConfig.writeConfig.setWriteDefaultValues(true)
     yamlWriter.getConfig.writeConfig.setWriteRootTags(false)
+    yamlWriter.getConfig.setPropertyDefaultType(getClass, "definedVals", classOf[java.util.LinkedHashMap[String, String]])
     yamlWriter.write(this)
     yamlWriter.close()
     fileWriter.close()

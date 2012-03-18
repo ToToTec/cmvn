@@ -181,6 +181,10 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
         configuredState.referenceLocalArtifactsAsSystemScope = configureCmd.systemScopeForLocalProjects
         configuredState.eclipseForceLocalWorkspaceRefs = configureCmd.eclipseForceLocalWorkspaceRefs
 
+        configuredState.definedVals = new java.util.LinkedHashMap(configureCmd.definedVals)
+
+        configuredState.cmvnVersion = Config.cmvnOsgiVersion
+
     }
 
     Output.verbose("Writing configured state file: " + stateFile)

@@ -70,6 +70,10 @@ class ConfiguredCmvnProject(projectFileOrDir: Path) {
     configuredState
   }
 
+  if (configuredState.cmvnVersion != Config.cmvnOsgiVersion) {
+    throw new RuntimeException("The project was configured by another Cmvn version (" + configuredState.cmvnVersion + "). Please configure the project again. Project: " + projectFile.path)
+  }
+
   lazy val (inputState, projectConfig) = {
     val inputState = new CmvnConfiguredInputState()
     // The project file itself
@@ -195,7 +199,7 @@ class ConfiguredCmvnProject(projectFileOrDir: Path) {
   def removeGeneratedFiles {
     // TODO: implement clean
     Output.error("Clean is currently not implemented")
-    
+
     // TODO: We should record a list of generated files, and delete these files now
   }
 

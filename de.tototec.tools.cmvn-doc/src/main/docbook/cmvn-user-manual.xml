@@ -934,7 +934,7 @@ eclipseClasspath: kind=src;path=src/main/java
 eclipseClasspath: kind=src;path=src/main/resources
 eclipseClasspath: kind=output;path=target/classes
 eclipseClasspath: kind=src;output=target/test-classes;path=src/test/java
-eclipseClasspath: kind=con;path=org.eclipse.jdt.launching.JRE_CONTAINER/\\
+eclipseClasspath: kind=con;path=org.eclipse.jdt.launching.JRE_CONTAINER/\
 org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6
 eclipseClasspath: autoGenerate=compile
 eclipseClasspath: autoGenerate=test

@@ -27,8 +27,8 @@ class CmvnConfiguredState() {
   @BooleanBeanProperty var generateIvy: Boolean = false
   @BooleanBeanProperty var referenceLocalArtifactsAsSystemScope: Boolean = false
   @BooleanBeanProperty var eclipseForceLocalWorkspaceRefs: Boolean = false
-  var definedVals: java.util.Map[String, String] = new java.util.LinkedHashMap()
-  var cmvnVersion = "unknown"
+  @BeanProperty var definedVals: java.util.Map[String, String] = new java.util.LinkedHashMap()
+  @BeanProperty var cmvnVersion = "unknown"
 
   def this(copy: CmvnConfiguredState) {
     this

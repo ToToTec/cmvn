@@ -42,16 +42,16 @@ It partially helps the developer with managing her dependencies but fails misera
 </para>
 <para>
 Cmvn tries to close this gap by providing a configuration step before the actual build system. 
-Concrete, this goal will be reached by	generating the build scripts for the underlying  (nativ) build system. 
+Concrete, this goal will be reached by	generating the build scripts for the underlying  (native) build system. 
 Whenever a configuration has changed Cmvn will first regenerate the build scripts and after that executes the underlying build system with the right (configured) settings.
 To assist the developer but do not stay in his way, Cmvn does not aim to replace existing build chains.
 Instead, its main focus is adding another (first) configuration step
 to the build chain to create more reliable and reproducable build environments.
 </para>
 <para>
-In its first release Cmvn supports Apache Maven 2.0 and above.<footnote><para>Using Apache Maven 3.0 is higly recommended.</para></footnote>
+In its first release Cmvn supports Apache Maven 2.0 and above.<footnote><para>Using Apache Maven 3.0 is highly recommended.</para></footnote>
 In later releases, support for various other build chains might be added, e.g. Apache Ant + Ivy, SBT, JackBuild, or others. 
-Although Cmvn generates the build scripts (in Maven case: pom.xml files) is does not can and it wants not handle all aspects of the underlying build infrastructure.
+Although Cmvn generates the build scripts (in Maven case: pom.xml files) is cannot and it does not want to handle all aspects of the underlying build infrastructure.
 To leave the full power to the developer, Cmvn supports templates for the underlying build scripts for those settings Cmvn can not generate.
 But for common project setup, this is rarely needed.
 </para>
@@ -67,8 +67,8 @@ test: junit:junit:4.8.2
 
 <para>New features in Cmvn 0.2.0:</para>
 <itemizedlist>
-<listitem><para>A new POM converter was added to easily convert existing Maven project to Cmvn. See <xref linkend="sec:convertPom" />.</para></listitem>
-<listitem><para>Experimental suport for Jackage repositories. New execution mode <code>--fetch</code> to download Jackage dependencies.</para></listitem>
+<listitem><para>A new POM converter was added to easily convert existing Maven projects to Cmvn. See <xref linkend="sec:convertPom" />.</para></listitem>
+<listitem><para>Experimental support for Jackage repositories. New execution mode <code>--fetch</code> to download Jackage dependencies.</para></listitem>
 <listitem><para>Cmvn can now generate <code><![CDATA[<reporting>]]></code>-blocks.</para></listitem>
 <listitem><para>Cmvn can now generate <code><![CDATA[<parent>]]></code>-blocks.</para></listitem>
 <listitem><para>New execution mode <code>--info</code> to gather various project information, e.g. root project location, variables, ...</para></listitem>
@@ -139,15 +139,15 @@ shell> cmvn --reconfigure
 <section><title>Changing the Maven Local Repository and Settings</title>
 <para>
 By default, <code>cmvn --configure</code> initally created an new project-local Maven settings file and thus uses a project-local repository. 
-This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) realeased dependencies. 
-This default way enables the developer to easy build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are installing (in the Maven sense) to the same local repository. 
+This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) released dependencies. 
+This default way enables the developer to easily build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are installing (in the Maven sense) to the same local repository. 
 </para>
 <para>
 Of course, the newly created repository and Maven settings file is shared between all sub projects of the one you just configured.
 </para>
 <para>
 In case, this default behavior is not desired, you can tell Cmvn to use an alternative existing Maven settings file with the option <code>--maven-settings</code>. 
-In this case, you may will loose the benefits of side-effect free development of multiple project on the same computer. 
+In this case, you could loose the benefits of side-effect free development of multiple project on the same computer. 
 Also this may limit the reproducability of the build process in different environments. 
 </para>
 
@@ -294,7 +294,7 @@ test: org.testng:testng:5.14.6
 </section>
 
 <section><title>Legend</title>
-<para>The following sections contain tables with uses the following keyword in the format column:</para>
+<para>The following sections contain tables that use the following keywords in the format column:</para>
 
 <table>
 <title>Legend of Formats</title>
@@ -383,12 +383,12 @@ test: org.testng:testng:5.14.6
 <row>
 <entry><code>-include</code></entry>
 <entry>FILE</entry>
-<entry>Include the content of the given file. The content will be threated as if it was in the actual file.</entry>
+<entry>Include the content of the given file. The content will be treated as if it was in the actual file.</entry>
 </row>
 <row>
 <entry><code>-requireCmvn</code></entry>
 <entry>VERSION</entry>
-<entry>Ensure, that the version of the execution Cmvn executable is at least the given version.</entry>
+<entry>Ensure, that the version of the executing Cmvn executable is at least the given version.</entry>
 </row>
 <row>
 <entry><code>-val</code></entry>
@@ -425,7 +425,7 @@ test: org.testng:testng:5.14.6
 </row>
 <row>
 <entry><code>compile</code></entry>
-<entry>GAV[;OPITON]*</entry>
+<entry>GAV[;OPTION]*</entry>
 <entry>Alias for <code>dependency</code> with option <code>scope=compile</code></entry>
 </row>
 <row>
@@ -435,13 +435,13 @@ test: org.testng:testng:5.14.6
 </row>
 <row>
 <entry><code>dependency</code></entry>
-<entry>GAV[;OPITON]*</entry>
+<entry>GAV[;OPTION]*</entry>
 <entry>A project/package dependency</entry>
 </row>
 <row>
 <entry><code>dependencyManagement</code></entry>
-<entry>GAV[;OPITON]*</entry>
-<entry>Managed dependency in \code{dependencyManagement}-block</entry>
+<entry>GAV[;OPTION]*</entry>
+<entry>Managed dependency in <code>dependencyManagement</code>-block</entry>
 </row>
 <row>
 <entry><code>eclipseClasspath</code></entry>
@@ -455,7 +455,7 @@ test: org.testng:testng:5.14.6
 </row>
 <row>
 <entry><code>module</code></entry>
-<entry>DIR[;OPITON]*</entry>
+<entry>DIR[;OPTION]*</entry>
 <entry>The path of a sub project</entry>
 </row>
 <row>
@@ -465,7 +465,7 @@ test: org.testng:testng:5.14.6
 </row>
 <row>
 <entry><code>pluginrepo</code></entry>
-<entry>URL[;OPITON]*</entry>
+<entry>URL[;OPTION]*</entry>
 <entry>Alias for <code>repository</code> with option <code>artifacts=false</code></entry>
 </row>
 <row>
@@ -480,32 +480,32 @@ test: org.testng:testng:5.14.6
 </row>
 <row>
 <entry><code>provided</code></entry>
-<entry>GAV[;OPITON]*</entry>
+<entry>GAV[;OPTION]*</entry>
 <entry>Alias for <code>dependency</code> with option <code>scope=provided</code></entry>
 </row>
 <row>
 <entry><code>repo</code></entry>
-<entry>URL[;OPITON]*</entry>
+<entry>URL[;OPTION]*</entry>
 <entry>Alias for <code>repository</code></entry>
 </row>
 <row>
 <entry><code>repository</code></entry>
-<entry>URL[;OPITON]*</entry>
+<entry>URL[;OPTION]*</entry>
 <entry>Maven Repository</entry>
 </row>
 <row>
 <entry><code>runtime</code></entry>
-<entry>GAV[;OPITON]*</entry>
+<entry>GAV[;OPTION]*</entry>
 <entry>Alias for <code>dependency</code> with option <code>scope=runtime</code></entry>
 </row>
 <row>
 <entry><code>system</code></entry>
-<entry>GAV[;OPITON]*</entry>
+<entry>GAV[;OPTION]*</entry>
 <entry>Alias for <code>dependency</code> with option <code>scope=system</code></entry>
 </row>
 <row>
 <entry><code>test</code></entry>
-<entry>GAV[;OPITON]*</entry>
+<entry>GAV[;OPTION]*</entry>
 <entry>Alias for <code>dependency</code> with option <code>scope=test</code></entry>
 </row>
 </tbody>
@@ -536,7 +536,7 @@ test: org.testng:testng:5.14.6
 <row>
 <entry><code>packaging</code></entry>
 <entry>TEXT</entry>
-<entry>The packaging of the project, if ommitted, than <code>jar</code></entry>
+<entry>The packaging of the project, if omitted, then <code>jar</code></entry>
 </row>
 </tbody>
 </tgroup>
@@ -630,7 +630,7 @@ module: org.example.service.impl.legacy;skipCmvn
 <row>
 <entry><code>optional</code></entry>
 <entry>BOOLEAN</entry>
-<entry>An optional dependency is not optional for the current project but will be ignored in a transitive dependency resolution. (In an ideal world any compile type dependency should be optional!)</entry>
+<entry>An optional dependency is not optional for the current project but will be ignored in a transitive dependency resolution. (In an ideal world any compile time dependency should be optional!)</entry>
 </row>
 <row>
 <entry><code>exclude</code></entry>
@@ -640,7 +640,7 @@ module: org.example.service.impl.legacy;skipCmvn
 <row>
 <entry><code>forceversion</code></entry>
 <entry>BOOLEAN</entry>
-<entry>Additionally the dependency will be added to the <code><![CDATA[<dependencyManagement>]]></code>-block. This enforces the given version and is somethimes an alternative to the \code{exclude} option (and vice versa).</entry>
+<entry>Additionally the dependency will be added to the <code><![CDATA[<dependencyManagement>]]></code>-block. This enforces the given version and is somethimes an alternative to the <code>exclude</code> option (and vice versa).</entry>
 </row>
 </tbody>
 </tgroup>

@@ -109,4 +109,53 @@ class Dependency(val groupId: String, val artifactId: String, val version: Strin
       (if (classifier != null) { ";classifier=" + classifier } else "") +
       (if (depType != null) { ";type=" + depType } else "")
 
+  def canEqual(other: Any) = other.isInstanceOf[Dependency]
+  override def equals(other: Any) = other match {
+    case that: Dependency => that.canEqual(this) &&
+      groupId == that.groupId &&
+      artifactId == that.artifactId &&
+      version == that.version &&
+      nonDefaultScope == that.nonDefaultScope &&
+      nonDefaultClassifier == that.nonDefaultClassifier &&
+      nonDefaultDepType == that.nonDefaultDepType &&
+      optionalAsTransitive == that.optionalAsTransitive &&
+      excludes.toSet == that.excludes.toSet &&
+      jarPath == that.jarPath &&
+      onlyManagement == that.onlyManagement &&
+      forceVersion == that.forceVersion &&
+      jackageDep == that.jackageDep &&
+      jackageRepo == that.jackageRepo
+    case _ => false
+  }
+  override def hashCode: Int = {
+    def nullSafeHash(o: Any) = o match {
+      case null => 0
+      case x => x.hashCode
+    }
+    41 * (
+      41 * (
+        41 * (
+          41 * (
+            41 * (
+              41 * (
+                41 * (
+                  41 * (
+                    41 * (
+                      41 * (
+                        41 * (
+                          41 * (
+                            41 + nullSafeHash(groupId)
+                          ) + nullSafeHash(artifactId)
+                        ) + nullSafeHash(version)
+                      ) + nonDefaultScope.hashCode
+                    ) + nonDefaultClassifier.hashCode
+                  ) + nonDefaultDepType.hashCode
+                ) + optionalAsTransitive.hashCode
+              ) + excludes.toSet.hashCode
+            ) + nullSafeHash(jarPath)
+          ) + onlyManagement.hashCode
+        ) + forceVersion.hashCode
+      ) + jackageDep.hashCode
+    ) + nullSafeHash(jackageRepo)
+  }
 }

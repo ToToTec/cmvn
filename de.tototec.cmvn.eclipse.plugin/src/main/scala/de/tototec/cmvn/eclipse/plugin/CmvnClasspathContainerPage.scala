@@ -21,6 +21,8 @@ import org.eclipse.swt.SWT
 
 class CmvnClasspathContainerPage extends WizardPage("Cmvn Libraries") with IClasspathContainerPage with IClasspathContainerPageExtension {
 
+  val containerPath = CmvnClasspathContainer.ContainerName
+
   private var project: IJavaProject = _
   private var options: Map[String, String] = Map()
 
@@ -39,7 +41,7 @@ class CmvnClasspathContainerPage extends WizardPage("Cmvn Libraries") with IClas
 
   override def getSelection: IClasspathEntry = {
     JavaCore.newContainerEntry(new Path(
-      CmvnClasspathContainer.ContainerPath + "/" +
+      containerPath + "/" +
         options.map(e => e._1 + "=" + e._2).mkString(",")))
   }
 

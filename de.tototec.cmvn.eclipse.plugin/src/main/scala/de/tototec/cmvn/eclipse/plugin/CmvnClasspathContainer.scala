@@ -14,7 +14,9 @@ import de.tototec.cmvn.CmvnProject
 import de.tototec.cmvn.ConfiguredCmvnProject
 
 object CmvnClasspathContainer {
-  val ContainerPath = """de.tototec.tools.cmvn.CMVN_DEPENDENCIES"""
+
+  val ContainerName = """de.tototec.cmvn.CMVN_DEPENDENCIES"""
+  val LegacyContainerName = """de.tototec.tools.cmvn.CMVN_DEPENDENCIES"""
 
   val ReplaceContainerOnChanges = true
 
@@ -39,7 +41,10 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
   }
 
   override val getKind = IClasspathContainer.K_APPLICATION
-  override val getDescription = "Cmvn Libraries"
+  override val getDescription = path.segment(0) match {
+    case CmvnClasspathContainer.LegacyContainerName => "Cmvn Libraries (Deprecated, Please Update)"
+    case _ => "Cmvn Libraries"
+  }
   override val getPath = path
 
   protected val projectRootFile: File = project.getProject.getLocation.makeAbsolute.toFile

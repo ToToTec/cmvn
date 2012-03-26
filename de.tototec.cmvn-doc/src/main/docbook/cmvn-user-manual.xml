@@ -640,7 +640,7 @@ module: org.example.service.impl.legacy;skipCmvn
 <row>
 <entry><code>forceversion</code></entry>
 <entry>BOOLEAN</entry>
-<entry>Additionally the dependency will be added to the <code><![CDATA[<dependencyManagement>]]></code>-block. This enforces the given version and is somethimes an alternative to the <code>exclude</code> option (and vice versa).</entry>
+<entry>Additionally the dependency will be added to the <code><![CDATA[<dependencyManagement>]]></code>-block. This enforces the given version and is sometimes an alternative to the <code>exclude</code> option (and vice versa).</entry>
 </row>
 </tbody>
 </tgroup>
@@ -809,7 +809,7 @@ property: project.build.sourceEncoding=UTF-8
 <row>
 <entry><code>-extension</code></entry>
 <entry>BOOLEAN</entry>
-<entry>Specify if this plugin is a extensions-plugin (and thus e.g. can contribute new project packaging types).</entry>
+<entry>Specify if this plugin is an extensions-plugin (and thus e.g. can contribute new project packaging types).</entry>
 </row>
 <row>
 <entry><code>-execution</code></entry>
@@ -819,7 +819,7 @@ property: project.build.sourceEncoding=UTF-8
 <row>
 <entry><code>-plugindependency</code></entry>
 <entry>GAV</entry>
-<entry>A dependency used when execution the plugin command, e.g. to override a version.</entry>
+<entry>A dependency used when executing the plugin command, e.g. to override a version.</entry>
 </row>
 <row>
 <entry><code>-xml:</code><emphasis>anyOption</emphasis></entry>
@@ -949,7 +949,7 @@ eclipseClasspath: autoGenerate=test
 
 
 <chapter id="ch:eclipseCpContainer"><title>Eclipse Classpath Container</title>
-<para>Since Cmvn 0.1.8 there is an Eclipse Cmvn Plugin that provides a classpath container, thus making the use of other classpath container like the Maven classpath container obsolete.</para>
+<para>Since Cmvn 0.1.8 there is an Eclipse Cmvn Plugin that provides a classpath container, thus making the use of other classpath containers like the Maven classpath container obsolete.</para>
 <para>Features:</para>
 <itemizedlist>
 <listitem><para>Provides classpath dependencies instantly</para></listitem>

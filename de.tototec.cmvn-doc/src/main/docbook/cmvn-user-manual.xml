@@ -7,9 +7,9 @@
 <book>
 
 <bookinfo>
-	<title>Configured Maven (cmvn)</title>
+	<title>Configured Maven (Cmvn)</title>
 	<subtitle>User Manual</subtitle>
-	<productname>cmvn</productname>
+	<productname>Cmvn</productname>
 	<releaseinfo>&versionNumber;</releaseinfo>
 	<authorgroup>
 		<author>
@@ -56,7 +56,7 @@ To leave the full power to the developer, Cmvn supports templates for the underl
 But for common project setup, this is rarely needed.
 </para>
 <para>Besides the configuration concept, Cmvn brings you concise and maintainable build scripts and empowers you (again) to understand and control your buildsystem! E.g. the <code>cmvn.conf</code> equivalent of the <code>pom.xml</code> in the "Maven in 5 Minutes" tutorial<footnote><para><ulink url="http://maven.apache.org/guides/getting-started/maven-in-five-minutes.html">http://maven.apache.org/guides/getting-started/maven-in-five-minutes.html</ulink></para></footnote> looks like this:<programlisting>
-project: com.mycompany.app:my-app:1.0-SNAPSHOT
+project: com.mycompany.app:my-app:1.0-SNAPSHOT;packaging=jar
 test: junit:junit:4.8.2
 </programlisting></para>
 
@@ -249,7 +249,8 @@ shell> cmvn --convert-pom --recursive
 The config file has a very simplistic human readable and editable format:
 </para>
 
-<orderedlist>
+<!--<orderedlist>-->
+<itemizedlist>
 	<listitem><para><emphasis>empty lines</emphasis> were ignored</para></listitem>
 	<listitem><para>the hash sign (<code>#</code>) starts a <emphasis>comment</emphasis> until end of line</para></listitem>
 	<listitem><para>each non-comment line consists of a pair of <emphasis>key</emphasis> and <emphasis>value</emphasis> delimited by a colon (<code>:</code>)</para></listitem>
@@ -258,7 +259,8 @@ The config file has a very simplistic human readable and editable format:
 	<listitem><para>value-options are themselves key-value pairs delimited by equal sign (<code>=</code>)</para></listitem>
 	<listitem><para>if an option-value is ommitted (an option without an equal sign) it is evaluated to <code>true</code></para></listitem>
 	<listitem><para>non-comment lines ending with a backslash (<code>\</code>) were <emphasis>continued</emphasis> on the next line</para></listitem>
-</orderedlist>
+</itemizedlist>
+<!--</orderedlist>-->
 
 <section><title>Config file example</title>
 
@@ -407,7 +409,7 @@ test: org.testng:testng:5.14.6
 <table>
 <title>Settings</title>
 <tgroup cols="3" colsep="1" rowsep="1">
-<colspec colwidth="1*" />
+<colspec colwidth="1.5*" />
 <colspec colwidth="1*" />
 <colspec colwidth="2*" />
 <thead>
@@ -795,7 +797,7 @@ property: project.build.sourceEncoding=UTF-8
 <table>
 <title>Directives for <code>plugin</code></title>
 <tgroup cols="3" colsep="1" rowsep="1">
-	<colspec colwidth="1*" />
+	<colspec colwidth="1.2*" />
 	<colspec colwidth="1*" />
 	<colspec colwidth="2*" />
 <thead>

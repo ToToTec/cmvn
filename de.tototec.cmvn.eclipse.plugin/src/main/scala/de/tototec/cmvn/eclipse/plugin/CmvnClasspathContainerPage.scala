@@ -13,8 +13,11 @@ import org.eclipse.jface.viewers.LabelProvider
 import org.eclipse.jface.viewers.SelectionChangedEvent
 import org.eclipse.jface.viewers.StructuredSelection
 import org.eclipse.jface.wizard.WizardPage
+import org.eclipse.swt.events.SelectionAdapter
+import org.eclipse.swt.events.SelectionEvent
 import org.eclipse.swt.layout.GridData
 import org.eclipse.swt.layout.GridLayout
+import org.eclipse.swt.widgets.Button
 import org.eclipse.swt.widgets.Composite
 import org.eclipse.swt.widgets.Label
 import org.eclipse.swt.SWT
@@ -25,6 +28,7 @@ class CmvnClasspathContainerPage extends WizardPage("Cmvn Libraries") with IClas
 
   private var project: IJavaProject = _
   private var options: Map[String, String] = Map()
+  private val settings: Settings = new Settings
 
   setDescription("""Configure Cmvn Classpath Container""")
   setPageComplete(true)
@@ -32,42 +36,68 @@ class CmvnClasspathContainerPage extends WizardPage("Cmvn Libraries") with IClas
   override def initialize(project: IJavaProject, currentEntries: Array[IClasspathEntry]) =
     this.project = project
 
-  override def setSelection(classpathEntry: IClasspathEntry) {
-    options = classpathEntry match {
-      case null => Map()
-      case cpe => CmvnClasspathContainer.readOptionsFromPath(cpe.getPath)
-    }
-  }
-
-  override def getSelection: IClasspathEntry = {
-    JavaCore.newContainerEntry(new Path(
-      containerPath + "/" +
-        options.map(e => e._1 + "=" + e._2).mkString(",")))
-  }
+  override def setSelection(classpathEntry: IClasspathEntry) = settings.fromIClasspathEntry(classpathEntry)
+  override def getSelection: IClasspathEntry = settings.toIClasspathEntry
 
   override def finish: Boolean = true
 
   override def createControl(parent: Composite) {
-    val composite = new Composite(parent, SWT.NULL)
+    val composite = new Composite(parent, SWT.NONE)
     composite.setLayout(new GridLayout(2, false))
-    composite.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_FILL
-      | GridData.HORIZONTAL_ALIGN_FILL));
+    composite.setLayoutData(new GridData(SWT.BEGINNING | SWT.TOP));
     composite.setFont(parent.getFont())
 
-    new Label(composite, SWT.NONE).setText("Scope")
+    val scopeLabel = new Label(composite, SWT.NONE | SWT.TOP)
+    scopeLabel.setText("Scope")
+    scopeLabel.setLayoutData(new GridData(SWT.TOP))
 
-    val combo = new ComboViewer(composite, SWT.BORDER | SWT.READ_ONLY)
-    combo.setLabelProvider(new LabelProvider())
-    combo.setContentProvider(new ArrayContentProvider())
-    combo.setInput(Array("compile", "runtime", "test"))
+    //    val combo = new ComboViewer(composite, SWT.BORDER | SWT.READ_ONLY)
+    //    combo.setLabelProvider(new LabelProvider())
+    //    combo.setContentProvider(new ArrayContentProvider())
+    //    combo.setInput(Array("compile", "runtime", "test"))
 
-    combo.setSelection(new StructuredSelection(options.getOrElse("scope", "compile")))
-    combo.addSelectionChangedListener(new ISelectionChangedListener() {
-      override def selectionChanged(event: SelectionChangedEvent) =
-        options += ("scope" -> (combo.getSelection.isEmpty match {
-          case true => "compile"
-          case false => combo.getSelection.asInstanceOf[StructuredSelection].getFirstElement.asInstanceOf[String]
-        }))
+    //    combo.setSelection(new StructuredSelection(options.getOrElse("scope", "compile")))
+    //    combo.addSelectionChangedListener(new ISelectionChangedListener() {
+    //      override def selectionChanged(event: SelectionChangedEvent) =
+    //        options += ("scope" -> (combo.getSelection.isEmpty match {
+    //          case true => "compile"
+    //          case false => combo.getSelection.asInstanceOf[StructuredSelection].getFirstElement.asInstanceOf[String]
+    //        }))
+    //    })
+
+    val buttons = new Composite(composite, SWT.TRANSPARENT);
+    buttons.setLayout(new GridLayout(1, true))
+    buttons.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL))
+
+    def createScopeButton(scope: String): Button = {
+      val button = new Button(buttons, SWT.CHECK)
+      button.setText(scope)
+      button.setSelection(settings.readScope(scope))
+      button.addSelectionListener(new SelectionAdapter() {
+        override def widgetSelected(event: SelectionEvent) {
+          settings.setScope(scope, button.getSelection)
+        }
+        override def widgetDefaultSelected(event: SelectionEvent) = widgetSelected(event)
+      })
+      button
+    }
+
+    createScopeButton("compile")
+    createScopeButton("provided")
+    createScopeButton("system")
+    createScopeButton("runtime")
+    createScopeButton("test")
+
+    new Label(composite, SWT.NONE).setText("Workspace resolution")
+
+    val workspaceResolution = new Button(composite, SWT.CHECK);
+    workspaceResolution.setText("Resolve dependencies from Workspace")
+    workspaceResolution.setSelection(settings.workspaceResolution)
+    workspaceResolution.addSelectionListener(new SelectionAdapter() {
+      override def widgetSelected(event: SelectionEvent) {
+        settings.workspaceResolution = workspaceResolution.getSelection
+      }
+      override def widgetDefaultSelected(event: SelectionEvent) = widgetSelected(event)
     })
 
     setControl(composite)

@@ -13,32 +13,40 @@ import de.tototec.cmvn.model.Dependency
 import de.tototec.cmvn.CmvnProject
 import de.tototec.cmvn.ConfiguredCmvnProject
 
-object CmvnClasspathContainer {
-
-  val ContainerName = """de.tototec.cmvn.CMVN_DEPENDENCIES"""
-  val Legacy018ContainerName = """de.tototec.tools.cmvn.CMVN_DEPENDENCIES"""
-
+object LegacyCmvnClasspathContainer {
   val ReplaceContainerOnChanges = true
+  
+  def readOptionsFromPath(path: IPath): Map[String, String] = if (path.segmentCount() > 1) {
+    path.lastSegment.split(",").map(_.split("=", 2) match {
+      case Array(key, value) => (key, value)
+      case Array(key) => (key, true.toString)
+    }).toMap
+  } else {
+    Map()
+  }
 
 }
 
-class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, private val updateContainerAction: (CmvnClasspathContainer) => Unit) extends IClasspathContainer {
+class LegacyCmvnClasspathContainer(path: IPath, private val project: IJavaProject, private val updateContainerAction: (LegacyCmvnClasspathContainer) => Unit) extends IClasspathContainer {
 
-  def this(copy: CmvnClasspathContainer) {
+  def this(copy: LegacyCmvnClasspathContainer) {
     this(copy.getPath, copy.project, copy.updateContainerAction)
-    debug("Creating new CmvnClasspathContainer from old one for project " + project)
+    debug("Creating new LegacyCmvnClasspathContainer from old one for project " + project)
     this._cmvnProject = copy._cmvnProject
     this._cmvnFileTimestamp = copy._cmvnFileTimestamp
     this.classpathEntries = classpathEntries
   }
 
   override val getKind = IClasspathContainer.K_APPLICATION
-  override val getDescription = "Cmvn Libraries"
+  override val getDescription = "Cmvn Libraries (Deprecated, Please Update)"
   override val getPath = path
 
   protected val projectRootFile: File = project.getProject.getLocation.makeAbsolute.toFile
 
-  protected val settings: Settings = new Settings(path)
+  protected val options: Map[String, String] = LegacyCmvnClasspathContainer.readOptionsFromPath(path)
+
+  protected val scope = options.getOrElse("scope", "compile")
+  protected val workspaceResolution = options.getOrElse("workspaceResolution", "true").toBoolean
 
   protected def debug(msg: => String) {
     Console.println(msg)
@@ -49,27 +57,23 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
 
     val workspaceProjects = JavaCore.create(project.getProject.getWorkspace.getRoot).getJavaProjects
 
-    def asWorkspaceDep(dep: Dependency): Option[IJavaProject] = {
-      settings.workspaceResolution match {
-        case true =>
-          workspaceProjects.find(p => {
-            val depPath = p.getPath
-            //        debug("Checking workspace project " + p + " with path " + depPath)
-            p.exists && depPath.segmentCount() == 1 && depPath.segment(0) == dep.artifactId
-          })
-        case _ => None
-      }
+    def isWorkspaceDep(dep: Dependency): Option[IJavaProject] = {
+      workspaceProjects.find(p => {
+        val depPath = p.getPath
+        //        debug("Checking workspace project " + p + " with path " + depPath)
+        p.exists && depPath.segmentCount() == 1 && depPath.segment(0) == dep.artifactId
+      })
     }
 
-    val scopes = settings.readScopes
-    val deps: List[Dependency] = cmvn.projectConfig.getDependencies.toList.distinct.filter { dep =>
-      scopes.exists(_ == dep.scope)
-    }
-
-    deps.map { dep =>
+    cmvn.projectConfig.getDependencies.distinct.filter(dep => scope match {
+      case "compile" => Array("compile", "provided", "system").contains(dep.scope)
+      case "runtime" => Array("compile", "provided", "system", "runtime").contains(dep.scope)
+      case "test" => Array("compile", "provided", "system", "runtime", "test").contains(dep.scope)
+      case _ => false
+    }).map { dep =>
       try {
-        asWorkspaceDep(dep) match {
-          case Some(workspaceProject) =>
+        isWorkspaceDep(dep) match {
+          case Some(workspaceProject) if workspaceResolution =>
             JavaCore.newProjectEntry(workspaceProject.getPath)
           case _ => {
             var needM2Var = false
@@ -142,28 +146,21 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
         debug("No CmvnProject found for project " + project)
         Array()
       }
-      case cmvnProject => CmvnClasspathContainer.ReplaceContainerOnChanges match {
-        case false =>
-          // Always use up-to-date list
-          computeClasspathEntries(cmvnProject)
+      case cmvnProject =>
+        val oldCpEntries = classpathEntries
+        classpathEntries = computeClasspathEntries(cmvnProject)
 
-        case true => {
-          val oldCpEntries = classpathEntries
-          classpathEntries = computeClasspathEntries(cmvnProject)
-
-          // TODO: check if we should first remove this CP Container before (re-)adding to force updates in raw classpath
-          if (oldCpEntries != null) {
-            if (classpathEntries.size != oldCpEntries.size ||
-              (classpathEntries, oldCpEntries).zipped.exists(_ != _)) {
-              // Reset the CP-Container if the classpath has changed
-              debug("Classpath has changed from\n - old cp: " + oldCpEntries.mkString("\n   - ") + "\n - new cp: " + classpathEntries.mkString("\n   - "))
-              updateContainerAction(this)
-            }
+        // TODO: check if we should first remove this CP Container before (re-)adding to force updates in raw classpath
+        if (oldCpEntries != null) {
+          if (classpathEntries.size != oldCpEntries.size ||
+            (classpathEntries, oldCpEntries).zipped.exists(_ != _)) {
+            // Reset the CP-Container if the classpath has changed
+            debug("Classpath has changed from\n - old cp: " + oldCpEntries.mkString("\n   - ") + "\n - new cp: " + classpathEntries.mkString("\n   - "))
+            updateContainerAction(this)
           }
-
-          classpathEntries
         }
-      }
+
+        classpathEntries
     }
   }
 

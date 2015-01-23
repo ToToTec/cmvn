@@ -9,14 +9,11 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import lombok.Data;
-
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.esotericsoftware.yamlbeans.YamlWriter;
 
 import de.tototec.cmvn.cmdoption.ConfigureCmd;
 
-@Data
 public class ConfigureRequest {
 	private Boolean force;
 	private Boolean autoReconfigure;
@@ -29,8 +26,7 @@ public class ConfigureRequest {
 	private Boolean skipProvisioning;
 	private Boolean eclipseForceLocalWorkspaceRefs;
 
-	public ConfigureRequest() {
-	}
+	public ConfigureRequest() {}
 
 	public ConfigureRequest(ConfigureCmd copy) {
 		force = true;
@@ -47,6 +43,22 @@ public class ConfigureRequest {
 
 	public ConfigureRequest(final ConfigureRequest copy) {
 		copy(copy);
+	}
+
+	public ConfigureRequest(Boolean force, Boolean autoReconfigure, String mavenSettings, String mavenRepo,
+			Boolean generateIvy, Boolean forceSystemScope, Boolean systemScopeForLocalProjects, String mavenExecutable,
+			Boolean skipProvisioning, Boolean eclipseForceLocalWorkspaceRefs) {
+		super();
+		this.force = force;
+		this.autoReconfigure = autoReconfigure;
+		this.mavenSettings = mavenSettings;
+		this.mavenRepo = mavenRepo;
+		this.generateIvy = generateIvy;
+		this.forceSystemScope = forceSystemScope;
+		this.systemScopeForLocalProjects = systemScopeForLocalProjects;
+		this.mavenExecutable = mavenExecutable;
+		this.skipProvisioning = skipProvisioning;
+		this.eclipseForceLocalWorkspaceRefs = eclipseForceLocalWorkspaceRefs;
 	}
 
 	public void copy(final ConfigureRequest copy) {
@@ -96,6 +108,22 @@ public class ConfigureRequest {
 		return msgs;
 	}
 
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() +
+				"(force=" + getForce() +
+				",autoReconfigure=" + getAutoReconfigure() +
+				",mavenSettings=" + getMavenSettings() +
+				",mavenRepo=" + getMavenRepo() +
+				",generateIvy=" + getGenerateIvy() +
+				",forceSystemScope=" + getForceSystemScope() +
+				",systmScopeForLocalProjects=" + getSystemScopeForLocalProjects() +
+				",mavenExecutable=" + getMavenExecutable() +
+				",skipProvisioning=" + getSkipProvisioning() +
+				",eclipseForceLocalWorkspaceRefs=" + getEclipseForceLocalWorkspaceRefs() +
+				")";
+	}
+
 	// Boilerplate below
 
 	public String getMavenSettings() {
@@ -105,49 +133,57 @@ public class ConfigureRequest {
 	public String getMavenRepo() {
 		return mavenRepo;
 	}
-	
+
 	public String getMavenExecutable() {
 		return mavenExecutable;
 	}
-	
+
 	public void setMavenExecutable(String mavenExecutable) {
 		this.mavenExecutable = mavenExecutable;
 	}
-	
+
 	public Boolean getAutoReconfigure() {
 		return autoReconfigure;
 	}
-	
+
 	public void setAutoReconfigure(Boolean autoReconfigure) {
 		this.autoReconfigure = autoReconfigure;
 	}
-	
+
 	public Boolean getEclipseForceLocalWorkspaceRefs() {
 		return eclipseForceLocalWorkspaceRefs;
 	}
-	
+
 	public Boolean getForce() {
 		return force;
 	}
-	
+
 	public Boolean getForceSystemScope() {
 		return forceSystemScope;
 	}
-	
+
 	public void setForceSystemScope(Boolean forceSystemScope) {
 		this.forceSystemScope = forceSystemScope;
 	}
-	
+
 	public Boolean getGenerateIvy() {
 		return generateIvy;
 	}
-	
+
 	public void setGenerateIvy(Boolean generateIvy) {
 		this.generateIvy = generateIvy;
 	}
-	
+
 	public Boolean getSystemScopeForLocalProjects() {
 		return systemScopeForLocalProjects;
 	}
-	
+
+	public Boolean getSkipProvisioning() {
+		return skipProvisioning;
+	}
+
+	public void setSkipProvisioning(Boolean skipProvisioning) {
+		this.skipProvisioning = skipProvisioning;
+	}
+
 }

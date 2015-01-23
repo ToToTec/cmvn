@@ -6,13 +6,9 @@ import java.io.FileReader
 import java.io.FileWriter
 import java.io.IOException
 import java.util.Date
-import lombok.Data
-import lombok.RequiredArgsConstructor
 import com.esotericsoftware.yamlbeans.YamlReader
 import com.esotericsoftware.yamlbeans.YamlWriter
 import scala.reflect.{ BeanProperty, BooleanBeanProperty }
-//remove if not needed
-import scala.collection.JavaConversions._
 
 class CmvnConfiguredState() {
   @BooleanBeanProperty var controlSettingsFile: Boolean = false

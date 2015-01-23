@@ -1,9 +1,5 @@
 package de.tototec.cmvn.model
 
-import lombok.Data
-//remove if not needed
-import scala.collection.JavaConversions._
-
 case class Repository(val url: String,
                       var id: String = null,
                       var forPlugins: Boolean = true,

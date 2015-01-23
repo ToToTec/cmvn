@@ -8,45 +8,113 @@ import java.io.LineNumberReader;
 import java.util.LinkedList;
 import java.util.List;
 
-import lombok.Data;
-import lombok.Setter;
 import de.tototec.cmvn.configfile.ConfigFileReader;
 import de.tototec.cmvn.configfile.KeyValue;
 import de.tototec.cmvn.configfile.StringSplitter;
 
 public class ConfigFileReaderImpl implements ConfigFileReader {
 
-	@Data
 	public static class IncludeFileLine {
 		private final String includeKey;
 		private boolean addToResult;
+
 		public IncludeFileLine(String includeKey, boolean addToResult) {
 			this.includeKey = includeKey;
+			this.addToResult = addToResult;
+		}
+
+		@Override
+		public String toString() {
+			return getClass().getSimpleName() +
+					"(includeKey=" + getIncludeKey() +
+					",addToResult=" + isAddToResult() +
+					")";
+		}
+
+		public String getIncludeKey() {
+			return includeKey;
+		}
+
+		public boolean isAddToResult() {
+			return addToResult;
+		}
+
+		public void setAddToResult(boolean addToResult) {
 			this.addToResult = addToResult;
 		}
 	}
 
 	private IncludeFileLine includeFileLine;
 
-	@Data
 	public static class VariableExpander {
 		private final String variableKey;
 		private final String variablePrefix;
 		private final String variableSuffix;
 		private boolean addToResult;
+
+		@Override
+		public String toString() {
+			return getClass().getSimpleName() +
+					"(variableKey=" + getVariableKey() +
+					",variablePrefix=" + getVariablePrefix() +
+					",variableSuffix=" + getVariableSuffix() +
+					",addToResult=" + isAddToResult() +
+					")";
+		}
+
+		public String getVariableKey() {
+			return variableKey;
+		}
+
+		public String getVariablePrefix() {
+			return variablePrefix;
+		}
+
+		public String getVariableSuffix() {
+			return variableSuffix;
+		}
+
+		public boolean isAddToResult() {
+			return addToResult;
+		}
+
+		public void setAddToResult(boolean addToResult) {
+			this.addToResult = addToResult;
+		}
+
 	}
 
-	// @Setter
-	// private VariableExpander variableExpander;
-
-	@Data
 	public static class ConditionalBlock {
 		private final String startKey;
 		private final String endKey;
 		private boolean addToResult;
+
+		@Override
+		public String toString() {
+			return getClass().getSimpleName() +
+					"(startKey=" + getStartKey() +
+					",endKey=" + getEndKey() +
+					",addToResult=" + isAddToResult() +
+					")";
+		}
+
+		public String getStartKey() {
+			return startKey;
+		}
+
+		public String getEndKey() {
+			return endKey;
+		}
+
+		public boolean isAddToResult() {
+			return addToResult;
+		}
+
+		public void setAddToResult(boolean addToResult) {
+			this.addToResult = addToResult;
+		}
 	}
 
-	@Setter
 	private ConditionalBlock conditionalBlock;
 
 	@Override
@@ -140,8 +208,16 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 
 		return result;
 	}
-	
+
 	public void setIncludeFileLine(IncludeFileLine includeFileLine) {
 		this.includeFileLine = includeFileLine;
+	}
+
+	public ConditionalBlock getConditionalBlock() {
+		return conditionalBlock;
+	}
+
+	public void setConditionalBlock(ConditionalBlock conditionalBlock) {
+		this.conditionalBlock = conditionalBlock;
 	}
 }

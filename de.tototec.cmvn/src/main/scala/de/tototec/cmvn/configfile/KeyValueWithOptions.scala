@@ -2,13 +2,7 @@ package de.tototec.cmvn.configfile
 
 import java.util.LinkedList
 import java.util.List
-import lombok.Data
-import lombok.EqualsAndHashCode
-//remove if not needed
-import scala.collection.JavaConversions._
 
-@Data
-@EqualsAndHashCode(callSuper = true)
 class KeyValueWithOptions private (key: String, value: String)
   extends KeyValue(key, value) {
 

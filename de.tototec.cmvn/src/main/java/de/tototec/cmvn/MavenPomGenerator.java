@@ -473,7 +473,7 @@ public class MavenPomGenerator implements Generator {
 		for (final Dependency dep : projectConfig.getDependencies()) {
 
 			// dependency management
-			if (dep.forceVersion()) {
+			if (dep.forceVersion() || dep.onlyManagement()) {
 
 				DependencyManagement mvnMgmt = mvn.getDependencyManagement();
 				if (mvnMgmt == null) {

@@ -1,15 +1,22 @@
+cmvn master:
+
 * Experimental Jackage integration (http://jackage.tototec.de/): Command --fetch
   added to fetch all dependencies provided by jackage
 * Much improved cmndline interface
 * Rewrite of internal handling of cmvn project
-* Eclipse Plugin can found dependencies if project was configured with
+* Eclipse Plugin can find dependencies if project was configured with
   --maven-settings
 * Added a converter from pom.xml to cmvn.conf
 * Support for Maven <reporting> section
 * Use new cmdline parser CmdOption (http://cmdoption.tototec.de/)
 * Removed JCommander dependency
 
+cmvn-0.1.8.1 - 2011-12-12:
+
+* Fixed Import-Package statement of Eclipse-Plugin 
+
 cmvn-0.1.8 - 2011-11-10:
+
 * Improved interactive experience with output-filter (that component, that cuts
   the noise [INFO] prefixes from the Maven output), e.g. when using an OSGi 
   console from within a Maven plugin, you will now see the osgi> prompt
@@ -26,6 +33,7 @@ cmvn-0.1.8 - 2011-11-10:
   to slow and resource hungry Maven Plugin
 
 cmvn-0.1.6 - 2011-09-19:
+
 * Added Eclipse .classpath file generator
 * Updated manual
 * Added support for provided-scoped dependencies
@@ -33,10 +41,12 @@ cmvn-0.1.6 - 2011-09-19:
 * Added support for project-global dependency exclusion (exclude:)
 
 cmvn-0.1.4 - 2011-04-11:
+
 * Fixed generated systemPath for system-dependencies with relative jar path
 * Added Windows-Executable (build with Launch4J)
 
 cmvn-0.1.3 - 2011-04-10:
+
 * Better error output: config file and line number of bad key-value pair
 * Use mvn.bat as default maven executable under windows
 * changed impl of config file reader to support variables in includes and
@@ -48,6 +58,7 @@ cmvn-0.1.3 - 2011-04-10:
 * configure testSources in build-section
 
 cmvn-0.1.2 - 2011-03-02:
+
 * Fixed: Errors while parsing pom.xml.cmvn are silently dropped and all
   content of template file is ignored further
 * Let user specifiy Maven executable (--maven-bin)
@@ -68,10 +79,12 @@ cmvn-0.1.2 - 2011-03-02:
 * Added support for finalName and targetDir in build-block
 
 cmvn-0.1.1 - 2011-01-19:
+
 * Generated files now have correct default XML namespace set
 * Added new directive -configClass to generate Java classes to make
   configuration information statically available
 * Experimental support for generating ivy.xml files
 
 cmvn-0.1.0 - 2010-12-16:
+
 * Initial Release

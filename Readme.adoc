@@ -591,7 +591,7 @@ exec java -jar cmvn-executable-0.2.0.jar "$@"
 
 Since Cmvn 0.1.4 there is also a released Windows binary version `cmvn-0.1.4.exe`. As long as this executable exists on the search path (`PATH`-variable), no command shell wrapper is needed.
 
-==== Windows: Command Shell Wrapper
+=== Windows: Command Shell Wrapper
 
 If you can not or want not use the executable binary version of Cmvn for Windows, you can alternatively use a command shell wrapper like this one:
 

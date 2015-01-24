@@ -291,7 +291,7 @@ Settings are used to generate the underlying (native) build scripts. Currently t
 | `project` | GAV[;OPTION]*
 | Project coordinates
 | `property` | OPTION
-| Definition of property <emphasis>key</emphasis> with value _value_
+| Definition of property _key_ with value _value_
 | `provided` | GAV[;OPTION]*
 | Alias for `dependency` with option `scope=provided`
 | `repo` | URL[;OPTION]*
@@ -385,7 +385,7 @@ Options:
 Aliases:
 
 .Aliases for `dependency`
-[cols="1*,2*", options="header"]
+[cols="1,2", options="header"]
 |===
 | Alias | Description
 | `compile` | A dependency with option `scope=compile`.
@@ -442,7 +442,7 @@ Options:
 Aliases:
 
 .Aliases for `repository`
-[cols="1*,3*", options="header"]
+[cols="1,3", options="header"]
 |===
 | Alias | Description
 | `repo` | Same as `repository`.

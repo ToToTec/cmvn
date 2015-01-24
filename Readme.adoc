@@ -1,0 +1,641 @@
+= Configured Maven (Cmvn) - User Manual
+:author: Tobias Roeser
+:cmvn-version: 0.1.8
+:toc:
+:toc-placement: preamble
+
+This document describes Cmvn {cmvn-version}.
+
+== Introduction
+	
+Cmvn is a helper tool for developers targeted at the Java Virtual Machine (JVM). Its main focus is to declaratively describe and configure the required development and build environment.
+
+A most significant difference between existing Java-targeted build systems compared to those for C/C++ (e.g. Autotools + GNU Make, CMake, Scons) is the lack of a defined configuration step before executing the compiler.
+Although building a Java application is a lot more easy compared to platform dependent programming languages and tools, nevertheless a lot of the (configuration) tasks of those other build systems are still required. 
+Often the lack of a configuration process in Java build systems results in very obscure setups.
+
+A very popular build system for Java is http://maven.apache.org[Apache Maven], currently in version 3. 
+It partially helps the developer with managing her dependencies but fails miserably at producing reliable builds, at least without support of a complex build infrastructure (...like a Repository Manager).
+
+Cmvn tries to close this gap by providing a configuration step before the actual build system. 
+Concrete, this goal will be reached by	generating the build scripts for the underlying  (native) build system. 
+Whenever a configuration has changed Cmvn will first regenerate the build scripts and after that executes the underlying build system with the right (configured) settings.
+To assist the developer but do not stay in his way, Cmvn does not aim to replace existing build chains.
+Instead, its main focus is adding another (first) configuration step
+to the build chain to create more reliable and reproducable build environments.
+
+
+In its first release Cmvn supports Apache Maven 2.0 and above although using Apache Maven 3.0 is highly recommended.
+In later releases, support for various other build chains might be added, e.g. Apache Ant + Ivy, SBT, SBuild, or others. 
+Although Cmvn generates the build scripts (in Maven case: `pom.xml` files) it cannot and it does not want to handle all aspects of the underlying build infrastructure.
+To leave the full power to the developer, Cmvn supports templates for the underlying build scripts for those settings Cmvn can not generate.
+But for common project setup, this is rarely needed.
+
+Besides the configuration concept, Cmvn brings you concise and maintainable build scripts and empowers you (again) to understand and control your buildsystem! E.g. the `cmvn.conf` equivalent of the `pom.xml` in the http://maven.apache.org/guides/getting-started/maven-in-five-minutes.html["Maven in 5 Minutes" tutorial] looks like this:
+
+
+[source,sh]
+----
+project: com.mycompany.app:my-app:1.0-SNAPSHOT;packaging=jar
+test: junit:junit:4.8.2
+----
+
+== What's New in Cmvn 0.2.0
+
+
+New features in Cmvn 0.2.0:
+
+* A new POM converter was added to easily convert existing Maven projects to Cmvn. See <xref linkend="sec:convertPom" />
+* Experimental support for Jackage repositories. New execution mode `--fetch` to download Jackage dependencies.
+* Cmvn can now generate `<reporting>`-blocks.
+* Cmvn can now generate `parent`-blocks.
+* New execution mode `--info` to gather various project information, e.g. root project location, variables, ...
+
+Changes in Cmvn 0.2.0
+
+* Setting `-generateConfigClass` was renamed to `generateConfigClass`
+* Setting `requireCmvn` was renamed to `-requireCmvn`
+* Internally, Cmvn uses now the https://github.com/ToToTec/CmdOption[CmdOption toolkit]  to parse commandlines.
+* Inproved up-to-date detection which should now detect all relevant changes in input files.
+* Dependencies, that only differ in its `type` property are no longer swallowed.
+
+== Execution Modes
+
+Cmvn can be run in different execution modes. The main modes are:
+
+* Configuration (`--configure`, `--reconfigure`)
+* Fetch (`--fetch`)
+* Build (`--build`)
+* Cleanup (`--clean`, `--distclean`)
+* Convert POM (`--convert-pom`)
+* Information (`--info`)
+
+The execution mode is given as (first) parameter when executing Cmvn.
+
+=== Configuration
+
+Simplest Example:
+
+[source,sh]
+shell> cmvn --configure
+
+Just generates the needed build scripts (if needed) of the underlying buildsystem.
+
+For Maven this generates a `pom.xml` and a Maven settings file `.cmvn/settings.xml` in a local hidden directory.
+
+			
+For a complete list of options see the built-in commandline help: `cmvn --configure --help`.
+
+==== Automatic re-configuration
+
+Whenever an input file of Cmvn changed, Cmvn will detect the change at the next execution time and will automatically run a `--reconfigure` before further processing.
+
+However, if there is for some reason the need to disable this automatism, you can add the `--no-auto-reconfigure` option when configuring the project. If Cmvn detects, that some input files changed, it will claim, that it is out-ouf-date and needs reconfiguration and stop any further processing.
+
+To reconfigure, one can use the option `--reconfigure` which does exactly the same as `--configure` except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration. 
+
+[source,sh]
+shell> cmvn --reconfigure
+
+==== Changing the Maven Local Repository and Settings
+
+By default, `cmvn --configure` initally created an new project-local Maven settings file and thus uses a project-local repository. 
+This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) released dependencies. 
+This default way enables the developer to easily build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are installing (in the Maven sense) to the same local repository. 
+
+Of course, the newly created repository and Maven settings file is shared between all sub projects of the one you just configured.
+
+In case, this default behavior is not desired, you can tell Cmvn to use an alternative existing Maven settings file with the option `--maven-settings`. 
+In this case, you could loose the benefits of side-effect free development of multiple project on the same computer. 
+Also this may limit the reproducability of the build process in different environments. 
+
+[source,sh]
+shell> cmvn --configure --maven-settings /home/user/.m2/settings.xml
+
+Notice, that if you use an alternative Maven settings file, Cmvn will not touch this file and the Local Maven Repository when running in cleanup execution mode.
+
+If all you want is to reuse an existing Maven local repository, you can use the `--maven-repo` option.
+
+
+[source,sh]
+shell> cmvn --configure --maven-repo /home/user/.m2/repository
+
+The `--maven-repo` option is preferred over `--maven-settings` as you do not get the potential side effects from the external settings file. As these settings are normally not part of the build environment (e.g. not managed by a version control system), they increase the risk to get non-repoducable builds and build failures.
+
+==== Using Templates - `pom.xml.cmvn`
+
+When Cmvn detects the presence of a file `pom.xml.cmvn` it will use it as template when generating the pom.xml file for Maven. 
+Cmvn will first read the template file and afterward extend it with the settings found in `cmvn.conf`. 
+You can use this to easily migrate existing Maven projects or if you need complex setups and Maven features (like `<profile>`). 
+
+=== Build
+
+Maven Example: Clean project build and install the build jar file into the local Maven repository.
+
+[source,sh]
+shell> cmvn --build clean install
+
+The build execution mode is automatically enabled if no other mode was requested and at least one non-option argument was given to Cmvn. So the example above could also be written as:
+
+[source,sh]
+shell> cmvn clean install
+
+
+=== Cleanup
+
+The execution mode cleanup is used to remove all generated files and the configuration data. 
+Currently there are two variants to enable the cleanup mode: one version enabled with `--clean` removes only the generated native build scripts, the other variant `--distclean` cleans also the configuration state and any other generated environment setup, e.g. a hidden project local Maven repository.
+
+[source,sh]
+shell> cmvn --clean
+
+Cleans up all generated native build scripts.
+
+[source,sh]
+shell> cmvn --distclean
+
+Cleans up all generated files including configured state.
+
+=== Converting existing Maven projects
+
+To easily use Cmvn with existing Maven projects, one can use the built-in `pom.xml` converter.
+
+[source,sh]
+shell> cmvn --convert-pom --dry-run
+
+This command will show you how the conversion result looks like. If issues are detected, e.g. unresolvable versions for plugins, a warning will be shown.
+
+To convert a whole multi-project recursive, execute the following:
+
+[source,sh]
+shell> cmvn --convert-pom --recursive
+
+For more options see the built-in commandline help: `cmvn --convert-pom --help`
+
+== The configuration file `cmvn.conf`
+
+=== Config file syntax
+
+
+The config file has a very simplistic human readable and editable format:
+
+1. _empty lines_ were ignored
+2. the hash sign (`#`) starts a _comment_ until end of line
+3. each non-comment line consists of a pair of _key_ and _value_ delimited by a colon (`:`)
+4. keys starting with a hyphen (`-`) are _directives_ all other keys were _settings_
+5. values may have _options_, in which case options are separated by a semicolon (`;`)
+6. value-options are themselves key-value pairs delimited by equal sign (`=`)
+7. if an option-value is ommitted (an option without an equal sign) it is evaluated to `true`
+8. non-comment lines ending with a backslash (`\`) were _continued_ on the next line
+
+==== Config file example
+
+The following is an example project config file `cmvn.conf`:
+
+[source,sh]
+----
+# Include directive
+-include: ../common/cmvncommon.conf
+
+# Immutable variable directive
+-val: EXAMPLE_VERSION=0.0.1
+
+# project settings using a variable
+# cmvn uses a short syntax for projects and dependencies
+# group:artifact:version (GAV) or org:name:rev
+project: de.tototec:de.tototec.example:$${EXAMPLE_VERSION}
+
+# a dependency with option spreading two lines
+compile: de.tototec:de.tototec.example.utils:$${EXAMPLE_VERSION}; \
+ classifier=jdk15
+
+# compile-scope dependency 
+compile: org.slf4j:slf4j-api:1.6.1
+
+# optional runtime-dependency
+runtime: ch.qos.logback:logback-classic:0.9.26;optional
+
+# test-scope dependency
+test: org.testng:testng:5.14.6
+----
+
+=== Legend
+
+The following sections contain tables that use the following keywords in the format column:
+
+.Legend of Formats
+[cols="1,4", options="header"]
+|===
+| Format | Description
+
+| BOOLEAN | A boolean value: "true" or "false"
+| DIR | A directory in the local file system
+| FILE | A file in the local file system
+| GAV | _groupId_:_artifactId_:_version_ (analog to Maven) or _org_:_name_:_rev_ (analog to Ivy)
+| GA | Same as GAV, but without a version
+| LIST[X] | A semicolon delimited list of X (if ommitted, than text)
+| OPTION | A _key_=_value_ pair
+| TEXT | Text
+| URL | A URL
+| VERSION | A version number
+| XML | A XML fragement
+|===
+
+
+=== Directives Overview
+
+Directives are instructions to Cmvn to do something special.
+
+.Directives
+[cols="1,1,3", options="header"]
+|===
+| Directive | Format | Description
+| `-configClass` | LIST[OPTION]
+| Deprecated. See `configClass` setting.
+| `-include` | FILE
+| Include the content of the given file. The content will be treated as if it was in the actual file.
+| `-requireCmvn` | VERSION 
+| Ensure, that the version of the executing Cmvn executable is at least the given version.
+| `-val` | OPTION
+| Create an immutable variable _key_ with content _value_. All occurences of this variable were expanded in the value-part of all succeeding lines (except `-include`).
+|===
+
+=== Settings Overview
+
+Settings are used to generate the underlying (native) build scripts. Currently the only supported buildsystem is Maven 2 or greater.
+
+.Settings
+[cols="1,1,3", options="header"]
+|===
+| Setting | Format | Description
+| `artifactrepo` | URL[;OPTION]*
+| Alias for `repository` with option `plugins=false`
+| `compile` | GAV[;OPTION]* 
+| Alias for `dependency` with option `scope=compile`
+| `configClass` | LIST[OPTION]
+| Generate a Java class as source code containing static methods.
+| `dependency` | GAV[;OPTION]*
+| A project/package dependency
+| `dependencyManagement` | GAV[;OPTION]*
+| Managed dependency in `dependencyManagement`
+| `eclipseClasspath` | LIST[OPTION]
+| List of options to generate a `.classpath` file used by Eclipse.
+| `exclude` | GA 
+| Exclude the given dependency in transitive dependencies. Will generate exclusion-blocks in any dependency-block.
+| `module` | DIR[;OPTION]*
+| The path of a sub project
+| plugin | GAV[;OPTION]*
+| Maven plugin coordinates
+| `pluginrepo` | URL[;OPTION]*
+| Alias for `repository` with option `artifacts=false`
+| `project` | GAV[;OPTION]*
+| Project coordinates
+| `property` | OPTION
+| Definition of property <emphasis>key</emphasis> with value _value_
+| `provided` | GAV[;OPTION]*
+| Alias for `dependency` with option `scope=provided`
+| `repo` | URL[;OPTION]*
+| Alias for `repository`
+| `repository`| URL[;OPTION]*
+| Maven Repository
+| `runtime` | GAV[;OPTION]*
+| Alias for `dependency` with option `scope=runtime`
+| `system` | GAV[;OPTION]*
+| Alias for `dependency` with option `scope=system`
+| `test` | GAV[;OPTION]*
+| Alias for `dependency` with option `scope=test`
+|===
+
+=== `project`
+
+Essential project information mandatory for Maven.
+
+Format: GAV[;OPTION]*
+
+Options:
+
+[cols="1,1,3", options="header"]
+.Options for `project`
+|===
+| Option | Format | Description
+| `packaging` | TEXT
+| The packaging of the project, if omitted, then `jar`
+|===
+
+Example:
+
+[source,sh]
+----
+# using maven-bundle-plugin
+project: org.example:org.example.osgibundle:1.0.0;packaging=bundle
+----
+
+=== `module`
+
+Definition of a sub project.
+
+Format: DIR[;OPTION]*
+
+Options:
+
+[cols="1,1,3", options="header"]
+.Options for `module`
+|===
+| Option | Format | Description
+| `skipCmvn` | BOOLEAN
+| This sub project is a pure Maven project. Do not try to find a `cmvn.conf` file.
+|===
+
+
+Example:
+
+[source,sh]
+module: org.example.domain
+module: org.example.service
+module: org.example.service.impl.legacy;skipCmvn
+
+=== `dependency`
+
+A dependency referencing a project in a Maven repository (in most cases a `*.jar` file).
+
+Format: GAV[;OPTION]*
+
+Options:
+
+.Options for `module`
+[cols="1,1,3", options="header"]
+|===
+| Option | Format | Description
+| `scope` | TEXT
+| The scope of the dependency. One of `compile`, `runtime`, `test`, `system` or `provided`.
+| `systemPath`| FILE
+| The local file path to the jar file. Only valid if `scope` is `system`. In contrast to Maven specification, this path can be also relative.
+| `classifier` | TEXT
+| The classifier, e.g. `sources`.
+| `type` | TEXT
+| The type.
+| `optional` | BOOLEAN
+| An optional dependency is not optional for the current project but will be ignored in a transitive dependency resolution. (In an ideal world any compile time dependency should be optional!)
+| `exclude` | GA
+| Excluded dependency from transitive resolved dependency tree.
+| `forceversion` | BOOLEAN
+| Additionally the dependency will be added to the `<dependencyManagement>`-block. This enforces the given version and is sometimes an alternative to the `exclude` option (and vice versa).
+|===
+
+Aliases:
+
+.Aliases for `dependency`
+[cols="1*,2*", options="header"]
+|===
+| Alias | Description
+| `compile` | A dependency with option `scope=compile`.
+| `test` | A dependency with option `scope=test`.
+| `runtime` | A dependency with option `scope=runtime`.
+| `system` | A dependency with option `scope=system`.
+| `dependencyManagement` | A managed dependency only in `dependencyManagement`-block.
+| `provided` | A dependency with option `scope=provided`.
+|===
+
+Example:
+
+[source,sh]
+compile: org.slf4j:slf4j-api:1.6.1;optional
+compile: org.slf4j:jcl-over-slf4j:1.6.1;optional;forceversion
+test: org.testng:testng:6.0.1
+
+=== `property`
+
+Define a property in a `<properties>`-block.
+
+Format: OPTION
+
+Example:
+
+[source,sh]
+property: maven.compiler.source=1.6
+property: maven.compiler.target=1.6
+property: project.build.sourceEncoding=UTF-8
+
+=== `repository`
+
+A remote Maven repository used to download dependencies.
+
+Format: URL[;OPTION]*
+
+Options:
+
+.Options for `repository`
+[cols="1,1,3", options="header"]
+|===
+| Option | Format | Description
+| `plugins` | BOOLEAN
+| Can be used to download Maven plugins (default: `true`).
+| `artifacts` | BOOLEAN
+| Can be used to download Maven artifacts (default: `true`).
+| `releases` | BOOLEAN
+| Can be used to download released dependencies.
+| `snapshots | BOOLEAN | Can be used to download snapshot dependencies.
+|===
+
+// TODO: Missing option id
+
+Aliases:
+
+.Aliases for `repository`
+[cols="1*,3*", options="header"]
+|===
+| Alias | Description
+| `repo` | Same as `repository`.
+| `pluginrepo` | A repository with option `artifacts=false`.
+| `artifactrepo` | A repository with option `plugins=false`.
+|===
+
+=== `plugin`
+
+A Maven plugin contribution to the Maven lifecycle.
+
+Format: GAV[;OPTION]*
+
+Options: Any option has the format OPTION and is added to the `<configuration>`-block of the plugin definition.
+
+Directives:
+
+.Directives for `plugin`
+[cols="1*,1*,2*", options="header"]
+|===
+| Directive | Format | Description
+| `-extension` | BOOLEAN
+| Specify if this plugin is an extensions-plugin (and thus e.g. can contribute new project packaging types).
+| `-execution` | XML
+| A free XML fragement that will be placed inside the `<executions>`-block of this plugin.
+| `-plugindependency` | GAV
+| A dependency used when executing the plugin command, e.g. to override a version.
+| `-xml:_anyOption_ | XML
+| Can be used if the option-value is XML and not text.
+|===
+
+Example:
+
+[source,sh]
+----
+plugin: org.apache.maven.plugins:maven-assembly-plugin:2.2-beta-5; \
+ appendAssemblyId=false; \
+ -xml:descriptorRefs= \
+    <descriptorRef>jar-with-dependencies</descriptorRef>; \
+ -xml:archive= \
+    <manifest> \
+      <mainClass>org.example.Main</mainClass> \
+    </manifest>
+----
+
+=== `build`
+
+Redefine some project default settings.
+
+Format: LIST[OPTION]
+
+Options:
+
+.Options for `build`
+[cols="1,1,3", options="header"]
+|===
+| Option | Format | Description
+| `sources` | DIR
+| The directory containing the source files.
+| `testSources` | DIR
+| The directory containing the test source files.
+| `finalName` | FILE
+| The name of the final build JAR file.
+| `targetDir` | DIR
+| The directory containing the build output files (e.g. `target`).
+|===
+
+=== `eclipseClasspath`
+
+Generate a `.classpath` file which can be used by Eclipse to generate the project classpath container.
+
+Format: LIST[OPTION]
+
+Options:
+
+.Options for `eclipseClasspath`
+[cols="1,1,3", options="header"]
+|===
+| Option | Format | Description
+| `autoGenerate` | TEXT
+| Auto-generate lib-entries for project dependencies of the given scope. Supported scopes are: compile (includes provided and system), test, runtime.
+| `optional` | BOOLEAN
+| Generate an optional-marker for the actual entry.
+| _key_ | TEXT
+| A free _key_ added as attribute in the classpathentry-element. Known supported attributes are, e.g.: kind, path, output, sourcepath, ...
+|===
+
+Example:
+
+Multiple given eclipseClasspath settings to configure a Java 6 project with tests.
+
+[source,sh]
+----
+eclipseClasspath: kind=src;path=src/main/java
+eclipseClasspath: kind=src;path=src/main/resources
+eclipseClasspath: kind=output;path=target/classes
+eclipseClasspath: kind=src;output=target/test-classes;path=src/test/java
+eclipseClasspath: kind=con;path=org.eclipse.jdt.launching.JRE_CONTAINER/\
+org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6
+eclipseClasspath: autoGenerate=compile
+eclipseClasspath: autoGenerate=test
+----
+
+This Feature is deprecated and superceeded by the Eclipse Classpath Container for Cmvn (see <xref linkend="ch:eclipseCpContainer" />).
+
+== Eclipse Classpath Container
+
+Since Cmvn 0.1.8 there is an Eclipse Cmvn Plugin that provides a classpath container, thus making the use of other classpath containers like the Maven classpath container obsolete.
+
+Features:
+
+* Provides classpath dependencies instantly
+* non-transitive classpath, only add explicit listed dependencies to classpath
+* different resolution scopes configurable (compile, runtime, test)
+* very fast (especially a lot faster than Maven and Ivy classpath containers)
+* Workspace resolution for dependencies (configurable)
+* uses project-local configuration (uses exact same repositories and dependencies as the command line tool)
+* supports attached sources and javadoc
+
+Restrictions in Cmvn 0.1.8 (fixed in later versions, e.g. 0.2.0):
+
+* If cmvn was configured with `--maven-settings` the Cmvn classpath container will fall back to a `M2_REPO` variable, which must be defined in Eclipse. In most cases you should prefer the `--maven-repo` commandline switch to specify external local Maven repositories.
+
+Notice: If you use the Eclipse Cmvn classpath container, you usually do not want to use the `eclipseClasspath autoGenerate` setting (see <xref linkend="sec:settingsEclipseClasspath" />).
+
+
+== Terms of Use (License)
+
+Cmvn is published under the http://www.apache.org/licenses/LICENSE-2.0[Apache License, Version 2.0].
+
+
+== Installation
+
+=== Unix/Linux/MacOSX: Shell Wrapper
+
+Cmvn is distributed as executable jar including all its required dependencies.
+
+For convenience, you may want to create a simple shell script `cmvn` as an executable wrapper around the program:
+
+[source,sh]
+#!/bin/sh
+# pass all arguments to cmvn with $@
+exec java -jar cmvn-executable-0.2.0.jar "$@"
+
+=== Windows: Using the binary
+
+Since Cmvn 0.1.4 there is also a released Windows binary version `cmvn-0.1.4.exe`. As long as this executable exists on the search path (`PATH`-variable), no command shell wrapper is needed.
+
+==== Windows: Command Shell Wrapper
+
+If you can not or want not use the executable binary version of Cmvn for Windows, you can alternatively use a command shell wrapper like this one:
+
+[source,bat]
+----
+:init
+@REM Decide how to startup depending on the version of windows
+
+@REM -- Windows NT with Novell Login
+if "%OS%"=="WINNT" goto WinNTNovell
+
+@REM -- Win98ME
+if NOT "%OS%"=="Windows_NT" goto Win9xArg
+
+:WinNTNovell
+
+@REM -- 4NT shell
+if "%@eval[2+2]" == "4" goto 4NTArgs
+
+@REM -- Regular WinNT shell
+set CMVN_CMD_LINE_ARGS=%*
+goto endInit
+
+@REM The 4NT Shell from jp software
+:4NTArgs
+set CMVN_CMD_LINE_ARGS=%$
+goto endInit
+
+:Win9xArg
+@REM Slurp the command line arguments.  This loop allows for an unlimited number
+@REM of agruments (up to the command line limit, anyway).
+set CMVN_CMD_LINE_ARGS=
+:Win9xApp
+if %1a==a goto endInit
+set CMVN_CMD_LINE_ARGS=%CMVN_CMD_LINE_ARGS% %1
+shift
+goto Win9xApp
+
+@REM Reaching here means variables are defined and arguments have been captured
+:endInit
+SET CMVN_JAVA_EXE="%JAVA_HOME%\bin\java.exe"
+
+%CMVN_JAVA_EXE% -jar cmvn-executable.jar %CMVN_CMD_LINE_ARGS%
+
+set CMVN_JAVA_EXE=
+set CMVN_CMD_LINE_ARGS=
+----

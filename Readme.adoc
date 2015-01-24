@@ -461,7 +461,7 @@ Options: Any option has the format OPTION and is added to the `<configuration>`-
 Directives:
 
 .Directives for `plugin`
-[cols="1*,1*,2*", options="header"]
+[cols="1,1,2", options="header"]
 |===
 | Directive | Format | Description
 | `-extension` | BOOLEAN
@@ -546,7 +546,7 @@ eclipseClasspath: autoGenerate=compile
 eclipseClasspath: autoGenerate=test
 ----
 
-This Feature is deprecated and superceeded by the Eclipse Classpath Container for Cmvn (see <xref linkend="ch:eclipseCpContainer" />).
+This Feature is deprecated and superceeded by the link:#eclipse-classpath-container[Eclipse Classpath Container for Cmvn].
 
 == Eclipse Classpath Container
 
@@ -566,7 +566,7 @@ Restrictions in Cmvn 0.1.8 (fixed in later versions, e.g. 0.2.0):
 
 * If cmvn was configured with `--maven-settings` the Cmvn classpath container will fall back to a `M2_REPO` variable, which must be defined in Eclipse. In most cases you should prefer the `--maven-repo` commandline switch to specify external local Maven repositories.
 
-Notice: If you use the Eclipse Cmvn classpath container, you usually do not want to use the `eclipseClasspath autoGenerate` setting (see <xref linkend="sec:settingsEclipseClasspath" />).
+Notice: If you use the Eclipse Cmvn classpath container, you usually do not want to use the `eclipseClasspath autoGenerate` setting.
 
 
 == Terms of Use (License)

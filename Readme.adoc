@@ -4,6 +4,8 @@
 :toc:
 :toc-placement: preamble
 
+image:https://badges.gitter.im/Join%20Chat.svg[Gitter,link="https://gitter.im/ToToTec/cmvn"]
+
 This document describes Cmvn {cmvn-version}.
 
 == Introduction

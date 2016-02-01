@@ -2,16 +2,13 @@ package de.tototec.cmvn
 
 import scala.Array.canBuildFrom
 import scala.collection.JavaConversions._
-import scala.tools.nsc.io.Path.string2path
-import scala.tools.nsc.io.Directory
-import scala.tools.nsc.io.File
-import scala.tools.nsc.io.Path
 import de.tototec.cmvn.configfile.bndlike.ConfigFileReaderImpl
 import de.tototec.cmvn.model.CmvnProjectConfig
 import de.tototec.cmvn.configfile.KeyValue
 import java.io.FileNotFoundException
 import de.tototec.cmvn.model.Dependency
 import de.tototec.cmvn.model.EclipseClasspathGenerator
+import java.io.File
 
 object ConfiguredCmvnProject {
   def projectReader: ProjectReader = projectReader()
@@ -31,8 +28,8 @@ object ConfiguredCmvnProject {
     new ProjectConfigKeyValueReader() {
       override def read(projectConfig: CmvnProjectConfig, keyValue: KeyValue) {
         // add each included file into config
-        val includedFile = File(keyValue.value)
-        projectConfig.cmvnIncludedFilesWithTimeStamp.put(includedFile.path, includedFile.lastModified)
+        val includedFile = new File(keyValue.value)
+        projectConfig.cmvnIncludedFilesWithTimeStamp.put(includedFile.getPath(), includedFile.lastModified)
       }
     }
 
@@ -46,67 +43,67 @@ object ConfiguredCmvnProject {
   }
 }
 
-class ConfiguredCmvnProject(projectFileOrDir: Path, relaxedVersionCheck: Boolean = false) {
+class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean = false) {
 
   val projectFile = projectFileOrDir match {
-    case f: File => f
-    case d: Directory => d / File(Constants.CmvnProjectFileName)
+  case d if d.isDirectory => new File(d, Constants.CmvnProjectFileName)
+    case f => f
   }
-  val configuredStateFile = projectFile.parent / File(Constants.CmvnConfiguredStateFileName)
-  val savedInputStateFile = projectFile.parent / Directory(Constants.CmvnStateDirName) / File(Constants.CmvnConfiguredInputFileName)
+  val configuredStateFile = new File(projectFile.getParentFile(), Constants.CmvnConfiguredStateFileName)
+  val savedInputStateFile = new File(projectFile.getParentFile(), Constants.CmvnStateDirName + "/" + Constants.CmvnConfiguredInputFileName)
 
   // Some checks
   if (!projectFile.exists) {
-    throw new RuntimeException("The project file does not exists: " + projectFile.path);
+    throw new RuntimeException("The project file does not exists: " + projectFile.getPath());
   }
   if (!configuredStateFile.exists) {
     throw new RuntimeException("The project is not configured. Please configure it first (cmvn --configure). Project: "
-      + projectFile.path)
+      + projectFile.getPath())
   }
 
   lazy val configuredState = {
     val configuredState = new CmvnConfiguredState()
-    configuredState.fromYamlFile(configuredStateFile.jfile)
+    configuredState.fromYamlFile(configuredStateFile)
     configuredState
   }
 
   if (!relaxedVersionCheck && configuredState.cmvnVersion != Config.cmvnOsgiVersion) {
-    throw new RuntimeException("The project was configured by another Cmvn version (" + configuredState.cmvnVersion + "). Please configure the project again. Project: " + projectFile.path)
+    throw new RuntimeException("The project was configured by another Cmvn version (" + configuredState.cmvnVersion + "). Please configure the project again. Project: " + projectFile.getPath())
   }
 
   lazy val (inputState, projectConfig) = {
     val inputState = new CmvnConfiguredInputState()
     // The project file itself
-    inputState.inputFilesWithTimeStamp.put(projectFile.toAbsolute.path, projectFile.lastModified)
+    inputState.inputFilesWithTimeStamp.put(projectFile.getAbsolutePath(), projectFile.lastModified)
     // The configuration file
-    inputState.inputFilesWithTimeStamp.put(configuredStateFile.toAbsolute.path, configuredStateFile.lastModified)
+    inputState.inputFilesWithTimeStamp.put(configuredStateFile.getAbsolutePath(), configuredStateFile.lastModified)
 
     val inputFileCollector = new ProjectConfigKeyValueReader() {
       override def read(projectConfig: CmvnProjectConfig, keyValue: KeyValue) {
         // add each included file into config
         // assume, each file name is absolute
-        val includedFile = File(keyValue.value)
-        inputState.inputFilesWithTimeStamp.put(includedFile.path, includedFile.lastModified)
+        val includedFile = new File(keyValue.value)
+        inputState.inputFilesWithTimeStamp.put(includedFile.getPath(), includedFile.lastModified)
       }
     }
     val projectReader = UnconfiguredCmvnProject.projectReader(includeFileReader = Some(inputFileCollector))
-    val projectConfig = projectReader.readConfigFile(projectFile.jfile)
+    val projectConfig = projectReader.readConfigFile(projectFile)
 
     // The Maven template file, optional
-    val pomTemplateFile = projectFile.parent / File(projectConfig.pomTemplateFileName)
+    val pomTemplateFile = new File(projectFile.getParentFile(), projectConfig.pomTemplateFileName)
     if (pomTemplateFile.exists) {
-      inputState.inputFilesWithTimeStamp.put(pomTemplateFile.toAbsolute.path, pomTemplateFile.lastModified)
+      inputState.inputFilesWithTimeStamp.put(pomTemplateFile.getAbsolutePath(), pomTemplateFile.lastModified)
     }
 
     (inputState, projectConfig)
   }
 
   lazy val allSubProjects: List[ConfiguredCmvnProject] = {
-    val projectConfig = UnconfiguredCmvnProject.projectReader.readConfigFile(projectFile.jfile)
+    val projectConfig = UnconfiguredCmvnProject.projectReader.readConfigFile(projectFile)
 
     val subProjects = projectConfig.getModules.toList filter { !_.skipEmvn } flatMap {
       module =>
-        val subModuleDir = projectFile.parent / Directory(module.moduleName)
+        val subModuleDir = new File(projectFile.getParentFile, module.moduleName)
         new ConfiguredCmvnProject(subModuleDir).allSubProjects
     }
     this :: subProjects
@@ -119,14 +116,14 @@ class ConfiguredCmvnProject(projectFileOrDir: Path, relaxedVersionCheck: Boolean
     if (!savedInputStateFile.exists) return false
 
     val savedInputState = new CmvnConfiguredInputState()
-    savedInputState.fromYamlFile(savedInputStateFile.jfile)
+    savedInputState.fromYamlFile(savedInputStateFile)
 
     val sameFiles = savedInputState.inputFilesWithTimeStamp.keySet.containsAll(inputState.inputFilesWithTimeStamp.keySet) &&
       inputState.inputFilesWithTimeStamp.keySet.containsAll(savedInputState.inputFilesWithTimeStamp.keySet)
 
     // generated output files are not the same
     if (!sameFiles) {
-      Output.verbose("Set of input files has changed for: " + projectFile.path + "\n  Last time: " +
+      Output.verbose("Set of input files has changed for: " + projectFile.getPath() + "\n  Last time: " +
         savedInputState.inputFilesWithTimeStamp.keySet.mkString(", ") + "\n  Now: " +
         inputState.inputFilesWithTimeStamp.keySet.mkString(", "))
       return false
@@ -135,9 +132,9 @@ class ConfiguredCmvnProject(projectFileOrDir: Path, relaxedVersionCheck: Boolean
     // if any input file has another time stamp, we consider it as changed 
     savedInputState.inputFilesWithTimeStamp.keySet foreach {
       fileName =>
-        if (!File(fileName).exists) {
+        if (!new File(fileName).exists) {
           Output.verbose("File does not exists: " + fileName)
-          throw new FileNotFoundException("Required input file '" + fileName.path + "' does not exists. Project: " + projectFile.path)
+          throw new FileNotFoundException("Required input file '" + fileName + "' does not exists. Project: " + projectFile.getPath())
         }
 
         val lastTimeStamp = savedInputState.inputFilesWithTimeStamp(fileName)
@@ -157,7 +154,7 @@ class ConfiguredCmvnProject(projectFileOrDir: Path, relaxedVersionCheck: Boolean
   def generate(evenWhenNotChanged: Boolean) {
 
     if (!evenWhenNotChanged && isUpToDate) {
-      Output.verbose("Skipping generate of up-to-date project: " + projectFile.path)
+      Output.verbose("Skipping generate of up-to-date project: " + projectFile.getPath())
       return
     }
 
@@ -167,27 +164,27 @@ class ConfiguredCmvnProject(projectFileOrDir: Path, relaxedVersionCheck: Boolean
 
     // Config Class generator
     projectConfig.configClasses foreach { generator =>
-      Output.info("Generating config class: " + generator.getClassName() + " in " + generator.getTargetDir().path)
-      generator.generateClass(projectFile.parent.jfile)
+      Output.info("Generating config class: " + generator.getClassName() + " in " + generator.getTargetDir())
+      generator.generateClass(projectFile.getParentFile())
     }
 
     // Generate Maven POM
-    val pomFile = projectFile.parent / File(projectConfig.pomFileName)
+    val pomFile = new File(projectFile.getParentFile(), projectConfig.pomFileName)
 
-    val mavenPomGenerator = new MavenPomGenerator(pomFile.jfile, configuredState, projectConfig)
+    val mavenPomGenerator = new MavenPomGenerator(pomFile, configuredState, projectConfig)
     // TODO: support configuredState.isReferenceLocalArtifactsAsSystemScope
     generatorResult.merge(mavenPomGenerator.generate)
 
     // Generate Ivy
     if (configuredState.isGenerateIvy) {
-      val ivyGenerator = new IvyGenerator(projectFile.parent.jfile, configuredState, projectConfig);
+      val ivyGenerator = new IvyGenerator(projectFile.getParentFile(), configuredState, projectConfig);
       generatorResult.merge(ivyGenerator.generate)
     }
 
     // TODO: Eclispe classpath generator, needs root project config
 
     // Write current state
-    inputState.toYamlFile(savedInputStateFile.jfile)
+    inputState.toYamlFile(savedInputStateFile)
   }
 
   def removeGeneratedFilesRecursive {

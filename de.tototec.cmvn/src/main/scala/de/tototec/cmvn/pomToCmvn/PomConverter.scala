@@ -2,19 +2,21 @@ package de.tototec.cmvn.pomToCmvn
 
 import java.util.Date
 import scala.Array.canBuildFrom
-import scala.tools.nsc.io.File
-import scala.tools.nsc.io.Directory
 import scala.xml.Utility
 import scala.xml.XML
 import de.tototec.cmvn.Config
 import de.tototec.cmvn.Output
 import de.tototec.cmvn.cmdoption.PomConverterCmd
+import java.io.File
+import java.io.PrintWriter
+import java.io.FileWriter
+import java.io.BufferedWriter
 
 class PomConverter() {
 
   def convert(config: PomConverterCmd) {
-    val pomFile = File(config.pomFile)
-    val cmvnFile = File(config.cmvnFile)
+    val pomFile = new File(config.pomFile)
+    val cmvnFile = new File(config.cmvnFile)
     convert(recursive = config.recursive, modulesAreCmvn = config.modulesAreCmvn, dryRun = config.dryRun, pomFile = pomFile, cmvnFile = cmvnFile)
   }
 
@@ -32,7 +34,7 @@ class PomConverter() {
     writeln("# Generated with cmvn " + Config.cmvnOsgiVersion + " on " + new Date().toString)
     writeln("-requireCmvn: " + Config.cmvnOsgiVersion)
 
-    val xml = XML.loadFile(pomFile.jfile)
+    val xml = XML.loadFile(pomFile)
 
     // Project
     val parGroupId = xml \ "parent" \ "groupId" match {
@@ -309,12 +311,17 @@ class PomConverter() {
     Output.info("Generated cmvn config:\n" + newCmvnText)
 
     if (!dryRun) {
-      cmvnFile.writeAll(newCmvnText)
+      val writer = new PrintWriter(new BufferedWriter(new FileWriter(cmvnFile)))
+      try {
+        writer.write(newCmvnText)
+      } finally {
+        writer.close()
+      }
     }
 
     if (recursive) moduleNames foreach { name =>
-      val pom = pomFile.parent / name / File("pom.xml")
-      val cmvn = cmvnFile.parent / name / File("cmvn.conf")
+      val pom = new File(pomFile.getParentFile(), name + "/pom.xml")
+      val cmvn = new File(cmvnFile.getParentFile(), name + "/cmvn.conf")
       convert(recursive = recursive, modulesAreCmvn = modulesAreCmvn, dryRun = dryRun, pomFile = pom, cmvnFile = cmvn)
     }
 

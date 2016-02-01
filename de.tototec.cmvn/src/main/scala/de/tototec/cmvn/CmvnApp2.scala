@@ -8,7 +8,6 @@ import java.io.FileWriter
 import com.esotericsoftware.yamlbeans.YamlWriter
 import java.util.Date
 import java.io.File
-import scala.tools.nsc.io.Directory
 import de.tototec.cmvn.pomToCmvn.PomConverter
 import de.tototec.cmdoption.CmdOption
 import de.tototec.cmdoption.CmdlineParser
@@ -36,7 +35,7 @@ object CmvnApp2 {
     var verbose: Boolean = _
   }
 
-  private lazy val curDir = new File(System.getProperty("user.dir")).getAbsolutePath()
+  private lazy val curDir = new File(System.getProperty("user.dir")).getAbsoluteFile()
 
   def main(args: Array[String]) {
 

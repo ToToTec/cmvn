@@ -33,9 +33,11 @@ object CmvnApp2 {
     var version: Boolean = _
     @CmdOption(names = Array("--verbose", "-v"), description = "Be more verbose and print somewhat more output")
     var verbose: Boolean = _
+    @CmdOption(names = Array("--dir", "-d"), description = "Working directory")
+    var dir: String = _
   }
 
-  private lazy val curDir = new File(System.getProperty("user.dir")).getAbsoluteFile()
+  // private lazy val curDir = new File(System.getProperty("user.dir")).getAbsoluteFile()
 
   def main(args: Array[String]) {
 
@@ -58,12 +60,17 @@ object CmvnApp2 {
     }
 
     if (baseArgs.version) {
-      Output.info("cmvn " + Config.cmvnOsgiVersion + " (c) 2010 - 2012, Tobias Roeser, ToToTec")
+      Output.info("cmvn " + Config.cmvnOsgiVersion + " (c) 2010 - 2016, Tobias Roeser, ToToTec")
       System.exit(0)
     }
 
     if (baseArgs.verbose) {
       Output.verboseMode = true
+    }
+
+    val curDir = baseArgs.dir match {
+      case null => new File(System.getProperty("user.dir")).getAbsoluteFile()
+      case dir => new File(dir).getAbsoluteFile()
     }
 
     def checkCmdHelp(helpAware: HelpAwareCmd) {
@@ -72,7 +79,7 @@ object CmvnApp2 {
         System.exit(0)
       }
     }
-    
+
     cp.getParsedCommandObject() match {
 
       case confCmd: ConfigureCmd =>
@@ -96,17 +103,17 @@ object CmvnApp2 {
         // No command selected, but this means, no default-command selected because no other parameter
         Output.verbose("--build selected (without extra parameters)")
         // implicitly bring project up-to-date if configured so
-        upToDateProject
-        
+        upToDateProject(curDir)
+
       case buildCmd: BuildCmd =>
         checkCmdHelp(buildCmd)
         Output.verbose("--build selected")
-        runMaven(buildCmd)
+        runMaven(curDir, buildCmd)
 
       case fetchCmd: FetchCmd =>
         checkCmdHelp(fetchCmd)
         Output.verbose("--fetch selected")
-        runFetch(fetchCmd)
+        runFetch(curDir, fetchCmd)
 
       case convertCmd: PomConverterCmd =>
         checkCmdHelp(convertCmd)
@@ -138,7 +145,7 @@ object CmvnApp2 {
         }
 
         if (infoCmd.showVals) {
-          upToDateProject.projectConfig.variables foreach {
+          upToDateProject(curDir).projectConfig.variables foreach {
             case (k, v) => Console.println(k + "=" + v)
           }
         }
@@ -146,7 +153,7 @@ object CmvnApp2 {
       case cleanCmd: CleanCmd =>
         checkCmdHelp(cleanCmd)
         Output.verbose("--clean selected")
-        runClean(false)
+        runClean(curDir, false)
 
       case distcleanCmd: DistcleanCmd =>
         checkCmdHelp(distcleanCmd)
@@ -156,30 +163,30 @@ object CmvnApp2 {
 
         val project = new UnconfiguredCmvnProject(None, curDir)
         if (project.isConfigured) {
-          runClean(true)
+          runClean(curDir, true)
         }
         project.distcleanRecursive(keepManagedRepo = distcleanCmd.keepRepo)
 
       case other =>
-        throw new RuntimeException("Unsupported command: " + cp.getParsedCommandName)
+        throw sys.error("Unsupported command: " + cp.getParsedCommandName)
     }
 
   }
 
-  def upToDateProject: ConfiguredCmvnProject = {
+  def upToDateProject(curDir: File): ConfiguredCmvnProject = {
     val project = new ConfiguredCmvnProject(curDir)
     val confState = project.configuredState
     if (confState.autoReconfigure) {
       project.generateRecursive(evenWhenNotChanged = false)
     } else {
       if (!project.isUpToDateRecursive) {
-        throw new RuntimeException("Project not up-to-date. Please run --generate first or configure project without --no-auto-reconfigure.")
+        throw sys.error("Project not up-to-date. Please run --generate first or configure project without --no-auto-reconfigure.")
       }
     }
     project
   }
 
-  def runClean(ignoreUnconfigured: Boolean) {
+  def runClean(curDir: File, ignoreUnconfigured: Boolean) {
     try {
       val project = new ConfiguredCmvnProject(curDir)
       // TODO: implement clean
@@ -192,10 +199,10 @@ object CmvnApp2 {
     }
   }
 
-  def runFetch(fetchCmd: FetchCmd) {
+  def runFetch(curDir: File, fetchCmd: FetchCmd) {
     val project = new ConfiguredCmvnProject(curDir)
     if (project.configuredState.localRepository == null) {
-      throw new RuntimeException("No configured local Maven repository.")
+      throw sys.error("No configured local Maven repository.")
     }
 
     val toFetch = project.allSubProjects flatMap { p =>
@@ -218,7 +225,7 @@ object CmvnApp2 {
             val msg = "Could not download Jackage dependency: " + dep + ". Jackage return code " + rc
             fetchCmd.keepGoing match {
               case true => Output.error(msg + ". Ignoring failed fetch in keep-going mode.")
-              case false => throw new RuntimeException(msg)
+              case false => throw sys.error(msg)
             }
           }
         }
@@ -226,11 +233,9 @@ object CmvnApp2 {
     }
   }
 
+  def runMaven(curDir: File, buildCmd: BuildCmd) {
 
-
-  def runMaven(buildCmd: BuildCmd) {
-
-    val confProject = upToDateProject
+    val confProject = upToDateProject(curDir)
     val configuredState = confProject.configuredState
 
     // Run Maven

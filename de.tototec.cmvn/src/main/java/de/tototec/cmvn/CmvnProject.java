@@ -76,15 +76,15 @@ public class CmvnProject {
 		projectConfig = reader.readConfigFile(projectFile);
 
 		final String parentDir = projectFile.getParent();
-		this.pomFile = new File(parentDir, projectConfig.getPomFileName());
-		this.pomTemplateFile = new File(parentDir, projectConfig.getPomTemplateFileName());
+		this.pomFile = new File(parentDir, projectConfig.pomFileName());
+		this.pomTemplateFile = new File(parentDir, projectConfig.pomTemplateFileName());
 		this.cmvnStateFile = new File(parentDir, DEFAULT_PROJECT_STATE_FILE_NAME);
 	}
 
 	protected List<CmvnProject> scanForProjects() {
 		final List<CmvnProject> projects = new LinkedList<CmvnProject>();
 		projects.add(this);
-		for (final Module module : projectConfig.getModules()) {
+		for (final Module module : projectConfig.modules()) {
 			if (!module.skipEmvn()) {
 				final File moduleDir = new File(projectFile.getParent(), module.moduleName());
 				final CmvnProject subProject = new CmvnProject(moduleDir, rootProject != null ? rootProject : this);
@@ -236,7 +236,7 @@ public class CmvnProject {
 		if (mavenConfig == null) {
 			throw new RuntimeException("Project is not configured: " + projectFile);
 		}
-		return mavenConfig.getSettingsFile();
+		return mavenConfig.settingsFile();
 	}
 
 	protected void configureProject(final ConfigureRequest configureRequest) {
@@ -259,7 +259,7 @@ public class CmvnProject {
 			// need to create a config
 
 			// Save root project file
-			configuredState.setRootProjectFile(projectFile.getAbsolutePath());
+			configuredState.rootProjectFile_$eq(projectFile.getAbsolutePath());
 
 			{
 				final String settingsFileOrNull = configureRequest.getMavenSettings();
@@ -270,10 +270,10 @@ public class CmvnProject {
 				}
 
 				final boolean manageSettingsFile = settingsFileOrNull == null;
-				configuredState.setControlSettingsFile(manageSettingsFile);
+				configuredState.controlSettingsFile_$eq(manageSettingsFile);
 
 				final boolean manageRepoDir = manageSettingsFile && repoDirOrNull == null;
-				configuredState.setControlRepoDir(manageRepoDir);
+				configuredState.controlRepoDir_$eq(manageRepoDir);
 
 				final File defaultSettingsDir = new File(projectFile.getParentFile(), DEFAULT_MVN_SETTINGS_DIR_NAME);
 
@@ -281,16 +281,16 @@ public class CmvnProject {
 					final File repoDir = new File(defaultSettingsDir, "repository");
 					System.out.println("Creating local repository dir " + repoDir);
 					repoDir.mkdirs();
-					configuredState.setLocalRepository(repoDir.getAbsolutePath());
+					configuredState.localRepository_$eq(repoDir.getAbsolutePath());
 				} else if (repoDirOrNull != null) {
 					final File repoDir = new File(repoDirOrNull);
 					System.out.println("Using local repository dir " + repoDir);
-					configuredState.setLocalRepository(repoDir.getAbsolutePath());
+					configuredState.localRepository_$eq(repoDir.getAbsolutePath());
 				}
 
 				final File settingsFile = settingsFileOrNull != null ? new File(settingsFileOrNull) : new File(
 						defaultSettingsDir, "settings.xml");
-				configuredState.setSettingsFile(settingsFile.getAbsolutePath());
+				configuredState.settingsFile_$eq(settingsFile.getAbsolutePath());
 
 				if (manageSettingsFile) {
 					System.out.println("Creating " + settingsFile);
@@ -318,26 +318,26 @@ public class CmvnProject {
 			}
 
 			if (configureRequest.getMavenExecutable() != null) {
-				configuredState.setMavenExecutable(configureRequest.getMavenExecutable());
+				configuredState.mavenExecutable_$eq(configureRequest.getMavenExecutable());
 			}
 			if (configureRequest.getMavenSettings() != null) {
-				configuredState.setSettingsFile(configureRequest.getMavenSettings());
+				configuredState.settingsFile_$eq(configureRequest.getMavenSettings());
 			}
 			if (configureRequest.getAutoReconfigure() != null) {
-				configuredState.setAutoReconfigure(configureRequest.getAutoReconfigure().booleanValue());
+				configuredState.autoReconfigure_$eq(configureRequest.getAutoReconfigure().booleanValue());
 			}
 			if (configureRequest.getForceSystemScope() != null) {
-				configuredState.setForceSystemScope(configureRequest.getForceSystemScope().booleanValue());
+				configuredState.forceSystemScope_$eq(configureRequest.getForceSystemScope().booleanValue());
 			}
 			if (configureRequest.getGenerateIvy() != null) {
-				configuredState.setGenerateIvy(configureRequest.getGenerateIvy().booleanValue());
+				configuredState.generateIvy_$eq(configureRequest.getGenerateIvy().booleanValue());
 			}
 			if (configureRequest.getSystemScopeForLocalProjects() != null) {
-				configuredState.setReferenceLocalArtifactsAsSystemScope(configureRequest
+				configuredState.referenceLocalArtifactsAsSystemScope_$eq(configureRequest
 						.getSystemScopeForLocalProjects().booleanValue());
 			}
 			if (configureRequest.getEclipseForceLocalWorkspaceRefs() != null) {
-				configuredState.setEclipseForceLocalWorkspaceRefs(configureRequest.getEclipseForceLocalWorkspaceRefs()
+				configuredState.eclipseForceLocalWorkspaceRefs_$eq(configureRequest.getEclipseForceLocalWorkspaceRefs()
 						.booleanValue());
 			}
 			// if (configureRequest.getSkipProvisioning() != null) {
@@ -397,16 +397,16 @@ public class CmvnProject {
 
 		// Generate Maven POM
 		final MavenPomGenerator mavenPomGenerator = new MavenPomGenerator(pomFile, cmvnConfig, projectConfig);
-		if (cmvnConfig.isReferenceLocalArtifactsAsSystemScope()) {
+		if (cmvnConfig.referenceLocalArtifactsAsSystemScope()) {
 			System.out.println("Converting local artifacts to system scope...");
 			final List<Dependency> localArtifacts = new LinkedList<Dependency>();
 			final List<CmvnProject> localProjects = rootProject != null ? rootProject.getMultiProjects()
 					: getMultiProjects();
 			for (final CmvnProject project : localProjects) {
 				final CmvnProjectConfig locProj = project.getProjectConfig();
-				final Dependency locArtifact = new Dependency(locProj.getProject().groupId(), locProj.getProject()
-						.artifactId(), locProj.getProject().version());
-				locArtifact.jarPath_$eq(new File(new File(locProj.getBaseDir(), "target"), locArtifact.artifactId()
+				final Dependency locArtifact = new Dependency(locProj.project().groupId(), locProj.project()
+						.artifactId(), locProj.project().version());
+				locArtifact.jarPath_$eq(new File(new File(locProj.baseDir(), "target"), locArtifact.artifactId()
 						+ "-" + locArtifact.version() + ".jar").getAbsolutePath());
 				localArtifacts.add(locArtifact);
 			}
@@ -415,13 +415,13 @@ public class CmvnProject {
 		generatorResult.merge(mavenPomGenerator.generate());
 
 		// Generate Ivy
-		if (cmvnConfig.isGenerateIvy()) {
+		if (cmvnConfig.generateIvy()) {
 			new IvyGenerator(projectFile.getParentFile(), configuredState, projectConfig);
 			generatorResult.merge(generateIvy());
 		}
 
 		// Generate Eclipse Classpath
-		if (projectConfig.getEclipseClasspathGeneratorConfig() != null) {
+		if (projectConfig.eclipseClasspathGeneratorConfig() != null) {
 			final EclipseClasspathGenerator generator = new EclipseClasspathGenerator(rootProject != null ? rootProject
 					: this, projectConfig);
 			generatorResult.merge(generator.generate());
@@ -442,7 +442,7 @@ public class CmvnProject {
 		if (projectConfig == null) {
 			return;
 		}
-		for (final ConfigClassGenerator generator : projectConfig.getConfigClasses()) {
+		for (final ConfigClassGenerator generator : projectConfig.configClasses()) {
 			System.out.println("Generating config class: " + generator.getClassName() + " in "
 					+ generator.getTargetDir());
 			generator.generateClass(projectFile.getParentFile());

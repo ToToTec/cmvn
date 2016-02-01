@@ -40,14 +40,14 @@ public class IvyGenerator implements Generator {
 
 		ivy.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
 		ivy.append("<ivysettings>\n");
-		ivy.append("\t<settings defaultCache=\"").append(cmvnConfig.getLocalRepository())
+		ivy.append("\t<settings defaultCache=\"").append(cmvnConfig.localRepository())
 				.append("\" defaultResolver=\"cmvnMavenRepos\" />\n");
 		// ivy.append("\t<property name=\"ivy.dir.repo.local\" value=\"").append(cmvnConfig.getLocalRepository())
 		// .append("\" />\n");
 		ivy.append("\t<resolvers>\n");
 		ivy.append("\t\t<chain name=\"cmvnMavenRepos\">\n");
 
-		for (final Repository repo : projectConfig.getRepositories()) {
+		for (final Repository repo : projectConfig.repositories()) {
 			if (repo.forArtifacts()) {
 				ivy.append("\t\t\t<ibiblio name=\"").append(repo.getNormalizedRepositoryId())
 						.append("\" m2compatible=\"true\" root=\"").append(repo.url()).append("\" />\n");
@@ -80,12 +80,12 @@ public class IvyGenerator implements Generator {
 		ivy.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
 		ivy.append("<ivy-module version=\"2.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://incubator.apache.org/ivy/schemas/ivy.xsd\">\n");
 
-		final Dependency project = projectConfig.getProject();
+		final Dependency project = projectConfig.project();
 		ivy.append("  <info organisation=\"").append(project.groupId()).append("\" module=\"")
 				.append(project.artifactId()).append("\" revision=\"").append(project.version()).append("\"/>\n");
 
 		ivy.append("  <dependencies>\n");
-		for (final Dependency dep : projectConfig.getDependencies()) {
+		for (final Dependency dep : projectConfig.dependencies()) {
 			ivy.append("    <dependency org=\"").append(dep.groupId()).append("\" name=\"")
 					.append(dep.artifactId()).append("\" rev=\"").append(dep.version())
 					.append("\" transitive=\"false\">\n");

@@ -54,10 +54,10 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
 
   // Some checks
   if (!projectFile.exists) {
-    throw new RuntimeException("The project file does not exists: " + projectFile.getPath());
+    throw sys.error("The project file does not exists: " + projectFile.getPath());
   }
   if (!configuredStateFile.exists) {
-    throw new RuntimeException("The project is not configured. Please configure it first (cmvn --configure). Project: "
+    throw sys.error("The project is not configured. Please configure it first (cmvn --configure). Project: "
       + projectFile.getPath())
   }
 
@@ -101,7 +101,7 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
   lazy val allSubProjects: List[ConfiguredCmvnProject] = {
     val projectConfig = UnconfiguredCmvnProject.projectReader.readConfigFile(projectFile)
 
-    val subProjects = projectConfig.getModules.toList filter { !_.skipEmvn } flatMap {
+    val subProjects = projectConfig.modules.toList filter { !_.skipEmvn } flatMap {
       module =>
         val subModuleDir = new File(projectFile.getParentFile, module.moduleName)
         new ConfiguredCmvnProject(subModuleDir).allSubProjects
@@ -176,7 +176,7 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
     generatorResult.merge(mavenPomGenerator.generate)
 
     // Generate Ivy
-    if (configuredState.isGenerateIvy) {
+    if (configuredState.generateIvy) {
       val ivyGenerator = new IvyGenerator(projectFile.getParentFile(), configuredState, projectConfig);
       generatorResult.merge(ivyGenerator.generate)
     }

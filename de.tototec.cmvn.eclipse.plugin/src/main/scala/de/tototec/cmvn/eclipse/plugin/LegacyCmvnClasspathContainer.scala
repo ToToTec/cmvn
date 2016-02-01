@@ -65,7 +65,7 @@ class LegacyCmvnClasspathContainer(path: IPath, private val project: IJavaProjec
       })
     }
 
-    cmvn.projectConfig.getDependencies.distinct.filter(dep => scope match {
+    cmvn.projectConfig.dependencies.distinct.filter(dep => scope match {
       case "compile" => Array("compile", "provided", "system").contains(dep.scope)
       case "runtime" => Array("compile", "provided", "system", "runtime").contains(dep.scope)
       case "test" => Array("compile", "provided", "system", "runtime", "test").contains(dep.scope)
@@ -85,7 +85,7 @@ class LegacyCmvnClasspathContainer(path: IPath, private val project: IJavaProjec
                 case false => project.getProject.getRawLocation.toFile.getPath + File.separator + p
               }
               case _ => {
-                var localRepoPathPrefix = cmvn.configuredState.getLocalRepository
+                var localRepoPathPrefix = cmvn.configuredState.localRepository
                 if (localRepoPathPrefix != null && localRepoPathPrefix != "") {
                   localRepoPathPrefix = new File(localRepoPathPrefix).getAbsolutePath
                 } else {

@@ -78,7 +78,7 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
   lazy val allSubProjects: List[UnconfiguredCmvnProject] = {
     val projectConfig = UnconfiguredCmvnProject.projectReader.readConfigFile(projectFile)
 
-    val subProjects = projectConfig.getModules.toList filter { !_.skipEmvn } flatMap {
+    val subProjects = projectConfig.modules.toList filter { !_.skipEmvn } flatMap {
       module =>
         val subModuleDir = new File(projectFile.getParentFile(), module.moduleName)
         new UnconfiguredCmvnProject(Option(this),

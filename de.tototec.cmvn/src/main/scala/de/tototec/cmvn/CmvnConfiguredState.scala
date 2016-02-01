@@ -8,25 +8,24 @@ import java.io.IOException
 import java.util.Date
 import com.esotericsoftware.yamlbeans.YamlReader
 import com.esotericsoftware.yamlbeans.YamlWriter
-import scala.reflect.{ BeanProperty, BooleanBeanProperty }
 //remove if not needed
 import scala.collection.JavaConversions._
 
 class CmvnConfiguredState() {
-  @BooleanBeanProperty var controlSettingsFile: Boolean = false
-  @BooleanBeanProperty var controlRepoDir: Boolean = false
-  @BeanProperty var localRepository: String = null
-  @BeanProperty var settingsFile: String = null
-  @BeanProperty var rootProjectFile: String = null
-  @BeanProperty var projectFile: String = null
-  @BooleanBeanProperty var autoReconfigure: Boolean = false
-  @BooleanBeanProperty var forceSystemScope: Boolean = false
-  @BeanProperty var mavenExecutable: String = null
-  @BooleanBeanProperty var generateIvy: Boolean = false
-  @BooleanBeanProperty var referenceLocalArtifactsAsSystemScope: Boolean = false
-  @BooleanBeanProperty var eclipseForceLocalWorkspaceRefs: Boolean = false
-  @BeanProperty var definedVals: java.util.Map[String, String] = new java.util.LinkedHashMap()
-  @BeanProperty var cmvnVersion = "unknown"
+  var controlSettingsFile: Boolean = false
+  var controlRepoDir: Boolean = false
+  var localRepository: String = null
+  var settingsFile: String = null
+  var rootProjectFile: String = null
+  var projectFile: String = null
+  var autoReconfigure: Boolean = false
+  var forceSystemScope: Boolean = false
+  var mavenExecutable: String = null
+  var generateIvy: Boolean = false
+  var referenceLocalArtifactsAsSystemScope: Boolean = false
+  var eclipseForceLocalWorkspaceRefs: Boolean = false
+  var definedVals: java.util.Map[String, String] = new java.util.LinkedHashMap()
+  var cmvnVersion = "unknown"
 
   def this(copy: CmvnConfiguredState) {
     this

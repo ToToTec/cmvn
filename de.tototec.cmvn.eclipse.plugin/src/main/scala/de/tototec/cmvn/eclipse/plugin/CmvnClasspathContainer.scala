@@ -62,7 +62,7 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
     }
 
     val scopes = settings.readScopes
-    val deps: List[Dependency] = cmvn.projectConfig.getDependencies.toList.distinct.filter { dep =>
+    val deps: List[Dependency] = cmvn.projectConfig.dependencies.toList.distinct.filter { dep =>
       scopes.exists(_ == dep.scope)
     }
 
@@ -81,7 +81,7 @@ class CmvnClasspathContainer(path: IPath, private val project: IJavaProject, pri
                 case false => project.getProject.getRawLocation.toFile.getPath + File.separator + p
               }
               case _ => {
-                var localRepoPathPrefix = cmvn.configuredState.getLocalRepository
+                var localRepoPathPrefix = cmvn.configuredState.localRepository
                 if (localRepoPathPrefix != null && localRepoPathPrefix != "") {
                   localRepoPathPrefix = new File(localRepoPathPrefix).getAbsolutePath
                 } else {

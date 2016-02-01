@@ -37,13 +37,13 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				throw new RuntimeException("Unsupported project value: " + keyValue);
 			}
 			final Dependency projectInfo = new Dependency(split[0], split[1], split[2]);
-			projectConfig.setProject(projectInfo);
+			projectConfig.project_$eq(projectInfo);
 
 			for (final KeyValue option : withOptions.options()) {
 				final String oKey = option.key();
 				final String oVal = option.value();
 				if (oKey.equals("packaging")) {
-					projectConfig.setPackaging(oVal);
+					projectConfig.packaging_$eq(oVal);
 				} else {
 					throw new RuntimeException("Unsupported project option: " + option);
 				}
@@ -91,7 +91,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			dep.onlyManagement_$eq(depKey.equals("dependencyManagement") ? true : false);
 
 			dep.parseOptions(withOptions.options());
-			projectConfig.getDependencies().add(dep);
+			projectConfig.dependencies().add(dep);
 		}
 	},
 
@@ -100,9 +100,9 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			final String[] split = keyValue.value().split("=", 2);
 			if (split.length == 2) {
-				projectConfig.getProperties().put(split[0].trim(), split[1].trim());
+				projectConfig.properties().put(split[0].trim(), split[1].trim());
 			} else {
-				projectConfig.getProperties().remove(split[0].trim());
+				projectConfig.properties().remove(split[0].trim());
 			}
 		}
 	},
@@ -136,7 +136,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 					throw new RuntimeException("Unsupported repository option: " + option);
 				}
 			}
-			projectConfig.getRepositories().add(repo);
+			projectConfig.repositories().add(repo);
 		}
 	},
 
@@ -164,7 +164,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				}
 			}
 
-			projectConfig.getModules().add(module);
+			projectConfig.modules().add(module);
 		}
 	},
 
@@ -200,7 +200,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				}
 			}
 
-			projectConfig.getPlugins().add(plugin);
+			projectConfig.plugins().add(plugin);
 		}
 	},
 
@@ -226,7 +226,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				}
 			}
 
-			projectConfig.getReports().add(report);
+			projectConfig.reports().add(report);
 		}
 	},
 
@@ -257,7 +257,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 					throw new RuntimeException("Unsupported build option: " + option);
 				}
 			}
-			projectConfig.setBuild(build);
+			projectConfig.build_$eq(build);
 		}
 	},
 
@@ -274,10 +274,10 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			final String key = split[0].trim();
 			final String value = split[1].trim();
 
-			if (projectConfig.getVariables().containsKey(key)) {
+			if (projectConfig.variables().containsKey(key)) {
 				throw new RuntimeException("Double declaration of immutable value: " + key);
 			}
-			projectConfig.getVariables().put(key, value);
+			projectConfig.variables().put(key, value);
 		}
 	},
 
@@ -313,7 +313,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				throw new RuntimeException("Missing options for -configClass. required options are: dir, className");
 			}
 
-			projectConfig.getConfigClasses().add(new ConfigClassGenerator(dir, className, methods));
+			projectConfig.configClasses().add(new ConfigClassGenerator(dir, className, methods));
 		}
 	},
 
@@ -329,7 +329,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 			final String group = split[0].trim();
 			final String artifact = split[1].trim();
-			projectConfig.getExcludes().add(new Dependency(group, artifact, "0"));
+			projectConfig.excludes().add(new Dependency(group, artifact, "0"));
 		}
 	},
 
@@ -343,11 +343,11 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			withOptions.line_$eq(keyValue.line());
 
 			final EclipseClasspathGeneratorConfig cpConfig;
-			if (projectConfig.getEclipseClasspathGeneratorConfig() != null) {
-				cpConfig = projectConfig.getEclipseClasspathGeneratorConfig();
+			if (projectConfig.eclipseClasspathGeneratorConfig() != null) {
+				cpConfig = projectConfig.eclipseClasspathGeneratorConfig();
 			} else {
 				cpConfig = new EclipseClasspathGeneratorConfig();
-				projectConfig.setEclipseClasspathGeneratorConfig(cpConfig);
+				projectConfig.eclipseClasspathGeneratorConfig_$eq(cpConfig);
 			}
 
 			LinkedHashMap<String, String> entries = new LinkedHashMap<String, String>();

@@ -69,7 +69,7 @@ public class MavenPomGenerator implements Generator {
 
 		ProjectDocument pom;
 		final XmlOptions xmlOptions = createXmlOptions();
-		final File templateFile = new File(pomFile.getParent(), projectConfig.getPomTemplateFileName());
+		final File templateFile = new File(pomFile.getParent(), projectConfig.pomTemplateFileName());
 		if (templateFile.exists()) {
 			generatorResult.getInputFiles().add(templateFile.getAbsolutePath());
 			try {
@@ -99,9 +99,9 @@ public class MavenPomGenerator implements Generator {
 		generateProjectInfo(mvn);
 		generateModules(mvn);
 		generateProperties(mvn);
-		generateDependencies(mvn, cmvnConfig.isForceSystemScope());
+		generateDependencies(mvn, cmvnConfig.forceSystemScope());
 		generateRepositories(mvn);
-		generatePlugins(mvn, cmvnConfig.isForceSystemScope());
+		generatePlugins(mvn, cmvnConfig.forceSystemScope());
 		generateReports(mvn);
 		generateBuild(mvn);
 
@@ -154,7 +154,7 @@ public class MavenPomGenerator implements Generator {
 	}
 
 	private void generateBuild(final Model mvn) {
-		final Build build = projectConfig.getBuild();
+		final Build build = projectConfig.build();
 		if (build == null) {
 			return;
 		}
@@ -186,7 +186,7 @@ public class MavenPomGenerator implements Generator {
 	}
 
 	protected void generateReports(final Model mvn) {
-		if (projectConfig.getReports().isEmpty()) {
+		if (projectConfig.reports().isEmpty()) {
 			return;
 		}
 
@@ -195,8 +195,8 @@ public class MavenPomGenerator implements Generator {
 			mvnReporting = mvn.addNewReporting();
 		}
 
-		if (projectConfig.getBuild() != null && projectConfig.getBuild().siteDir() != null) {
-			mvnReporting.setOutputDirectory(projectConfig.getBuild().siteDir());
+		if (projectConfig.build() != null && projectConfig.build().siteDir() != null) {
+			mvnReporting.setOutputDirectory(projectConfig.build().siteDir());
 		}
 
 		org.apache.maven.pom.x400.Reporting.Plugins mvnReports = mvnReporting.getPlugins();
@@ -204,7 +204,7 @@ public class MavenPomGenerator implements Generator {
 			mvnReports = mvnReporting.addNewPlugins();
 		}
 
-		for (final Report report : projectConfig.getReports()) {
+		for (final Report report : projectConfig.reports()) {
 			final Dependency reportInfo = report.reportInfo();
 
 			ReportPlugin mvnReport = null;
@@ -242,7 +242,7 @@ public class MavenPomGenerator implements Generator {
 	}
 
 	protected void generatePlugins(final Model mvn, final boolean forceSystemScope) {
-		if (projectConfig.getPlugins().isEmpty()) {
+		if (projectConfig.plugins().isEmpty()) {
 			return;
 		}
 
@@ -256,7 +256,7 @@ public class MavenPomGenerator implements Generator {
 			mvnPlugins = mvnBuild.addNewPlugins();
 		}
 
-		for (final Plugin plugin : projectConfig.getPlugins()) {
+		for (final Plugin plugin : projectConfig.plugins()) {
 			final Dependency pluginInfo = plugin.pluginInfo();
 
 			org.apache.maven.pom.x400.Plugin mvnPlugin = null;
@@ -316,7 +316,7 @@ public class MavenPomGenerator implements Generator {
 	}
 
 	protected void generateModules(final Model mvn) {
-		if (projectConfig.getModules().isEmpty()) {
+		if (projectConfig.modules().isEmpty()) {
 			return;
 		}
 
@@ -325,7 +325,7 @@ public class MavenPomGenerator implements Generator {
 			mvnModules = mvn.addNewModules();
 		}
 
-		for (final Module module : projectConfig.getModules()) {
+		for (final Module module : projectConfig.modules()) {
 			mvnModules.addModule(module.moduleName());
 		}
 	}
@@ -344,7 +344,7 @@ public class MavenPomGenerator implements Generator {
 
 	protected void generateRepositories(final Model mvn) {
 
-		for (final Repository repo : projectConfig.getRepositories()) {
+		for (final Repository repo : projectConfig.repositories()) {
 
 			final List<org.apache.maven.pom.x400.Repository> mvnRepos = new LinkedList<org.apache.maven.pom.x400.Repository>();
 
@@ -384,7 +384,7 @@ public class MavenPomGenerator implements Generator {
 			mvnProperties = mvn.addNewProperties();
 		}
 
-		generatePropertiesBlock(projectConfig.getProperties(), mvnProperties, null);
+		generatePropertiesBlock(projectConfig.properties(), mvnProperties, null);
 	}
 
 	protected void generateFreeXmlBlock(final XmlCursor xmlCursor, final String xmlBlock, final String parentOrNull) {
@@ -435,13 +435,13 @@ public class MavenPomGenerator implements Generator {
 	}
 
 	protected void generateProjectInfo(final Model mvn) {
-		final Dependency project = projectConfig.getProject();
+		final Dependency project = projectConfig.project();
 		if (project != null) {
 			mvn.setGroupId(project.groupId());
 			mvn.setArtifactId(project.artifactId());
 			mvn.setVersion(project.version());
 		}
-		final String packaging = projectConfig.getPackaging();
+		final String packaging = projectConfig.packaging();
 		if (packaging != null) {
 			mvn.setPackaging(packaging);
 		}
@@ -462,16 +462,16 @@ public class MavenPomGenerator implements Generator {
 	}
 
 	protected void generateDependencies(final Model mvn, final boolean forceSystemScope) {
-		if (!projectConfig.getDependencies().isEmpty()) {
+		if (!projectConfig.dependencies().isEmpty()) {
 			Dependencies mvnDeps = mvn.getDependencies();
 			if (mvnDeps == null) {
 				mvnDeps = mvn.addNewDependencies();
 			}
-			generateDependenciesBlock(projectConfig.getDependencies(), mvnDeps, forceSystemScope,
-					projectConfig.getExcludes());
+			generateDependenciesBlock(projectConfig.dependencies(), mvnDeps, forceSystemScope,
+					projectConfig.excludes());
 		}
 
-		for (final Dependency dep : projectConfig.getDependencies()) {
+		for (final Dependency dep : projectConfig.dependencies()) {
 
 			// dependency management
 			if (dep.forceVersion()) {
@@ -597,7 +597,7 @@ public class MavenPomGenerator implements Generator {
 		if (forceSystemScope && !dep.scope().equals("system")) {
 			scope = "system";
 			// we need to evaluate a system path
-			File repoPath = new File(cmvnConfig.getLocalRepository());
+			File repoPath = new File(cmvnConfig.localRepository());
 			for (final String group : dep.groupId().split("\\.")) {
 				repoPath = new File(repoPath, group);
 			}
@@ -610,7 +610,7 @@ public class MavenPomGenerator implements Generator {
 			jarPath = new File(repoPath, fileName).getAbsolutePath();
 		}
 
-		if (cmvnConfig.isReferenceLocalArtifactsAsSystemScope() && localArtifacts != null
+		if (cmvnConfig.referenceLocalArtifactsAsSystemScope() && localArtifacts != null
 				&& !dep.scope().equals("system")) {
 			// check if dep is local
 			for (final Dependency localDep : localArtifacts) {

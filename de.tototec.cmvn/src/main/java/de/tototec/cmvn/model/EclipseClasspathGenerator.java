@@ -28,12 +28,12 @@ public class EclipseClasspathGenerator implements Generator {
 	public GeneratorResult generate() {
 		GeneratorResult generatorResult = new GeneratorResult();
 
-		final EclipseClasspathGeneratorConfig cpConfig = projectConfig.getEclipseClasspathGeneratorConfig();
+		final EclipseClasspathGeneratorConfig cpConfig = projectConfig.eclipseClasspathGeneratorConfig();
 		if (cpConfig == null) {
 			return generatorResult;
 		}
 
-		final File baseDir = new File(projectConfig.getBaseDir());
+		final File baseDir = new File(projectConfig.baseDir());
 		final File cpFile = new File(baseDir, ".classpath");
 		generatorResult.getInputFiles().add(cpFile.getAbsolutePath());
 
@@ -47,7 +47,7 @@ public class EclipseClasspathGenerator implements Generator {
 
 		List<CmvnProject> localProjects = null;
 
-		for (Dependency dep : projectConfig.getDependencies()) {
+		for (Dependency dep : projectConfig.dependencies()) {
 			if (seenDeps.contains(dep)) {
 				continue;
 			}
@@ -66,7 +66,7 @@ public class EclipseClasspathGenerator implements Generator {
 
 				// check and add if local
 				for (CmvnProject localProj : localProjects) {
-					Dependency localDep = localProj.getProjectConfig().getProject();
+					Dependency localDep = localProj.getProjectConfig().project();
 					if (dep.groupId().equals(localDep.groupId())
 							&& dep.artifactId().equals(localDep.artifactId())
 							&& dep.version().equals(localDep.version())
@@ -75,7 +75,7 @@ public class EclipseClasspathGenerator implements Generator {
 						// TODO: should we force concrete versions? Actually
 						// we do.
 
-						String jarPath = new File(new File(localProj.getProjectConfig().getBaseDir()), "target/classes")
+						String jarPath = new File(new File(localProj.getProjectConfig().baseDir()), "target/classes")
 								.getAbsolutePath();
 						isLocal = true;
 
@@ -90,7 +90,7 @@ public class EclipseClasspathGenerator implements Generator {
 						}
 
 						// Add this for cases the project in not open
-						if (!rootProject.getConfiguredState().isEclipseForceLocalWorkspaceRefs()) {
+						if (!rootProject.getConfiguredState().eclipseForceLocalWorkspaceRefs()) {
 							LinkedHashMap<String, String> entry = new LinkedHashMap<String, String>();
 							entry.put("kind", "lib");
 							entry.put("path", jarPath);
@@ -107,7 +107,7 @@ public class EclipseClasspathGenerator implements Generator {
 					entry.put("kind", "lib");
 					String jarPath = dep.jarPath();
 					if (jarPath == null) {
-						String localRepoPathPrefix = rootProject.getConfiguredState().getLocalRepository();
+						String localRepoPathPrefix = rootProject.getConfiguredState().localRepository();
 						if (localRepoPathPrefix != null && !localRepoPathPrefix.equals("")) {
 							localRepoPathPrefix = new File(localRepoPathPrefix).getAbsolutePath();
 						} else {

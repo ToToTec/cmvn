@@ -128,8 +128,8 @@ object CmvnApp2 {
           val project = new ConfiguredCmvnProject(curDir)
           val conf = project.configuredState
           var projConfMap =
-            ("project file" -> conf.getProjectFile()) ::
-              ("root project file" -> conf.getRootProjectFile()) ::
+            ("project file" -> conf.projectFile) ::
+              ("root project file" -> conf.rootProjectFile) ::
               Nil
 
           val result = projConfMap filter {
@@ -206,7 +206,7 @@ object CmvnApp2 {
     }
 
     val toFetch = project.allSubProjects flatMap { p =>
-      p.projectConfig.getDependencies filter { _.jackageDep }
+      p.projectConfig.dependencies filter { _.jackageDep }
     } distinct
 
     Output.verbose("About to fetch the following " + toFetch.size + " packages:\n  " + toFetch.mkString("\n  "))
@@ -251,12 +251,12 @@ object CmvnApp2 {
       case exe => exe
     }
 
-    Output.verbose("Using local Maven repository: " + configuredState.getLocalRepository())
-    Output.verbose("Using Maven settings file: " + configuredState.getSettingsFile())
+    Output.verbose("Using local Maven repository: " + configuredState.localRepository)
+    Output.verbose("Using Maven settings file: " + configuredState.settingsFile)
 
     // try to evaluate root project dir and Maven coordinates of current project
     val (additionalPlArgs, rootDirOption) = if (buildCmd.buildFromRoot) {
-      val rootProjectDir = new File(configuredState.getRootProjectFile).getParentFile()
+      val rootProjectDir = new File(configuredState.rootProjectFile).getParentFile()
       confProject.projectConfig.project match {
         case dep: Dependency =>
           (Array("-pl", dep.groupId + ":" + dep.artifactId), Some(rootProjectDir))
@@ -264,7 +264,7 @@ object CmvnApp2 {
       }
     } else (Array[String](), None)
 
-    val mvnArgs: Array[String] = Array(mvnExe, "-s", configuredState.getSettingsFile) ++ additionalPlArgs ++ buildCmd.mvnArgs
+    val mvnArgs: Array[String] = Array(mvnExe, "-s", configuredState.settingsFile) ++ additionalPlArgs ++ buildCmd.mvnArgs
 
     val pB = new ProcessBuilder(mvnArgs: _*)
     rootDirOption map { dir =>

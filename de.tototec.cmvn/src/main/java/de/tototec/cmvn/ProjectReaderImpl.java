@@ -33,17 +33,17 @@ public class ProjectReaderImpl implements ProjectReader {
 			for (final KeyValue keyValue : readKeyValues) {
 				if (supportedKeys.containsKey(keyValue.key())) {
 					final Map<String, String> values = new LinkedHashMap<String, String>();
-					Dependency project = projectConfig.getProject();
+					Dependency project = projectConfig.project();
 					if (project != null) {
 						values.put("PN", project.artifactId());
 						values.put("PV", project.version());
 						values.put("P", project.artifactId() + " -" + project.version());
 						values.put("PG", project.groupId());
 					}
-					for (Entry<String, String> var : projectConfig.getVariables().entrySet()) {
+					for (Entry<String, String> var : projectConfig.variables().entrySet()) {
 						String put = values.put(var.getKey(), var.getValue());
 						if (put != null) {
-							if (projectConfig.getVariables().containsKey(var.getKey())) {
+							if (projectConfig.variables().containsKey(var.getKey())) {
 								throw new RuntimeException("Refefinition of immutable value: " + var.getKey());
 							}
 						}

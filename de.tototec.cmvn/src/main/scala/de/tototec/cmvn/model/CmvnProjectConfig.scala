@@ -41,8 +41,7 @@ class CmvnProjectConfig(@BeanProperty val baseDir: String) {
       parentDir.mkdirs()
     }
     val fileWriter = new FileWriter(file)
-    fileWriter.write("# cmvn project config file. Generated on " + new Date().toString +
-      "\n")
+    fileWriter.write("# cmvn project config file. Generated on " + new Date().toString + "\n")
     val yamlWriter = new YamlWriter(fileWriter)
     yamlWriter.getConfig.setPrivateFields(true)
     yamlWriter.getConfig.writeConfig.setWriteDefaultValues(true)

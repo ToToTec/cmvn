@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lombok.Setter;
-
 import org.apache.maven.pom.x400.Build.Plugins;
 import org.apache.maven.pom.x400.Dependency.Exclusions;
 import org.apache.maven.pom.x400.DependencyManagement;
@@ -34,21 +32,20 @@ import org.apache.xmlbeans.XmlCursor.XmlBookmark;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
-
 import de.tototec.cmvn.model.Build;
-import de.tototec.cmvn.model.CmvnProjectConfig;
 import de.tototec.cmvn.model.Dependency;
 import de.tototec.cmvn.model.Module;
 import de.tototec.cmvn.model.Plugin;
 import de.tototec.cmvn.model.Report;
 import de.tototec.cmvn.model.Repository;
 
+import de.tototec.cmvn.model.CmvnProjectConfig;
+
 public class MavenPomGenerator implements Generator {
 
 	private final CmvnConfiguredState cmvnConfig;
 	private final CmvnProjectConfig projectConfig;
 	private final File pomFile;
-	@Setter
 	private List<Dependency> localArtifacts;
 
 	public MavenPomGenerator(final File pomFile, final CmvnConfiguredState cmvnConfig,
@@ -57,6 +54,10 @@ public class MavenPomGenerator implements Generator {
 		this.cmvnConfig = cmvnConfig;
 		this.projectConfig = projectConfig;
 
+	}
+
+	public void setLocalArtifacts(final List<Dependency> localArtifacts) {
+		this.localArtifacts = localArtifacts;
 	}
 
 	@Override
@@ -203,12 +204,12 @@ public class MavenPomGenerator implements Generator {
 			mvnReports = mvnReporting.addNewPlugins();
 		}
 
-		for (Report report : projectConfig.getReports()) {
-			Dependency reportInfo = report.reportInfo();
+		for (final Report report : projectConfig.getReports()) {
+			final Dependency reportInfo = report.reportInfo();
 
 			ReportPlugin mvnReport = null;
 
-			for (ReportPlugin mvnExistingReport : mvnReports.getPluginArray()) {
+			for (final ReportPlugin mvnExistingReport : mvnReports.getPluginArray()) {
 				if (reportInfo.groupId().equals(mvnExistingReport.getGroupId())
 						&& reportInfo.artifactId().equals(mvnExistingReport.getArtifactId())) {
 					mvnReport = mvnExistingReport;

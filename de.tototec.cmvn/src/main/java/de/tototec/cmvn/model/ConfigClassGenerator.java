@@ -6,14 +6,18 @@ import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lombok.Data;
-
-@Data
 public class ConfigClassGenerator {
 
 	private final String targetDir;
 	private final String className;
 	private final Map<String, String> methodProperties;
+
+	public ConfigClassGenerator(final String targetDir, final String className,
+			final Map<String, String> methodProperties) {
+		this.targetDir = targetDir;
+		this.className = className;
+		this.methodProperties = methodProperties;
+	}
 
 	public void generateClass(final File baseDir) {
 		File targetBaseDir = new File(this.targetDir);

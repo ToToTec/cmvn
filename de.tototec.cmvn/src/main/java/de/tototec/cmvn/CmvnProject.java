@@ -1,16 +1,13 @@
 package de.tototec.cmvn;
 
 import java.io.File;
-
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import lombok.ToString;
 import de.tototec.cmvn.configfile.KeyValue;
 import de.tototec.cmvn.configfile.bndlike.ConfigFileReaderImpl;
 import de.tototec.cmvn.configfile.bndlike.ConfigFileReaderImpl.IncludeFileLine;
@@ -24,7 +21,6 @@ import de.tototec.cmvn.model.Module;
  * @deprecated Use {@link UnconfiguredCmvnProject} or
  *             {@link ConfiguredCmvnProject} instead.
  */
-@ToString(exclude = { "scannedProjects" })
 @Deprecated
 public class CmvnProject {
 

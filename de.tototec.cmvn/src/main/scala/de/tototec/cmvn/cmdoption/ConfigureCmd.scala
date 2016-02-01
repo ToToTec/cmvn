@@ -8,8 +8,7 @@ import java.io.FileNotFoundException
 import java.io.FileReader
 import java.io.FileWriter
 import java.util.Date
-import scala.tools.nsc.io.Path.string2path
-import scala.tools.nsc.io.File
+import java.io.File
 
 object ConfigureCmd {
   def fromYamlFile(file: java.io.File): ConfigureCmd = {
@@ -82,14 +81,13 @@ class ConfigureCmd extends HelpAwareCmd {
   }
 
   def sanitize = {
-    import scala.tools.nsc.io.File
     validate match {
       case Nil => // ok
       case msgs => throw new RuntimeException("Configuration inconsistencies detected: " + msgs.mkString("\n- ", "\n- ", ""));
     }
-    if (mavenExecutable != null) mavenExecutable = File(mavenExecutable).toAbsolute.path
-    if (mavenSettings != null) mavenSettings = File(mavenSettings).toAbsolute.path
-    if (mavenRepo != null) mavenRepo = File(mavenRepo).toAbsolute.path
+    if (mavenExecutable != null) mavenExecutable = new File(mavenExecutable).getAbsolutePath()
+    if (mavenSettings != null) mavenSettings = new File(mavenSettings).getAbsolutePath()
+    if (mavenRepo != null) mavenRepo = new File(mavenRepo).getAbsolutePath()
   }
 
   def toYamlFile(file: java.io.File) {

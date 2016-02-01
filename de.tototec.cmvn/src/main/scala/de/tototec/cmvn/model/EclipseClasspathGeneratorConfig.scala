@@ -3,7 +3,6 @@ package de.tototec.cmvn.model
 import java.util.LinkedList
 import java.util.List
 import java.util.Map
-import lombok.Data
 //remove if not needed
 import scala.collection.JavaConversions._
 

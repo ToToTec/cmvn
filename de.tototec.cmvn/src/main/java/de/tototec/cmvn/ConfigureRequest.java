@@ -9,14 +9,11 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import lombok.Data;
-
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.esotericsoftware.yamlbeans.YamlWriter;
 
 import de.tototec.cmvn.cmdoption.ConfigureCmd;
 
-@Data
 public class ConfigureRequest {
 	private Boolean force;
 	private Boolean autoReconfigure;
@@ -32,7 +29,7 @@ public class ConfigureRequest {
 	public ConfigureRequest() {
 	}
 
-	public ConfigureRequest(ConfigureCmd copy) {
+	public ConfigureRequest(final ConfigureCmd copy) {
 		force = true;
 		autoReconfigure = copy.autoReconfigure();
 		mavenSettings = copy.mavenSettings();
@@ -89,7 +86,7 @@ public class ConfigureRequest {
 	}
 
 	public List<String> validate() {
-		LinkedList<String> msgs = new LinkedList<String>();
+		final LinkedList<String> msgs = new LinkedList<String>();
 		if (getMavenRepo() != null && getMavenSettings() != null) {
 			msgs.add("Requesting a maven repository and a maven settings file at the same time is not supported.");
 		}
@@ -102,52 +99,71 @@ public class ConfigureRequest {
 		return mavenSettings;
 	}
 
+	public void setMavenSettings(final String mavenSettings) {
+		this.mavenSettings = mavenSettings;
+	}
+
 	public String getMavenRepo() {
 		return mavenRepo;
 	}
-	
+
+	public void setMavenRepo(final String mavenRepo) {
+		this.mavenRepo = mavenRepo;
+	}
+
 	public String getMavenExecutable() {
 		return mavenExecutable;
 	}
-	
-	public void setMavenExecutable(String mavenExecutable) {
+
+	public void setMavenExecutable(final String mavenExecutable) {
 		this.mavenExecutable = mavenExecutable;
 	}
-	
+
 	public Boolean getAutoReconfigure() {
 		return autoReconfigure;
 	}
-	
-	public void setAutoReconfigure(Boolean autoReconfigure) {
+
+	public void setAutoReconfigure(final Boolean autoReconfigure) {
 		this.autoReconfigure = autoReconfigure;
 	}
-	
+
 	public Boolean getEclipseForceLocalWorkspaceRefs() {
 		return eclipseForceLocalWorkspaceRefs;
 	}
-	
+
+	public void setEclipseForceLocalWorkspaceRefs(final Boolean eclipseForceLocalWorkspaceRefs) {
+		this.eclipseForceLocalWorkspaceRefs = eclipseForceLocalWorkspaceRefs;
+	}
+
 	public Boolean getForce() {
 		return force;
 	}
-	
+
+	public void setForce(final Boolean force) {
+		this.force = force;
+	}
+
 	public Boolean getForceSystemScope() {
 		return forceSystemScope;
 	}
-	
-	public void setForceSystemScope(Boolean forceSystemScope) {
+
+	public void setForceSystemScope(final Boolean forceSystemScope) {
 		this.forceSystemScope = forceSystemScope;
 	}
-	
+
 	public Boolean getGenerateIvy() {
 		return generateIvy;
 	}
-	
-	public void setGenerateIvy(Boolean generateIvy) {
+
+	public void setGenerateIvy(final Boolean generateIvy) {
 		this.generateIvy = generateIvy;
 	}
-	
+
 	public Boolean getSystemScopeForLocalProjects() {
 		return systemScopeForLocalProjects;
 	}
-	
+
+	public void setSystemScopeForLocalProjects(final Boolean systemScopeForLocalProjects) {
+		this.systemScopeForLocalProjects = systemScopeForLocalProjects;
+	}
 }

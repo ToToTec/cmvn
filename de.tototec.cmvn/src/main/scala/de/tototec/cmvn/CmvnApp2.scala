@@ -7,7 +7,7 @@ import java.io.FileReader
 import java.io.FileWriter
 import com.esotericsoftware.yamlbeans.YamlWriter
 import java.util.Date
-import scala.tools.nsc.io.File
+import java.io.File
 import scala.tools.nsc.io.Directory
 import de.tototec.cmvn.pomToCmvn.PomConverter
 import de.tototec.cmdoption.CmdOption
@@ -36,7 +36,7 @@ object CmvnApp2 {
     var verbose: Boolean = _
   }
 
-  private lazy val curDir = Directory(System.getProperty("user.dir")).toAbsolute
+  private lazy val curDir = new File(System.getProperty("user.dir")).getAbsolutePath()
 
   def main(args: Array[String]) {
 
@@ -252,10 +252,10 @@ object CmvnApp2 {
 
     // try to evaluate root project dir and Maven coordinates of current project
     val (additionalPlArgs, rootDirOption) = if (buildCmd.buildFromRoot) {
-      val rootProjectDir = File(configuredState.getRootProjectFile).parent
+      val rootProjectDir = new File(configuredState.getRootProjectFile).getParentFile()
       confProject.projectConfig.project match {
         case dep: Dependency =>
-          (Array("-pl", dep.groupId + ":" + dep.artifactId), Some(rootProjectDir.jfile))
+          (Array("-pl", dep.groupId + ":" + dep.artifactId), Some(rootProjectDir))
         case _ => (Array[String](), None)
       }
     } else (Array[String](), None)

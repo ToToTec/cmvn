@@ -1,11 +1,9 @@
 package de.tototec.cmvn.model
 
-import scala.tools.nsc.io.Directory
 import de.tototec.cmvn.configfile.KeyValue
 import collection.JavaConversions._
 import de.tototec.cmvn.configfile.StringSplitter
-import scala.tools.nsc.io.Path
-import scala.tools.nsc.io.File
+import java.io.File
 
 object Dependency {
   def parse(formattedDependency: String): Dependency = {
@@ -95,12 +93,12 @@ class Dependency(val groupId: String, val artifactId: String, val version: Strin
     mavenJarLocalRepoPath(repoBaseDir, "sources")
 
   protected def mavenJarLocalRepoPath(repoBaseDir: String, classifier: String): String = {
-    val repoDir = Directory(repoBaseDir)
-    val groupDir = groupId.split("""\.""").foldLeft(repoDir)((a, b) => a / Directory(b))
-    val versionDir = groupDir / Directory(artifactId) / Directory(version)
+    val repoDir = new File(repoBaseDir)
+    val groupDir = groupId.split("""\.""").foldLeft(repoDir)((a, b) => new File(a, b))
+    val versionDir = new File(groupDir, artifactId + "/" + version)
     val classifierPart = if (classifier == null) "" else ("-" + classifier)
     val fileName = artifactId + "-" + version + classifierPart + ".jar"
-    (versionDir / File(fileName)).path
+    new File(versionDir, fileName).getPath()
   }
 
   override def toString =

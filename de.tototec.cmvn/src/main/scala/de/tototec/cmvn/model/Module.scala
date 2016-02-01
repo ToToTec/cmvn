@@ -1,6 +1,5 @@
 package de.tototec.cmvn.model
 
-import lombok.Data
 //remove if not needed
 import scala.collection.JavaConversions._
 

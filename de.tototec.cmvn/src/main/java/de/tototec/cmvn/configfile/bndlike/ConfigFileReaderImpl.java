@@ -8,46 +8,97 @@ import java.io.LineNumberReader;
 import java.util.LinkedList;
 import java.util.List;
 
-import lombok.Data;
-import lombok.Setter;
-import de.tototec.cmvn.configfile.ConfigFileReader;
 import de.tototec.cmvn.configfile.KeyValue;
+import de.tototec.cmvn.configfile.ConfigFileReader;
 import de.tototec.cmvn.configfile.StringSplitter;
 
 public class ConfigFileReaderImpl implements ConfigFileReader {
 
-	@Data
 	public static class IncludeFileLine {
 		private final String includeKey;
 		private boolean addToResult;
-		public IncludeFileLine(String includeKey, boolean addToResult) {
+
+		public IncludeFileLine(final String includeKey, final boolean addToResult) {
 			this.includeKey = includeKey;
 			this.addToResult = addToResult;
+		}
+
+		public String getIncludeKey() {
+			return includeKey;
+		}
+
+		public boolean isAddToResult() {
+			return addToResult;
 		}
 	}
 
 	private IncludeFileLine includeFileLine;
 
-	@Data
 	public static class VariableExpander {
 		private final String variableKey;
 		private final String variablePrefix;
 		private final String variableSuffix;
 		private boolean addToResult;
+
+		public VariableExpander(final String variableKey, final String variablePrefix, final String variableSuffix,
+				final boolean addToResult) {
+			this.variableKey = variableKey;
+			this.variablePrefix = variablePrefix;
+			this.variableSuffix = variableSuffix;
+			this.addToResult = addToResult;
+		}
+
+		public String getVariableKey() {
+			return variableKey;
+		}
+
+		public String getVariablePrefix() {
+			return variablePrefix;
+		}
+
+		public String getVariableSuffix() {
+			return variableSuffix;
+		}
+
+		public boolean isAddToResult() {
+			return addToResult;
+		}
+
 	}
 
 	// @Setter
 	// private VariableExpander variableExpander;
 
-	@Data
 	public static class ConditionalBlock {
 		private final String startKey;
 		private final String endKey;
 		private boolean addToResult;
+
+		public ConditionalBlock(final String startKey, final String endKey, final boolean addToResult) {
+			super();
+			this.startKey = startKey;
+			this.endKey = endKey;
+			this.addToResult = addToResult;
+		}
+
+		public String getEndKey() {
+			return endKey;
+		}
+
+		public String getStartKey() {
+			return startKey;
+		}
+
+		public boolean isAddToResult() {
+			return addToResult;
+		}
 	}
 
-	@Setter
 	private ConditionalBlock conditionalBlock;
+
+	public void setConditionalBlock(final ConditionalBlock conditionalBlock) {
+		this.conditionalBlock = conditionalBlock;
+	}
 
 	@Override
 	public List<KeyValue> readKeyValues(final File configFile) {
@@ -123,8 +174,8 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 
 					if (includeFileLine.isAddToResult()) {
 						// Add the included file to result
-						result.add(new KeyValue(key, includeFile.getPath(), configFile.getAbsolutePath(), lineReader
-								.getLineNumber()));
+						result.add(new KeyValue(key, includeFile.getPath(), configFile.getAbsolutePath(),
+								lineReader.getLineNumber()));
 					}
 
 					// System.out.println("Including file: " + includeFile);
@@ -140,8 +191,8 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 
 		return result;
 	}
-	
-	public void setIncludeFileLine(IncludeFileLine includeFileLine) {
+
+	public void setIncludeFileLine(final IncludeFileLine includeFileLine) {
 		this.includeFileLine = includeFileLine;
 	}
 }

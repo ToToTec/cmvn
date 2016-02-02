@@ -37,8 +37,6 @@ object CmvnApp2 {
     var dir: String = _
   }
 
-  // private lazy val curDir = new File(System.getProperty("user.dir")).getAbsoluteFile()
-
   def main(args: Array[String]) {
 
     val baseArgs = new BaseArgs()

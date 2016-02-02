@@ -16,10 +16,10 @@ class PomConverterCmd extends HelpAwareCmd {
 
   @CmdOption(names = Array("--modules-are-cmvn"),
     description = "Assume subprojects (modules) are Cmvn projects already. Default if --recursive is also selected.")
-  val _modulesAreCmvn: Boolean = false
+  var _modulesAreCmvn: Boolean = false
   def modulesAreCmvn: Boolean = recursive || _modulesAreCmvn
 
-  @CmdOption(names = Array("--recursive"),
+  @CmdOption(names = Array("--recursive"), args = Array("BOOLEAN"),
     description = "Recurse into Maven sub-modules")
   var recursive: Boolean = false
 

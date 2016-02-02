@@ -1,6 +1,7 @@
 = Configured Maven (Cmvn) - User Manual
 :author: Tobias Roeser
-:cmvn-version: 0.1.8
+:cmvn-version: 0.1.9-SNAPSHOT
+:cmvn-release-version: 0.1.8
 :toc:
 :toc-placement: preamble
 
@@ -564,7 +565,7 @@ Features:
 * uses project-local configuration (uses exact same repositories and dependencies as the command line tool)
 * supports attached sources and javadoc
 
-Restrictions in Cmvn 0.1.8 (fixed in later versions, e.g. 0.2.0):
+Restrictions in Cmvn 0.1.8 (might be fixed in later versions):
 
 * If cmvn was configured with `--maven-settings` the Cmvn classpath container will fall back to a `M2_REPO` variable, which must be defined in Eclipse. In most cases you should prefer the `--maven-repo` commandline switch to specify external local Maven repositories.
 
@@ -576,6 +577,10 @@ Notice: If you use the Eclipse Cmvn classpath container, you usually do not want
 Cmvn is published under the http://www.apache.org/licenses/LICENSE-2.0[Apache License, Version 2.0].
 
 
+== Download
+
+Binary releases can be downloaded from the GitHub Release pages.
+
 == Installation
 
 === Unix/Linux/MacOSX: Shell Wrapper
@@ -584,10 +589,10 @@ Cmvn is distributed as executable jar including all its required dependencies.
 
 For convenience, you may want to create a simple shell script `cmvn` as an executable wrapper around the program:
 
-[source,sh]
+[source,sh,subs="attributes"]
 #!/bin/sh
 # pass all arguments to cmvn with $@
-exec java -jar cmvn-executable-0.2.0.jar "$@"
+exec java -jar cmvn-executable-{cmvn-version}.jar "$@"
 
 === Windows: Using the binary
 

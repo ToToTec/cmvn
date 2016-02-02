@@ -110,7 +110,7 @@ public class ConfigFileReaderImpl implements ConfigFileReader {
 		try {
 			fileReader = new FileReader(configFile);
 		} catch (final FileNotFoundException e) {
-			throw new RuntimeException("Could not found file: " + configFile, e);
+			throw new RuntimeException("Could not find file: " + configFile, e);
 		}
 		final LineNumberReader lineReader = new LineNumberReader(fileReader);
 

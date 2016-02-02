@@ -8,29 +8,49 @@ import java.io.IOException
 import java.util.Date
 import com.esotericsoftware.yamlbeans.YamlReader
 import com.esotericsoftware.yamlbeans.YamlWriter
-//remove if not needed
 import scala.collection.JavaConversions._
+import scala.beans.BeanProperty
 
+// BeanProperties are currently needed to de-/serialize with YamlBeans
 class CmvnConfiguredState() {
-  var controlSettingsFile: Boolean = false
-  var controlRepoDir: Boolean = false
-  var localRepository: String = null
-  var settingsFile: String = null
-  var rootProjectFile: String = null
-  var projectFile: String = null
-  var autoReconfigure: Boolean = false
-  var forceSystemScope: Boolean = false
-  var mavenExecutable: String = null
-  var generateIvy: Boolean = false
-  var referenceLocalArtifactsAsSystemScope: Boolean = false
-  var eclipseForceLocalWorkspaceRefs: Boolean = false
-  var definedVals: java.util.Map[String, String] = new java.util.LinkedHashMap()
-  var cmvnVersion = "unknown"
+  @BeanProperty var controlSettingsFile: Boolean = false
+  @BeanProperty var controlRepoDir: Boolean = false
+  @BeanProperty var localRepository: String = null
+  @BeanProperty var settingsFile: String = null
+  @BeanProperty var rootProjectFile: String = null
+  @BeanProperty var projectFile: String = null
+  @BeanProperty var autoReconfigure: Boolean = false
+  @BeanProperty var forceSystemScope: Boolean = false
+  @BeanProperty var mavenExecutable: String = null
+  @BeanProperty var generateIvy: Boolean = false
+  @BeanProperty var referenceLocalArtifactsAsSystemScope: Boolean = false
+  @BeanProperty var eclipseForceLocalWorkspaceRefs: Boolean = false
+  @BeanProperty var definedVals: java.util.Map[String, String] = new java.util.LinkedHashMap()
+  @BeanProperty var cmvnVersion: String = "unknown"
+  @BeanProperty var skipCmvn: Boolean = false
 
   def this(copy: CmvnConfiguredState) {
     this
     this.copy(copy)
   }
+
+  override def toString(): String = getClass().getSimpleName() +
+    "(controlSettingsFile=" + controlSettingsFile +
+    ",controlRepoDir=" + controlRepoDir +
+    ",localRepository=" + localRepository +
+    ",settingsFile=" + settingsFile +
+    ",rootProjectFile=" + rootProjectFile +
+    ",projectFile=" + projectFile +
+    ",autoReconfigure=" + autoReconfigure +
+    ",forceSystemScope=" + forceSystemScope +
+    ",mavenExcutable=" + mavenExecutable +
+    ",generateIvy=" + generateIvy +
+    ",referenceLocalArtifactsAsSystemScope=" + referenceLocalArtifactsAsSystemScope +
+    ",eclipseForceLocalWorkspaceRefs=" + eclipseForceLocalWorkspaceRefs +
+    ",definedVals=" + definedVals +
+    ",cmvnVersion=" + cmvnVersion +
+    ",skipCmvn=" + skipCmvn +
+    ")"
 
   def copy(copy: CmvnConfiguredState) {
     controlSettingsFile = copy.controlSettingsFile
@@ -48,6 +68,7 @@ class CmvnConfiguredState() {
     definedVals.clear
     definedVals.putAll(copy.definedVals)
     cmvnVersion = copy.cmvnVersion
+    skipCmvn = copy.skipCmvn
   }
 
   def fromYamlFile(file: File) {

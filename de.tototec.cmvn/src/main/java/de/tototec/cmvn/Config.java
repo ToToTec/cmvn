@@ -8,7 +8,7 @@ public abstract class Config {
 	}
 
 	public static String cmvnOsgiVersion() {
-		return "0.1.8.9004";
+		return "0.1.8.9005";
 	}
 
 	public static String cmvnCompatibleOsgiVersion() {

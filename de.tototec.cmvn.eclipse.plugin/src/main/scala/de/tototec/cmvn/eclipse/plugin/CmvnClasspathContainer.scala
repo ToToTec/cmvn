@@ -10,7 +10,6 @@ import org.eclipse.jdt.core.IClasspathEntry
 import org.eclipse.jdt.core.IJavaProject
 import org.eclipse.jdt.core.JavaCore
 import de.tototec.cmvn.model.Dependency
-import de.tototec.cmvn.CmvnProject
 import de.tototec.cmvn.ConfiguredCmvnProject
 
 object CmvnClasspathContainer {

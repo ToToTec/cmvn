@@ -306,7 +306,7 @@ object CmvnApp2 {
     outThread.start()
 
     //      			} catch (final IOException e) {
-    //      				throw new RuntimeException("Error occured while starting process mvn.", e);
+    //      				sys.error("Error occured while starting process mvn.", e);
     //      			}
     if (process != null) {
       val exitValue = try {

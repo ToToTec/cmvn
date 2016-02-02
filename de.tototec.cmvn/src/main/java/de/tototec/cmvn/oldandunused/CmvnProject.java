@@ -1,4 +1,4 @@
-package de.tototec.cmvn;
+package de.tototec.cmvn.oldandunused;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,13 +8,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import de.tototec.cmvn.CmvnConfigKey;
+import de.tototec.cmvn.CmvnConfiguredState;
+import de.tototec.cmvn.ConfigureRequest;
+import de.tototec.cmvn.ConfiguredCmvnProject;
+import de.tototec.cmvn.Constants;
+import de.tototec.cmvn.GeneratorResult;
+import de.tototec.cmvn.IvyGenerator;
+import de.tototec.cmvn.MavenPomGenerator;
+import de.tototec.cmvn.ProjectConfigKeyValueReader;
+import de.tototec.cmvn.ProjectReaderImpl;
+import de.tototec.cmvn.UnconfiguredCmvnProject;
 import de.tototec.cmvn.configfile.KeyValue;
 import de.tototec.cmvn.configfile.bndlike.ConfigFileReaderImpl;
 import de.tototec.cmvn.configfile.bndlike.ConfigFileReaderImpl.IncludeFileLine;
 import de.tototec.cmvn.model.CmvnProjectConfig;
 import de.tototec.cmvn.model.ConfigClassGenerator;
 import de.tototec.cmvn.model.Dependency;
-import de.tototec.cmvn.model.EclipseClasspathGenerator;
 import de.tototec.cmvn.model.Module;
 
 /**

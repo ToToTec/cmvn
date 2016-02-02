@@ -94,7 +94,7 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
     // only the root project should contain the configuration state and all
     // other should reference the root project. This way the configuration
     // cannot get inconsistent. Currently, each project contains the full
-    // configuration state. The differ only in the entry for the local project.
+    // configuration state. They differ only in the entry for the local project.
 
     Output.info("Configuring " + projectFile.getPath())
 
@@ -144,7 +144,7 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
             settingsXml \ "localRepository" match {
               case x if x.isEmpty =>
                 // This is very bad, it seems the settings file is lacking an localRepository entry
-                // throw new RuntimeException("The given Maven Settings file does not contain a localRepository definition we can handle")
+                // sys.error("The given Maven Settings file does not contain a localRepository definition we can handle")
                 ""
               case x => x.head.text
             }
@@ -224,7 +224,7 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
     if (file.isDirectory) deleteRecursive(file.listFiles: _*)
     file.delete match {
       case false if file.exists =>
-        throw new RuntimeException(s"Could not delete ${if (file.isDirectory) "dir" else "file"}: ${file}")
+        sys.error(s"Could not delete ${if (file.isDirectory) "dir" else "file"}: ${file}")
       case _ =>
     }
   }

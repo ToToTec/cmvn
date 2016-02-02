@@ -1,4 +1,4 @@
-package de.tototec.cmvn.model;
+package de.tototec.cmvn.oldandunused;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,13 +10,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import de.tototec.cmvn.CmvnProject;
 import de.tototec.cmvn.Generator;
 import de.tototec.cmvn.GeneratorResult;
+import de.tototec.cmvn.model.CmvnProjectConfig;
+import de.tototec.cmvn.model.Dependency;
+import de.tototec.cmvn.model.EclipseClasspathGeneratorConfig;
 
 public class EclipseClasspathGenerator implements Generator {
 
 	private final CmvnProjectConfig projectConfig;
+	@Deprecated
 	private final CmvnProject rootProject;
 
 	public EclipseClasspathGenerator(CmvnProject rootProject, CmvnProjectConfig projectConfig) {

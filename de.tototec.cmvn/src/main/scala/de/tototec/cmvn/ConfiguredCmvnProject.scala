@@ -1,14 +1,17 @@
 package de.tototec.cmvn
 
+import java.io.File
+import java.io.FileNotFoundException
+
 import scala.Array.canBuildFrom
-import scala.collection.JavaConversions._
+import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.JavaConversions.asScalaSet
+import scala.collection.JavaConversions.mapAsJavaMap
+import scala.collection.JavaConversions.mapAsScalaMap
+
+import de.tototec.cmvn.configfile.KeyValue
 import de.tototec.cmvn.configfile.bndlike.ConfigFileReaderImpl
 import de.tototec.cmvn.model.CmvnProjectConfig
-import de.tototec.cmvn.configfile.KeyValue
-import java.io.FileNotFoundException
-import de.tototec.cmvn.model.Dependency
-import de.tototec.cmvn.model.EclipseClasspathGenerator
-import java.io.File
 
 object ConfiguredCmvnProject {
   def projectReader: ProjectReader = projectReader()
@@ -68,7 +71,7 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
   }
 
   if (!relaxedVersionCheck && configuredState.cmvnVersion != Config.cmvnOsgiVersion) {
-    throw new RuntimeException("The project was configured by another Cmvn version (" + configuredState.cmvnVersion + "). Please configure the project again. Project: " + projectFile.getPath())
+    throw sys.error("The project was configured by another Cmvn version (" + configuredState.cmvnVersion + "). Please configure the project again. Project: " + projectFile.getPath())
   }
 
   lazy val (inputState, projectConfig) = {
@@ -182,6 +185,8 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
     }
 
     // TODO: Eclispe classpath generator, needs root project config
+    
+    
 
     // Write current state
     inputState.toYamlFile(savedInputStateFile)

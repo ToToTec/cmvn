@@ -83,7 +83,7 @@ class ConfigureCmd extends HelpAwareCmd {
   def sanitize = {
     validate match {
       case Nil => // ok
-      case msgs => throw new RuntimeException("Configuration inconsistencies detected: " + msgs.mkString("\n- ", "\n- ", ""));
+      case msgs => sys.error("Configuration inconsistencies detected: " + msgs.mkString("\n- ", "\n- ", ""));
     }
     if (mavenExecutable != null) mavenExecutable = new File(mavenExecutable).getAbsolutePath()
     if (mavenSettings != null) mavenSettings = new File(mavenSettings).getAbsolutePath()

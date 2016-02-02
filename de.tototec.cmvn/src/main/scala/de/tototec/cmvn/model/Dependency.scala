@@ -9,7 +9,7 @@ object Dependency {
   def parse(formattedDependency: String): Dependency = {
     val depWithOptions = formattedDependency.split(";", 2).map(_.trim)
     val gav = depWithOptions(0).split(":", 3).map(_.trim)
-    if (gav.length != 3) throw new RuntimeException("Unsupported dependency value:" + formattedDependency)
+    if (gav.length != 3) sys.error("Unsupported dependency value:" + formattedDependency)
     val dep = new Dependency(gav(0), gav(1), gav(2))
     if (depWithOptions.length == 2) {
       dep.parseOptions(depWithOptions(1))
@@ -57,7 +57,7 @@ class Dependency(val groupId: String, val artifactId: String, val version: Strin
 
   def addToExcludes(exclude: Dependency) = excludes.add(exclude)
 
-  def parseOptions(options: java.util.List[KeyValue]) {
+  def parseOptions(options: java.util.List[KeyValue]): Unit = {
     options.foreach(option => {
       (option.key, option.value) match {
         case ("scope", scope) => this.scope = scope
@@ -66,18 +66,18 @@ class Dependency(val groupId: String, val artifactId: String, val version: Strin
         case ("optional", optional) => this.optionalAsTransitive = optional.toLowerCase == "true"
         case ("exclude", excludeString) => {
           val exclude = excludeString.split(":")
-          if (exclude.length != 2) throw new RuntimeException("Unsupported exclude: " + option)
+          if (exclude.length != 2) sys.error("Unsupported exclude: " + option)
           addToExcludes(new Dependency(exclude(0).trim, exclude(1).trim, "0"))
         }
         case ("systemPath", sysPath) => this.jarPath = sysPath
         case ("forceversion", force) => this.forceVersion = force.toLowerCase == "true"
         case ("jackage", jackage) => this.jackageDep = jackage.toLowerCase == "true"
-        case _ => new RuntimeException("Unsupported option: " + option)
+        case _ => sys.error("Unsupported option: " + option)
       }
     })
   }
 
-  def parseOptions(formattedOption: String) {
+  def parseOptions(formattedOption: String): Unit = {
     val splitter = new StringSplitter
     val options = splitter.split(formattedOption, ";", """\""").map(split => {
       val option = splitter.split(split, "=", """\""", 2)

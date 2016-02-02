@@ -49,30 +49,34 @@ object ConfiguredCmvnProject {
 class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean = false) {
 
   val projectFile = projectFileOrDir match {
-  case d if d.isDirectory => new File(d, Constants.CmvnProjectFileName)
+    case d if d.isDirectory => new File(d, Constants.CmvnProjectFileName)
     case f => f
   }
   val configuredStateFile = new File(projectFile.getParentFile(), Constants.CmvnConfiguredStateFileName)
   val savedInputStateFile = new File(projectFile.getParentFile(), Constants.CmvnStateDirName + "/" + Constants.CmvnConfiguredInputFileName)
 
   // Some checks
-  if (!projectFile.exists) {
-    throw sys.error("The project file does not exists: " + projectFile.getPath());
-  }
   if (!configuredStateFile.exists) {
     throw sys.error("The project is not configured. Please configure it first (cmvn --configure). Project: "
       + projectFile.getPath())
   }
 
-  lazy val configuredState = {
+  val configuredState = {
     val configuredState = new CmvnConfiguredState()
     configuredState.fromYamlFile(configuredStateFile)
+    Output.verbose("read configured state: " + configuredState)
     configuredState
+  }
+
+  if (!configuredState.skipCmvn && !projectFile.exists) {
+    throw sys.error("The project file does not exists: " + projectFile.getPath());
   }
 
   if (!relaxedVersionCheck && configuredState.cmvnVersion != Config.cmvnOsgiVersion) {
     throw sys.error("The project was configured by another Cmvn version (" + configuredState.cmvnVersion + "). Please configure the project again. Project: " + projectFile.getPath())
   }
+
+  val skipGenerator = configuredState.skipCmvn
 
   lazy val (inputState, projectConfig) = {
     val inputState = new CmvnConfiguredInputState()
@@ -101,20 +105,22 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
     (inputState, projectConfig)
   }
 
-  lazy val allSubProjects: List[ConfiguredCmvnProject] = {
-    val projectConfig = UnconfiguredCmvnProject.projectReader.readConfigFile(projectFile)
+  lazy val allSubProjects: List[ConfiguredCmvnProject] =
+    if (skipGenerator) Nil
+    else {
+      val projectConfig = UnconfiguredCmvnProject.projectReader.readConfigFile(projectFile)
 
-    val subProjects = projectConfig.modules.toList filter { !_.skipEmvn } flatMap {
-      module =>
-        val subModuleDir = new File(projectFile.getParentFile, module.moduleName)
-        new ConfiguredCmvnProject(subModuleDir).allSubProjects
+      val subProjects = projectConfig.modules.toList filter { !_.skipEmvn } flatMap {
+        module =>
+          val subModuleDir = new File(projectFile.getParentFile, module.moduleName)
+          new ConfiguredCmvnProject(subModuleDir).allSubProjects
+      }
+      this :: subProjects
     }
-    this :: subProjects
-  }
 
-  def isUpToDateRecursive: Boolean = allSubProjects forall { _.isUpToDate }
+  def isUpToDateRecursive: Boolean = skipGenerator || (allSubProjects forall { _.isUpToDate })
 
-  def isUpToDate: Boolean = {
+  def isUpToDate: Boolean = skipGenerator || {
     // No input states file, means never generated
     if (!savedInputStateFile.exists) return false
 
@@ -152,9 +158,10 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
     true
   }
 
-  def generateRecursive(evenWhenNotChanged: Boolean) = allSubProjects foreach { _.generate(evenWhenNotChanged) }
+  def generateRecursive(evenWhenNotChanged: Boolean) =
+    if (!skipGenerator) allSubProjects foreach { _.generate(evenWhenNotChanged) }
 
-  def generate(evenWhenNotChanged: Boolean) {
+  def generate(evenWhenNotChanged: Boolean): Unit = if (!skipGenerator) {
 
     if (!evenWhenNotChanged && isUpToDate) {
       Output.verbose("Skipping generate of up-to-date project: " + projectFile.getPath())
@@ -185,8 +192,6 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
     }
 
     // TODO: Eclispe classpath generator, needs root project config
-    
-    
 
     // Write current state
     inputState.toYamlFile(savedInputStateFile)

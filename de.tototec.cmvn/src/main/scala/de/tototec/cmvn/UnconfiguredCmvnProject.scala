@@ -87,7 +87,13 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
     this :: subProjects
   }
 
-  def configureProjectRecursive(configureCmd: ConfigureCmd) = allSubProjects foreach { _.configureProject(configureCmd) }
+  def configureProjectRecursive(configureCmd: ConfigureCmd): Unit = {
+    if (configureCmd.skipCmvn && uppermostProject.isEmpty) {
+      configureProject(configureCmd)
+    } else {
+      allSubProjects foreach { _.configureProject(configureCmd) }
+    }
+  }
 
   def configureProject(configureCmd: ConfigureCmd) {
     // TODO: decide if all projects should keep the same information or if
@@ -107,6 +113,14 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
 
       case None =>
         // I am the root project
+
+        if (configureCmd.skipCmvn) {
+          // nothing to do, just check existence of pom.xml
+          val pomFile = new File(projectFile.getParentFile(), "pom.xml")
+          if (!pomFile.exists()) sys.error("No pom.xml file found")
+          Output.info("Skipping reading of project file and use pom.xml directly")
+          configuredState.skipCmvn = true
+        }
 
         // Validate
         configureCmd.validate match {
@@ -192,8 +206,8 @@ class UnconfiguredCmvnProject(val parentProject: Option[UnconfiguredCmvnProject]
 
     }
 
-    Output.verbose("Writing configured state file: " + stateFile)
     configuredState.projectFile = projectFile.getAbsolutePath()
+    Output.verbose("Writing configured state to file '" + stateFile + "':" + configuredState)
     configuredState.toYamlFile(stateFile.getAbsoluteFile())
     this.configuredState = configuredState
 

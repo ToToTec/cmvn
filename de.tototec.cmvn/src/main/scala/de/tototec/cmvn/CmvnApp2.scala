@@ -33,7 +33,7 @@ object CmvnApp2 {
     var version: Boolean = _
     @CmdOption(names = Array("--verbose", "-v"), description = "Be more verbose and print somewhat more output")
     var verbose: Boolean = _
-    @CmdOption(names = Array("--dir", "-d"), description = "Working directory")
+    @CmdOption(names = Array("--dir", "-d"), args = Array("DIR"), description = "Working directory")
     var dir: String = _
   }
 
@@ -173,12 +173,14 @@ object CmvnApp2 {
 
   def upToDateProject(curDir: File): ConfiguredCmvnProject = {
     val project = new ConfiguredCmvnProject(curDir)
-    val confState = project.configuredState
-    if (confState.autoReconfigure) {
-      project.generateRecursive(evenWhenNotChanged = false)
-    } else {
-      if (!project.isUpToDateRecursive) {
-        throw sys.error("Project not up-to-date. Please run --generate first or configure project without --no-auto-reconfigure.")
+    if (!project.skipGenerator) {
+      val confState = project.configuredState
+      if (confState.autoReconfigure) {
+        project.generateRecursive(evenWhenNotChanged = false)
+      } else {
+        if (!project.isUpToDateRecursive) {
+          throw sys.error("Project not up-to-date. Please run --generate first or configure project without --no-auto-reconfigure.")
+        }
       }
     }
     project

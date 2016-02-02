@@ -62,6 +62,11 @@ class ConfigureCmd extends HelpAwareCmd {
   @CmdOption(names = Array("--skip-provisioning"), hidden = true)
   var skipProvisioning = false
 
+  // Experimental
+  @CmdOption(names = Array("--skip-cmvn"),
+    description = "(WIP) Accept project without any cmvn.conf project file. Then, cmvn is a simple wrapper around pom.mxl")
+  var skipCmvn = false
+
   @CmdOption(names = Array("--define-val", "-D"), args = Array("NAME=VALUE"), hidden = true,
     description = "Define a varible.")
   def defineVal(keyValue: String) {

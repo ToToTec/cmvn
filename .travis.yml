@@ -1,0 +1,11 @@
+language: java
+
+sudo: false
+
+before_script: 
+  - wget https://github.com/ToToTec/cmvn/releases/download/0.1.8/cmvn-executable-0.1.8.jar
+  - java -jar cmvn-executable-0.1.8.jar --configure
+
+script:
+  - java -jar cmvn-executable-0.1.8.jar clean install
+ 

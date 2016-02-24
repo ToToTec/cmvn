@@ -8,27 +8,28 @@ cmvn master:
   --maven-settings
 * Added a converter from pom.xml to cmvn.conf
 * Support for Maven <reporting> section
-* Use new cmdline parser CmdOption (http://cmdoption.tototec.de/)
+* Use new cmdline parser CmdOption (https://github.com/ToToTec/CmdOption/)
 * Removed JCommander dependency
+* Support for repository layout setting.
 
 cmvn-0.1.8.1 - 2011-12-12:
 
-* Fixed Import-Package statement of Eclipse-Plugin 
+* Fixed Import-Package statement of Eclipse-Plugin
 
 cmvn-0.1.8 - 2011-11-10:
 
 * Improved interactive experience with output-filter (that component, that cuts
-  the noise [INFO] prefixes from the Maven output), e.g. when using an OSGi 
+  the noise [INFO] prefixes from the Maven output), e.g. when using an OSGi
   console from within a Maven plugin, you will now see the osgi> prompt
   instantly
 * Use scala code again
-* Fixed dependency option parsing and added source file and line number to 
+* Fixed dependency option parsing and added source file and line number to
   error messages
 * Added requireCmvn-tag to force a compatible cmvn version
 * Removed version in comment from generated config class file so that storing
   it in version control (although generate) does not produce uneccessary noise
 * Support more built-in variables: P, PN, PV, PG as GAV accessors to provide a
-  replacement to Mavens varibles, e.g. ${project.artifactId} 
+  replacement to Mavens varibles, e.g. ${project.artifactId}
 * Created a Eclipse Plugin that provides a Cmvn Classpath Container - say goodby
   to slow and resource hungry Maven Plugin
 
@@ -72,7 +73,7 @@ cmvn-0.1.2 - 2011-03-02:
   artifacts, thus making the 'install' goal of maven unneccessary (using the
   'package' goal is now equal and better)
 * New default: --auto-regenerate
-* Regenerating a sub-module does not change state outside of this 
+* Regenerating a sub-module does not change state outside of this
   module/directory
 * Added new build option --build-from-root to start Maven always from root
   project with the complete reactor (alowing to use -am and -amd options)

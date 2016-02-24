@@ -10,18 +10,18 @@ image:https://badges.gitter.im/Join%20Chat.svg[Gitter,link="https://gitter.im/To
 This document describes Cmvn {cmvn-version}.
 
 == Introduction
-	
+
 Cmvn is a helper tool for developers targeted at the Java Virtual Machine (JVM). Its main focus is to declaratively describe and configure the required development and build environment.
 
 A most significant difference between existing Java-targeted build systems compared to those for C/C++ (e.g. Autotools + GNU Make, CMake, Scons) is the lack of a defined configuration step before executing the compiler.
-Although building a Java application is a lot more easy compared to platform dependent programming languages and tools, nevertheless a lot of the (configuration) tasks of those other build systems are still required. 
+Although building a Java application is a lot more easy compared to platform dependent programming languages and tools, nevertheless a lot of the (configuration) tasks of those other build systems are still required.
 Often the lack of a configuration process in Java build systems results in very obscure setups.
 
-A very popular build system for Java is http://maven.apache.org[Apache Maven], currently in version 3. 
+A very popular build system for Java is http://maven.apache.org[Apache Maven], currently in version 3.
 It partially helps the developer with managing her dependencies but fails miserably at producing reliable builds, at least without support of a complex build infrastructure (...like a Repository Manager).
 
-Cmvn tries to close this gap by providing a configuration step before the actual build system. 
-Concrete, this goal will be reached by	generating the build scripts for the underlying  (native) build system. 
+Cmvn tries to close this gap by providing a configuration step before the actual build system.
+Concrete, this goal will be reached by	generating the build scripts for the underlying  (native) build system.
 Whenever a configuration has changed Cmvn will first regenerate the build scripts and after that executes the underlying build system with the right (configured) settings.
 To assist the developer but do not stay in his way, Cmvn does not aim to replace existing build chains.
 Instead, its main focus is adding another (first) configuration step
@@ -29,7 +29,7 @@ to the build chain to create more reliable and reproducable build environments.
 
 
 In its first release Cmvn supports Apache Maven 2.0 and above although using Apache Maven 3.0 is highly recommended.
-In later releases, support for various other build chains might be added, e.g. Apache Ant + Ivy, SBT, SBuild, or others. 
+In later releases, support for various other build chains might be added, e.g. Apache Ant + Ivy, SBT, SBuild, or others.
 Although Cmvn generates the build scripts (in Maven case: `pom.xml` files) it cannot and it does not want to handle all aspects of the underlying build infrastructure.
 To leave the full power to the developer, Cmvn supports templates for the underlying build scripts for those settings Cmvn can not generate.
 But for common project setup, this is rarely needed.
@@ -49,10 +49,11 @@ test: junit:junit:4.8.2
 New features in Cmvn 0.2.0:
 
 * A new POM converter was added to easily convert existing Maven projects to Cmvn. See <xref linkend="sec:convertPom" />
-* Experimental support for Jackage repositories. New execution mode `--fetch` to download Jackage dependencies.
 * Cmvn can now generate `<reporting>`-blocks.
 * Cmvn can now generate `parent`-blocks.
 * New execution mode `--info` to gather various project information, e.g. root project location, variables, ...
+* Support for repository layout setting.
+* Experimental support for Jackage repositories. New execution mode `--fetch` to download Jackage dependencies.
 
 Changes in Cmvn 0.2.0
 
@@ -86,7 +87,7 @@ Just generates the needed build scripts (if needed) of the underlying buildsyste
 
 For Maven this generates a `pom.xml` and a Maven settings file `.cmvn/settings.xml` in a local hidden directory.
 
-			
+
 For a complete list of options see the built-in commandline help: `cmvn --configure --help`.
 
 ==== Automatic re-configuration
@@ -95,22 +96,22 @@ Whenever an input file of Cmvn changed, Cmvn will detect the change at the next 
 
 However, if there is for some reason the need to disable this automatism, you can add the `--no-auto-reconfigure` option when configuring the project. If Cmvn detects, that some input files changed, it will claim, that it is out-ouf-date and needs reconfiguration and stop any further processing.
 
-To reconfigure, one can use the option `--reconfigure` which does exactly the same as `--configure` except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration. 
+To reconfigure, one can use the option `--reconfigure` which does exactly the same as `--configure` except that the concrete initial configuration is preserved, thus only the files were recreated without changing the current configuration.
 
 [source,sh]
 shell> cmvn --reconfigure
 
 ==== Changing the Maven Local Repository and Settings
 
-By default, `cmvn --configure` initally created an new project-local Maven settings file and thus uses a project-local repository. 
-This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) released dependencies. 
-This default way enables the developer to easily build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are installing (in the Maven sense) to the same local repository. 
+By default, `cmvn --configure` initally created an new project-local Maven settings file and thus uses a project-local repository.
+This is intended to isolate projects from each other while still maintaining project-interoperability via (remotely) released dependencies.
+This default way enables the developer to easily build branches without fearing of interferences and inconsistencies caused by multiple projects (branches) that are installing (in the Maven sense) to the same local repository.
 
 Of course, the newly created repository and Maven settings file is shared between all sub projects of the one you just configured.
 
-In case, this default behavior is not desired, you can tell Cmvn to use an alternative existing Maven settings file with the option `--maven-settings`. 
-In this case, you could loose the benefits of side-effect free development of multiple project on the same computer. 
-Also this may limit the reproducability of the build process in different environments. 
+In case, this default behavior is not desired, you can tell Cmvn to use an alternative existing Maven settings file with the option `--maven-settings`.
+In this case, you could loose the benefits of side-effect free development of multiple project on the same computer.
+Also this may limit the reproducability of the build process in different environments.
 
 [source,sh]
 shell> cmvn --configure --maven-settings /home/user/.m2/settings.xml
@@ -127,9 +128,9 @@ The `--maven-repo` option is preferred over `--maven-settings` as you do not get
 
 ==== Using Templates - `pom.xml.cmvn`
 
-When Cmvn detects the presence of a file `pom.xml.cmvn` it will use it as template when generating the pom.xml file for Maven. 
-Cmvn will first read the template file and afterward extend it with the settings found in `cmvn.conf`. 
-You can use this to easily migrate existing Maven projects or if you need complex setups and Maven features (like `<profile>`). 
+When Cmvn detects the presence of a file `pom.xml.cmvn` it will use it as template when generating the pom.xml file for Maven.
+Cmvn will first read the template file and afterward extend it with the settings found in `cmvn.conf`.
+You can use this to easily migrate existing Maven projects or if you need complex setups and Maven features (like `<profile>`).
 
 === Build
 
@@ -146,7 +147,7 @@ shell> cmvn clean install
 
 === Cleanup
 
-The execution mode cleanup is used to remove all generated files and the configuration data. 
+The execution mode cleanup is used to remove all generated files and the configuration data.
 Currently there are two variants to enable the cleanup mode: one version enabled with `--clean` removes only the generated native build scripts, the other variant `--distclean` cleans also the configuration state and any other generated environment setup, e.g. a hidden project local Maven repository.
 
 [source,sh]
@@ -212,7 +213,7 @@ project: de.tototec:de.tototec.example:$${EXAMPLE_VERSION}
 compile: de.tototec:de.tototec.example.utils:$${EXAMPLE_VERSION}; \
  classifier=jdk15
 
-# compile-scope dependency 
+# compile-scope dependency
 compile: org.slf4j:slf4j-api:1.6.1
 
 # optional runtime-dependency
@@ -257,7 +258,7 @@ Directives are instructions to Cmvn to do something special.
 | Deprecated. See `configClass` setting.
 | `-include` | FILE
 | Include the content of the given file. The content will be treated as if it was in the actual file.
-| `-requireCmvn` | VERSION 
+| `-requireCmvn` | VERSION
 | Ensure, that the version of the executing Cmvn executable is at least the given version.
 | `-val` | OPTION
 | Create an immutable variable _key_ with content _value_. All occurences of this variable were expanded in the value-part of all succeeding lines (except `-include`).
@@ -273,7 +274,7 @@ Settings are used to generate the underlying (native) build scripts. Currently t
 | Setting | Format | Description
 | `artifactrepo` | URL[;OPTION]*
 | Alias for `repository` with option `plugins=false`
-| `compile` | GAV[;OPTION]* 
+| `compile` | GAV[;OPTION]*
 | Alias for `dependency` with option `scope=compile`
 | `configClass` | LIST[OPTION]
 | Generate a Java class as source code containing static methods.
@@ -283,7 +284,7 @@ Settings are used to generate the underlying (native) build scripts. Currently t
 | Managed dependency in `dependencyManagement`
 | `eclipseClasspath` | LIST[OPTION]
 | List of options to generate a `.classpath` file used by Eclipse.
-| `exclude` | GA 
+| `exclude` | GA
 | Exclude the given dependency in transitive dependencies. Will generate exclusion-blocks in any dependency-block.
 | `module` | DIR[;OPTION]*
 | The path of a sub project
@@ -431,16 +432,18 @@ Options:
 [cols="1,1,3", options="header"]
 |===
 | Option | Format | Description
+| `id` | TEXT
+| The repository ID.
+| `layout` | TEXT
+| The repository layout, e.g. "default", "p2".
 | `plugins` | BOOLEAN
 | Can be used to download Maven plugins (default: `true`).
 | `artifacts` | BOOLEAN
 | Can be used to download Maven artifacts (default: `true`).
 | `releases` | BOOLEAN
 | Can be used to download released dependencies.
-| `snapshots | BOOLEAN | Can be used to download snapshot dependencies.
+| `snapshots` | BOOLEAN | Can be used to download snapshot dependencies.
 |===
-
-// TODO: Missing option id
 
 Aliases:
 

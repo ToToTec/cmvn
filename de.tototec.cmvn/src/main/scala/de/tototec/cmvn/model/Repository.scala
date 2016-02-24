@@ -8,7 +8,8 @@ case class Repository(val url: String,
                       var forPlugins: Boolean = true,
                       var forArtifacts: Boolean = true,
                       var forReleases: Boolean = true,
-                      var forSnapshots: Boolean = false) {
+                      var forSnapshots: Boolean = false,
+                      var layout: String = null) {
 
   def this(url: String) = this(url, id = null)
 

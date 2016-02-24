@@ -124,6 +124,8 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			for (final KeyValue option : withOptions.options()) {
 				if (option.key().equals("id")) {
 					repo.id_$eq(option.value());
+				} else if (option.key().equals("layout")) {
+					repo.layout_$eq(option.value());
 				} else if (option.key().equals("releases")) {
 					repo.forReleases_$eq(option.value().equals("true"));
 				} else if (option.key().equals("snapshots")) {

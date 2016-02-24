@@ -371,6 +371,9 @@ public class MavenPomGenerator implements Generator {
 				if (repo.id() != null) {
 					mvnRepo.setId(repo.id());
 				}
+				if (repo.layout() != null ){
+					mvnRepo.setLayout(repo.layout());
+				}
 				mvnRepo.addNewReleases().setEnabled(repo.forReleases());
 				mvnRepo.addNewSnapshots().setEnabled(repo.forSnapshots());
 				mvnRepo.setUrl(repo.url());

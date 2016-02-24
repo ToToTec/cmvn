@@ -476,7 +476,7 @@ Directives:
 | A free XML fragement that will be placed inside the `<executions>`-block of this plugin.
 | `-plugindependency` | GAV
 | A dependency used when executing the plugin command, e.g. to override a version.
-| `-xml:_anyOption_ | XML
+| `-xml:_anyOption_` | XML
 | Can be used if the option-value is XML and not text.
 |===
 

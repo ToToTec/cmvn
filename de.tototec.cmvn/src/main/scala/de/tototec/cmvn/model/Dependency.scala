@@ -52,7 +52,6 @@ class Dependency(val groupId: String, val artifactId: String, val version: Strin
   var jarPath: String = null
   var onlyManagement: Boolean = false
   var forceVersion: Boolean = false
-  var jackageDep: Boolean = false
   var jackageRepo: String = null
 
   def addToExcludes(exclude: Dependency) = excludes.add(exclude)
@@ -71,7 +70,6 @@ class Dependency(val groupId: String, val artifactId: String, val version: Strin
         }
         case ("systemPath", sysPath) => this.jarPath = sysPath
         case ("forceversion", force) => this.forceVersion = force.toLowerCase == "true"
-        case ("jackage", jackage) => this.jackageDep = jackage.toLowerCase == "true"
         case _ => sys.error("Unsupported option: " + option)
       }
     })
@@ -108,6 +106,7 @@ class Dependency(val groupId: String, val artifactId: String, val version: Strin
       (if (depType != null) { ";type=" + depType } else "")
 
   def canEqual(other: Any) = other.isInstanceOf[Dependency]
+
   override def equals(other: Any) = other match {
     case that: Dependency => that.canEqual(this) &&
       groupId == that.groupId &&
@@ -121,10 +120,10 @@ class Dependency(val groupId: String, val artifactId: String, val version: Strin
       jarPath == that.jarPath &&
       onlyManagement == that.onlyManagement &&
       forceVersion == that.forceVersion &&
-      jackageDep == that.jackageDep &&
       jackageRepo == that.jackageRepo
     case _ => false
   }
+
   override def hashCode: Int = {
     def nullSafeHash(o: Any) = o match {
       case null => 0
@@ -141,19 +140,17 @@ class Dependency(val groupId: String, val artifactId: String, val version: Strin
                     41 * (
                       41 * (
                         41 * (
-                          41 * (
-                            41 + nullSafeHash(groupId)
-                          ) + nullSafeHash(artifactId)
-                        ) + nullSafeHash(version)
-                      ) + nonDefaultScope.hashCode
-                    ) + nonDefaultClassifier.hashCode
-                  ) + nonDefaultDepType.hashCode
-                ) + optionalAsTransitive.hashCode
-              ) + excludes.toSet.hashCode
-            ) + nullSafeHash(jarPath)
-          ) + onlyManagement.hashCode
-        ) + forceVersion.hashCode
-      ) + jackageDep.hashCode
+                          41 + nullSafeHash(groupId)
+                        ) + nullSafeHash(artifactId)
+                      ) + nullSafeHash(version)
+                    ) + nonDefaultScope.hashCode
+                  ) + nonDefaultClassifier.hashCode
+                ) + nonDefaultDepType.hashCode
+              ) + optionalAsTransitive.hashCode
+            ) + excludes.toSet.hashCode
+          ) + nullSafeHash(jarPath)
+        ) + onlyManagement.hashCode
+      ) + forceVersion.hashCode
     ) + nullSafeHash(jackageRepo)
   }
 }

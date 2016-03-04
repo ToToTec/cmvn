@@ -16,7 +16,6 @@ import scala.collection.mutable
 import de.tototec.cmvn.model.Dependency
 import de.tototec.cmvn.cmdoption.BuildCmd
 import de.tototec.cmvn.cmdoption.ConfigureCmd
-import de.tototec.cmvn.cmdoption.FetchCmd
 import de.tototec.cmvn.cmdoption.GenerateCmd
 import de.tototec.cmvn.cmdoption.InfoCmd
 import de.tototec.cmvn.cmdoption.PomConverterCmd
@@ -41,7 +40,7 @@ object CmvnApp2 {
 
     val baseArgs = new BaseArgs()
     val commandConfigs = List(
-      new ConfigureCmd(), new FetchCmd(), new BuildCmd(), new PomConverterCmd(), new GenerateCmd(), new InfoCmd(), new CleanCmd(), new DistcleanCmd())
+      new ConfigureCmd(), new BuildCmd(), new PomConverterCmd(), new GenerateCmd(), new InfoCmd(), new CleanCmd(), new DistcleanCmd())
 
     val cp = new CmdlineParser(baseArgs)
     cp.addObject(commandConfigs: _*)
@@ -107,11 +106,6 @@ object CmvnApp2 {
         checkCmdHelp(buildCmd)
         Output.verbose("--build selected")
         runMaven(curDir, buildCmd)
-
-      case fetchCmd: FetchCmd =>
-        checkCmdHelp(fetchCmd)
-        Output.verbose("--fetch selected")
-        runFetch(curDir, fetchCmd)
 
       case convertCmd: PomConverterCmd =>
         checkCmdHelp(convertCmd)
@@ -196,40 +190,6 @@ object CmvnApp2 {
         if (!ignoreUnconfigured) {
           Output.error("Could not clean project. " + e.getLocalizedMessage)
         }
-    }
-  }
-
-  def runFetch(curDir: File, fetchCmd: FetchCmd) {
-    val project = new ConfiguredCmvnProject(curDir)
-    if (project.configuredState.localRepository == null) {
-      throw sys.error("No configured local Maven repository.")
-    }
-
-    val toFetch = project.allSubProjects flatMap { p =>
-      p.projectConfig.dependencies filter { _.jackageDep }
-    } distinct
-
-    Output.verbose("About to fetch the following " + toFetch.size + " packages:\n  " + toFetch.mkString("\n  "))
-
-    if (!fetchCmd.dryRun) {
-      toFetch.foreach { dep =>
-        val depName = dep.groupId + ":" + dep.artifactId + ":" + dep.version
-        Output.info("Fetching with Jackage: " + depName)
-        val cmd = fetchCmd.jackageFetchCmd.
-          replaceAllLiterally("{PACK}", depName).
-          replaceAllLiterally("{M2REPO}", project.configuredState.localRepository)
-        import scala.sys.process._
-        Process(cmd).run(true).exitValue match {
-          case 0 => // ok
-          case rc => {
-            val msg = "Could not download Jackage dependency: " + dep + ". Jackage return code " + rc
-            fetchCmd.keepGoing match {
-              case true => Output.error(msg + ". Ignoring failed fetch in keep-going mode.")
-              case false => throw sys.error(msg)
-            }
-          }
-        }
-      }
     }
   }
 

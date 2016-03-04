@@ -53,7 +53,6 @@ New features in Cmvn 0.2.0:
 * Cmvn can now generate `parent`-blocks.
 * New execution mode `--info` to gather various project information, e.g. root project location, variables, ...
 * Support for repository layout setting.
-* Experimental support for Jackage repositories. New execution mode `--fetch` to download Jackage dependencies.
 
 Changes in Cmvn 0.2.0
 
@@ -62,13 +61,14 @@ Changes in Cmvn 0.2.0
 * Internally, Cmvn uses now the https://github.com/ToToTec/CmdOption[CmdOption toolkit]  to parse commandlines.
 * Inproved up-to-date detection which should now detect all relevant changes in input files.
 * Dependencies, that only differ in its `type` property are no longer swallowed.
+* Plugin dependencies now support excludes.
+* various internal changes and improvements.
 
 == Execution Modes
 
 Cmvn can be run in different execution modes. The main modes are:
 
 * Configuration (`--configure`, `--reconfigure`)
-* Fetch (`--fetch`)
 * Build (`--build`)
 * Cleanup (`--clean`, `--distclean`)
 * Convert POM (`--convert-pom`)

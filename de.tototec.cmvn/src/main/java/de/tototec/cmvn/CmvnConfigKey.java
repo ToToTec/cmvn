@@ -23,7 +23,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	REQUIRE_CMVN("-requireCmvn", "requireCmvn") {
 		@Override
-		public void read(CmvnProjectConfig projectConfig, KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			if("requireCmvn".equals(keyValue.key())) {
 				Output.info("requireCmvn is deprecated since Cmvn 0.2.0. Please use \"-requireCmvn\" instead.");
 			}
@@ -145,13 +145,6 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		}
 	},
 
-	JACKAGE_REPOSITORY("jackage-repo") {
-		@Override
-		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
-			// TODO: finish
-		}
-	},
-
 	MODULE("module") {
 		@Override
 		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
@@ -185,7 +178,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 			final Dependency pluginInfo = new Dependency(split[0].trim(), split[1].trim(), split[2].trim());
 			final Plugin plugin = new Plugin(pluginInfo);
 
-            for (ListIterator<KeyValue> options = withOptions.options().listIterator(); options.hasNext(); ) {
+            for (final ListIterator<KeyValue> options = withOptions.options().listIterator(); options.hasNext(); ) {
                 final KeyValue option = options.next();
 				final String oKey = option.key();
 				final String oVal = option.value();
@@ -201,7 +194,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
                     	if (!options.hasNext()) {
                     		break;
                     	}
-                    	KeyValue maybeExclude = options.next();
+                    	final KeyValue maybeExclude = options.next();
                     	if (!"exclude".equals(maybeExclude.key())) {
                     		options.previous();
                     		break;
@@ -354,7 +347,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 
 	ECLIPSE_CLASSPATH("eclipseClasspath") {
 		@Override
-		public void read(CmvnProjectConfig projectConfig, KeyValue keyValue) {
+		public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
 			// We only have options, so we start the value with an ";"
 			final KeyValueWithOptions withOptions = new KeyValueWithOptions(keyValue.key(), ";" + keyValue.value(),
 					";", "=", "true");
@@ -369,7 +362,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				projectConfig.eclipseClasspathGeneratorConfig_$eq(cpConfig);
 			}
 
-			LinkedHashMap<String, String> entries = new LinkedHashMap<String, String>();
+			final LinkedHashMap<String, String> entries = new LinkedHashMap<String, String>();
 
 			for (final KeyValue option : withOptions.options()) {
 				final String oKey = option.key();
@@ -407,11 +400,11 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 		return key;
 	}
 
-	public static void assertVersion(String requiredVersionString, String currentCmvnVersionString,
-			String compatibleCmvnVersionString) {
-		OSGiVersion requiredVersion = new OSGiVersion(requiredVersionString);
-		OSGiVersion currentVersion = new OSGiVersion(currentCmvnVersionString);
-		OSGiVersion supportedVersion = new OSGiVersion(compatibleCmvnVersionString);
+	public static void assertVersion(final String requiredVersionString, final String currentCmvnVersionString,
+			final String compatibleCmvnVersionString) {
+		final OSGiVersion requiredVersion = new OSGiVersion(requiredVersionString);
+		final OSGiVersion currentVersion = new OSGiVersion(currentCmvnVersionString);
+		final OSGiVersion supportedVersion = new OSGiVersion(compatibleCmvnVersionString);
 
 		if (currentVersion.compareTo(requiredVersion) < 0) {
 			throw new RuntimeException("At least cmvn version " + requiredVersionString

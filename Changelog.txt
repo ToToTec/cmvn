@@ -1,7 +1,5 @@
 cmvn master:
 
-* Experimental Jackage integration (http://jackage.tototec.de/): Command --fetch
-  added to fetch all dependencies provided by jackage
 * Much improved cmndline interface
 * Rewrite of internal handling of cmvn project
 * Eclipse Plugin can find dependencies if project was configured with
@@ -11,6 +9,7 @@ cmvn master:
 * Use new cmdline parser CmdOption (https://github.com/ToToTec/CmdOption/)
 * Removed JCommander dependency
 * Support for repository layout setting.
+* Plugin dependencies can now specify excludes.
 
 cmvn-0.1.8.1 - 2011-12-12:
 

@@ -56,32 +56,28 @@ public class CmvnProject {
 
 	public CmvnProject(final File file, final CmvnProject parent) {
 		projectFile = file.isDirectory() ? new File(file, DEFAULT_PROJECT_FILE_NAME) : file;
-		final ProjectReaderImpl reader = new ProjectReaderImpl();
 
 		this.rootProject = parent;
 
-		// static setup
-		{
-			final Map<String, ProjectConfigKeyValueReader> supportedKeys = new LinkedHashMap<String, ProjectConfigKeyValueReader>();
-			for (final CmvnConfigKey key : CmvnConfigKey.values()) {
-				for (final String keyName : key.getKey()) {
-					supportedKeys.put(keyName, key);
-				}
+		final Map<String, ProjectConfigKeyValueReader> supportedKeys = new LinkedHashMap<String, ProjectConfigKeyValueReader>();
+		for (final CmvnConfigKey key : CmvnConfigKey.values()) {
+			for (final String keyName : key.getKey()) {
+				supportedKeys.put(keyName, key);
 			}
-			supportedKeys.put("-include", new ProjectConfigKeyValueReader() {
-
-				@Override
-				public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
-					includedFiles.add(keyValue.value());
-				}
-			});
-			reader.setProjectConfigKeyValueReader(supportedKeys);
-
-			final ConfigFileReaderImpl configFileReader = new ConfigFileReaderImpl();
-			final IncludeFileLine includeFileLine = new ConfigFileReaderImpl.IncludeFileLine("-include", true);
-			configFileReader.setIncludeFileLine(includeFileLine);
-			reader.setConfigFileReader(configFileReader);
 		}
+		supportedKeys.put("-include", new ProjectConfigKeyValueReader() {
+
+			@Override
+			public void read(final CmvnProjectConfig projectConfig, final KeyValue keyValue) {
+				includedFiles.add(keyValue.value());
+			}
+		});
+
+		final ConfigFileReaderImpl configFileReader = new ConfigFileReaderImpl();
+		final IncludeFileLine includeFileLine = new ConfigFileReaderImpl.IncludeFileLine("-include", true);
+		configFileReader.setIncludeFileLine(includeFileLine);
+//		reader.setConfigFileReader(configFileReader);
+		final ProjectReaderImpl reader = new ProjectReaderImpl(configFileReader, supportedKeys);
 
 		projectConfig = reader.readConfigFile(projectFile);
 
@@ -298,8 +294,8 @@ public class CmvnProject {
 					configuredState.localRepository_$eq(repoDir.getAbsolutePath());
 				}
 
-				final File settingsFile = settingsFileOrNull != null ? new File(settingsFileOrNull) : new File(
-						defaultSettingsDir, "settings.xml");
+				final File settingsFile = settingsFileOrNull != null ? new File(settingsFileOrNull)
+						: new File(defaultSettingsDir, "settings.xml");
 				configuredState.settingsFile_$eq(settingsFile.getAbsolutePath());
 
 				if (manageSettingsFile) {
@@ -318,8 +314,8 @@ public class CmvnProject {
 					}
 					settingsWriter.append("<settings>\n");
 					settingsWriter.append("<localRepository>");
-					final File repoDir = manageRepoDir ? new File(defaultSettingsDir, "repository") : new File(
-							repoDirOrNull);
+					final File repoDir = manageRepoDir ? new File(defaultSettingsDir, "repository")
+							: new File(repoDirOrNull);
 					settingsWriter.append(repoDir.getAbsolutePath());
 					settingsWriter.append("</localRepository>\n");
 					settingsWriter.append("</settings>\n");
@@ -343,12 +339,12 @@ public class CmvnProject {
 				configuredState.generateIvy_$eq(configureRequest.getGenerateIvy().booleanValue());
 			}
 			if (configureRequest.getSystemScopeForLocalProjects() != null) {
-				configuredState.referenceLocalArtifactsAsSystemScope_$eq(configureRequest
-						.getSystemScopeForLocalProjects().booleanValue());
+				configuredState.referenceLocalArtifactsAsSystemScope_$eq(
+						configureRequest.getSystemScopeForLocalProjects().booleanValue());
 			}
 			if (configureRequest.getEclipseForceLocalWorkspaceRefs() != null) {
-				configuredState.eclipseForceLocalWorkspaceRefs_$eq(configureRequest.getEclipseForceLocalWorkspaceRefs()
-						.booleanValue());
+				configuredState.eclipseForceLocalWorkspaceRefs_$eq(
+						configureRequest.getEclipseForceLocalWorkspaceRefs().booleanValue());
 			}
 			// if (configureRequest.getSkipProvisioning() != null) {
 			// configuredState.setProvisioningEnabled(!configureRequest.getSkipProvisioning());
@@ -414,10 +410,10 @@ public class CmvnProject {
 					: getMultiProjects();
 			for (final CmvnProject project : localProjects) {
 				final CmvnProjectConfig locProj = project.getProjectConfig();
-				final Dependency locArtifact = new Dependency(locProj.project().groupId(), locProj.project()
-						.artifactId(), locProj.project().version());
-				locArtifact.jarPath_$eq(new File(new File(locProj.baseDir(), "target"), locArtifact.artifactId()
-						+ "-" + locArtifact.version() + ".jar").getAbsolutePath());
+				final Dependency locArtifact = new Dependency(locProj.project().groupId(),
+						locProj.project().artifactId(), locProj.project().version());
+				locArtifact.jarPath_$eq(new File(new File(locProj.baseDir(), "target"),
+						locArtifact.artifactId() + "-" + locArtifact.version() + ".jar").getAbsolutePath());
 				localArtifacts.add(locArtifact);
 			}
 			mavenPomGenerator.setLocalArtifacts(localArtifacts);
@@ -432,8 +428,8 @@ public class CmvnProject {
 
 		// Generate Eclipse Classpath
 		if (projectConfig.eclipseClasspathGeneratorConfig() != null) {
-			final EclipseClasspathGenerator generator = new EclipseClasspathGenerator(rootProject != null ? rootProject
-					: this, projectConfig);
+			final EclipseClasspathGenerator generator = new EclipseClasspathGenerator(
+					rootProject != null ? rootProject : this, projectConfig);
 			generatorResult.merge(generator.generate());
 		}
 
@@ -453,8 +449,8 @@ public class CmvnProject {
 			return;
 		}
 		for (final ConfigClassGenerator generator : projectConfig.configClasses()) {
-			System.out.println("Generating config class: " + generator.getClassName() + " in "
-					+ generator.getTargetDir());
+			System.out.println(
+					"Generating config class: " + generator.getClassName() + " in " + generator.getTargetDir());
 			generator.generateClass(projectFile.getParentFile());
 		}
 	}

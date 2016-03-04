@@ -16,15 +16,14 @@ import java.io.FileWriter
 object UnconfiguredCmvnProject {
   def projectReader: ProjectReader = projectReader()
   def projectReader(includeFileReader: Option[ProjectConfigKeyValueReader] = None): ProjectReader = {
-    val reader = new ProjectReaderImpl()
 
-    var supportedKeys = CmvnConfigKey.values.toList flatMap { keyHandler: CmvnConfigKey =>
-      keyHandler.getKey() map { key =>
+    var supportedKeys = CmvnConfigKey.values.toList.flatMap { keyHandler: CmvnConfigKey =>
+      keyHandler.getKey().map { key =>
         (key, keyHandler: ProjectConfigKeyValueReader)
       }
-    } toMap
+    }.toMap
 
-    includeFileReader map { r =>
+    includeFileReader.map { r =>
       supportedKeys += ("-include" -> r)
     }
 
@@ -36,13 +35,10 @@ object UnconfiguredCmvnProject {
     //        }
     //      }
 
-    reader.setProjectConfigKeyValueReader(supportedKeys)
-
     val configFileReader = new ConfigFileReaderImpl()
     val includeFileLine = new ConfigFileReaderImpl.IncludeFileLine("-include", includeFileReader.isDefined)
     configFileReader.setIncludeFileLine(includeFileLine)
-    reader.setConfigFileReader(configFileReader)
-    reader
+    new ProjectReaderImpl(configFileReader, supportedKeys)
   }
 }
 

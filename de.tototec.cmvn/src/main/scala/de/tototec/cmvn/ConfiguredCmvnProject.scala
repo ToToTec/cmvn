@@ -4,10 +4,7 @@ import java.io.File
 import java.io.FileNotFoundException
 
 import scala.Array.canBuildFrom
-import scala.collection.JavaConversions.asScalaBuffer
-import scala.collection.JavaConversions.asScalaSet
-import scala.collection.JavaConversions.mapAsJavaMap
-import scala.collection.JavaConversions.mapAsScalaMap
+import scala.collection.JavaConverters._
 
 import de.tototec.cmvn.configfile.KeyValue
 import de.tototec.cmvn.configfile.bndlike.ConfigFileReaderImpl
@@ -16,15 +13,14 @@ import de.tototec.cmvn.model.CmvnProjectConfig
 object ConfiguredCmvnProject {
   def projectReader: ProjectReader = projectReader()
   def projectReader(includeFileReader: Option[ProjectConfigKeyValueReader] = None): ProjectReader = {
-    val reader = new ProjectReaderImpl()
 
-    var supportedKeys = CmvnConfigKey.values.toList flatMap { keyHandler: CmvnConfigKey =>
+    var supportedKeys = CmvnConfigKey.values.toList.flatMap { keyHandler: CmvnConfigKey =>
       keyHandler.getKey() map { key =>
         (key, keyHandler: ProjectConfigKeyValueReader)
       }
-    } toMap
+    }.toMap
 
-    includeFileReader map { r =>
+    includeFileReader.map { r =>
       supportedKeys += ("-include" -> r)
     }
 
@@ -36,13 +32,11 @@ object ConfiguredCmvnProject {
       }
     }
 
-    reader.setProjectConfigKeyValueReader(supportedKeys)
-
     val configFileReader = new ConfigFileReaderImpl()
     val includeFileLine = new ConfigFileReaderImpl.IncludeFileLine("-include", includeFileReader.isDefined)
     configFileReader.setIncludeFileLine(includeFileLine)
-    reader.setConfigFileReader(configFileReader)
-    reader
+
+    new ProjectReaderImpl(configFileReader, supportedKeys.asJava)
   }
 }
 
@@ -110,7 +104,7 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
     else {
       val projectConfig = UnconfiguredCmvnProject.projectReader.readConfigFile(projectFile)
 
-      val subProjects = projectConfig.modules.toList filter { !_.skipEmvn } flatMap {
+      val subProjects = projectConfig.modules.asScala.toList filter { !_.skipEmvn } flatMap {
         module =>
           val subModuleDir = new File(projectFile.getParentFile, module.moduleName)
           new ConfiguredCmvnProject(subModuleDir).allSubProjects
@@ -133,21 +127,21 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
     // generated output files are not the same
     if (!sameFiles) {
       Output.verbose("Set of input files has changed for: " + projectFile.getPath() + "\n  Last time: " +
-        savedInputState.inputFilesWithTimeStamp.keySet.mkString(", ") + "\n  Now: " +
-        inputState.inputFilesWithTimeStamp.keySet.mkString(", "))
+        savedInputState.inputFilesWithTimeStamp.asScala.keySet.mkString(", ") + "\n  Now: " +
+        inputState.inputFilesWithTimeStamp.keySet.asScala.mkString(", "))
       return false
     }
 
     // if any input file has another time stamp, we consider it as changed 
-    savedInputState.inputFilesWithTimeStamp.keySet foreach {
+    savedInputState.inputFilesWithTimeStamp.asScala.keySet.foreach {
       fileName =>
         if (!new File(fileName).exists) {
           Output.verbose("File does not exists: " + fileName)
           throw new FileNotFoundException("Required input file '" + fileName + "' does not exists. Project: " + projectFile.getPath())
         }
 
-        val lastTimeStamp = savedInputState.inputFilesWithTimeStamp(fileName)
-        val curTimeStamp = inputState.inputFilesWithTimeStamp(fileName)
+        val lastTimeStamp = savedInputState.inputFilesWithTimeStamp.asScala(fileName)
+        val curTimeStamp = inputState.inputFilesWithTimeStamp.asScala(fileName)
 
         if (lastTimeStamp != curTimeStamp) {
           Output.verbose("File has changed: " + fileName)
@@ -173,7 +167,7 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
     val cmvnConfig = projectConfig
 
     // Config Class generator
-    projectConfig.configClasses foreach { generator =>
+    projectConfig.configClasses.asScala.foreach { generator =>
       Output.info("Generating config class: " + generator.getClassName() + " in " + generator.getTargetDir())
       generator.generateClass(projectFile.getParentFile())
     }

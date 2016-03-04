@@ -2,13 +2,12 @@ package de.tototec.cmvn
 
 import java.io.File
 import java.io.FileNotFoundException
-
 import scala.Array.canBuildFrom
 import scala.collection.JavaConverters._
-
 import de.tototec.cmvn.configfile.KeyValue
 import de.tototec.cmvn.configfile.bndlike.ConfigFileReaderImpl
 import de.tototec.cmvn.model.CmvnProjectConfig
+import de.tototec.cmvn.oldandunused.EclipseClasspathGenerator
 
 object ConfiguredCmvnProject {
   def projectReader: ProjectReader = projectReader()
@@ -185,7 +184,11 @@ class ConfiguredCmvnProject(projectFileOrDir: File, relaxedVersionCheck: Boolean
       generatorResult.merge(ivyGenerator.generate)
     }
 
-    // TODO: Eclispe classpath generator, needs root project config
+    // Eclipse classpath generator, needs root project config
+    if (projectConfig.eclipseClasspathGeneratorConfig != null) {
+      val eclipseCpGen = new EclipseClasspathGenerator(this, projectConfig, allSubProjects.asJava)
+      generatorResult.merge(eclipseCpGen.generate())
+    }
 
     // Write current state
     inputState.toYamlFile(savedInputStateFile)

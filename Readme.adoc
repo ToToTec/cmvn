@@ -474,10 +474,20 @@ Directives:
 | Specify if this plugin is an extensions-plugin (and thus e.g. can contribute new project packaging types).
 | `-execution` | XML
 | A free XML fragement that will be placed inside the `<executions>`-block of this plugin.
-| `-plugindependency` | GAV
+| `-plugindependency` | GAV[;OPTION]*
 | A dependency used when executing the plugin command, e.g. to override a version.
 | `-xml:_anyOption_` | XML
 | Can be used if the option-value is XML and not text.
+|===
+
+Options:
+
+.Options for `plugin`
+[cols="1,1,3", options="header"]
+|===
+| Option | Format | Description
+| `exclude` | GA
+| Excluded dependency from transitive resolved dependency tree.
 |===
 
 Example:

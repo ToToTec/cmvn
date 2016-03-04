@@ -2,6 +2,7 @@ package de.tototec.cmvn;
 
 import java.text.MessageFormat;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -195,6 +196,7 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 					}
 					final Dependency pluginDep = new Dependency(depSplit[0].trim(), depSplit[1].trim(),
 							depSplit[2].trim());
+					final List<KeyValue> depOptions = new LinkedList<KeyValue>();
                     while (true) {
                     	if (!options.hasNext()) {
                     		break;
@@ -204,10 +206,9 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
                     		options.previous();
                     		break;
                     	}
-                    	String[] exclude = maybeExclude.value().split(":");
-                    	if (exclude.length != 2) new RuntimeException("Unsupported exclude: " + option);
-			            pluginDep.addToExcludes(new Dependency(exclude[0].trim(), exclude[1].trim(), "0"));
+                    	depOptions.add(maybeExclude);
                     }
+                    pluginDep.parseOptions(depOptions);
 					plugin.pluginDependencies().add(pluginDep);
 				} else if (oKey.equals("-extension")) {
 					plugin.extension_$eq(oVal.equals("true"));

@@ -7,5 +7,5 @@ before_script:
   - java -jar cmvn-executable-0.1.8.jar --configure
 
 script:
-  - java -jar cmvn-executable-0.1.8.jar -X clean install
+  - java -jar cmvn-executable-0.1.8.jar clean install
  

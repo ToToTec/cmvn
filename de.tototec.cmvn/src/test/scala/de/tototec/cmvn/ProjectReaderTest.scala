@@ -35,7 +35,21 @@ class ProjectReaderTest extends FreeSpec with Matchers {
           val pluginDep = plugin.pluginDependencies.get(0)
           pluginDep.excludes.size() shouldBe 0
       })
-    }}
+    }
+
+    "with a dedicated dependency with an exclude" in {
+      withTempFile("""|project: test:test:1
+                    |plugin: plugin:plugin:1;-pluginDependency=pd:pd:1;exclude=e:e""".stripMargin, {
+        file: File =>
+          val config = reader.readConfigFile(file)
+          config.plugins.size() shouldBe 1
+          val plugin = config.plugins.get(0)
+          plugin.pluginDependencies.size() shouldBe 1
+          val pluginDep = plugin.pluginDependencies.get(0)
+          pluginDep.excludes.size() shouldBe 1
+      })
+    }
 
   }
+
 }

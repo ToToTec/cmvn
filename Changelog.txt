@@ -1,4 +1,8 @@
-cmvn master:
+cmvn 0.2.1 - 2016-03-07:
+
+* Fixed configuration file read/write error by downgrading yamlbeans.
+
+cmvn 0.2.0 - 2016-03-04:
 
 * Much improved cmndline interface
 * Rewrite of internal handling of cmvn project

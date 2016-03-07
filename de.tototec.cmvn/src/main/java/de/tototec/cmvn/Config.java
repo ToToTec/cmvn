@@ -4,11 +4,11 @@ package de.tototec.cmvn;
 public abstract class Config {
 
 	public static String cmvnVersion() {
-		return "0.2.0";
+		return "0.2.1";
 	}
 
 	public static String cmvnOsgiVersion() {
-		return "0.2.0";
+		return "0.2.1.FINAL";
 	}
 
 	public static String cmvnCompatibleOsgiVersion() {

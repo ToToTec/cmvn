@@ -1,7 +1,7 @@
 = Configured Maven (Cmvn) - User Manual
 :author: Tobias Roeser
-:cmvn-version: 0.1.9-SNAPSHOT
-:cmvn-release-version: 0.1.8
+:cmvn-version: 0.2.0
+:cmvn-release-version: 0.2.0
 :toc:
 :toc-placement: preamble
 

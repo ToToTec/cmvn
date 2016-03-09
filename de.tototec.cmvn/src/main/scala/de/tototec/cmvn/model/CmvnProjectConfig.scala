@@ -3,6 +3,7 @@ package de.tototec.cmvn.model
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
+import java.util
 import java.util.Date
 import java.util.LinkedHashMap
 import java.util.LinkedList
@@ -23,6 +24,7 @@ class CmvnProjectConfig(val baseDir: String) {
   val reports = new java.util.LinkedList[Report]()
   val variables = new java.util.LinkedHashMap[String, String]()
   val configClasses = new java.util.LinkedList[ConfigClassGenerator]()
+  val xmls = new util.LinkedHashMap[String,String]()
 
   var project: Dependency = _
   var parentProject: Dependency = _

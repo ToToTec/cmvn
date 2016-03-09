@@ -47,6 +47,8 @@ public enum CmvnConfigKey implements ProjectConfigKeyValueReader {
 				final String oVal = option.value();
 				if (oKey.equals("packaging")) {
 					projectConfig.packaging_$eq(oVal);
+				} else if (oKey.startsWith("-xml:")){
+					projectConfig.xmls().put(oKey,oVal);
 				} else {
 					throw new RuntimeException("Unsupported project option: " + option);
 				}

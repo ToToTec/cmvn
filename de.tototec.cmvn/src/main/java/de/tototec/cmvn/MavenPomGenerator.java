@@ -4,11 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.maven.pom.x400.Build.Plugins;
@@ -447,6 +443,11 @@ public class MavenPomGenerator implements Generator {
 		final String packaging = projectConfig.packaging();
 		if (packaging != null) {
 			mvn.setPackaging(packaging);
+		}
+
+		LinkedHashMap<String, String> xmls = projectConfig.xmls();
+		if(!xmls.isEmpty()){
+			generatePropertiesBlock(xmls,mvn,"-xml:");
 		}
 	}
 
